@@ -1,0 +1,24 @@
+name: bugfix
+description: Fix incorrect behavior with the smallest safe change.
+agents:
+  - planner
+  - developer
+  - reviewer
+  - qa
+steps:
+  - id: reproduce
+    owner: planner
+    action: Identify the failing flow, expected behavior, role, data state and smallest reproduction.
+  - id: fix
+    owner: developer
+    action: Patch the narrowest owning layer without bypassing Service or DAO boundaries.
+  - id: review
+    owner: reviewer
+    action: Check for regression, security, transaction and contract drift.
+  - id: verify
+    owner: qa
+    action: Run the regression test and targeted Maven/runtime checks.
+done_when:
+  - The original failure is fixed.
+  - A regression check exists where practical.
+  - Relevant verification is reported.

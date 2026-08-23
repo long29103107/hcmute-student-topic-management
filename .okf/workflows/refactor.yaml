@@ -1,0 +1,24 @@
+name: refactor
+description: Improve structure without changing behavior or the REQUEST contract.
+agents:
+  - planner
+  - developer
+  - reviewer
+  - qa
+steps:
+  - id: scope
+    owner: planner
+    action: Define the behavior-preserving boundary and affected Java/JSP/SQL files.
+  - id: change
+    owner: developer
+    action: Make the smallest structural change while preserving routes, views and business rules.
+  - id: review
+    owner: reviewer
+    action: Check for accidental Spring MVC/REST/Service/DAO boundary or database contract changes.
+  - id: verify
+    owner: qa
+    action: Run the same tests and package/runtime checks that protected the previous behavior.
+done_when:
+  - Behavior remains unchanged.
+  - Structure is clearer or duplication is reduced.
+  - Relevant verification is reported.

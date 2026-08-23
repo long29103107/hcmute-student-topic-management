@@ -1,0 +1,28 @@
+name: feature
+description: Add a capability while preserving Spring MVC, REST adapter and Java monolith boundaries.
+agents:
+  - leader
+  - planner
+  - developer
+  - reviewer
+  - qa
+steps:
+  - id: clarify
+    owner: leader
+    action: Define the outcome, affected role, acceptance criteria and REQUEST alignment.
+  - id: plan
+    owner: planner
+    action: Identify phase task, domain rules, SSR/REST routes, Service/DAO/JDBC boundaries, JSP views and verification.
+  - id: implement
+    owner: developer
+    action: Add the smallest complete slice using Spring MVC, JSP/JSTL, REST DTOs, JDBC/MySQL and server-side validation.
+  - id: review
+    owner: reviewer
+    action: Check layer boundaries, authorization, transactions, prepared SQL, XSS/upload handling and scope drift.
+  - id: verify
+    owner: qa
+    action: Run focused tests, mvn test/package and MySQL/Tomcat smoke checks relevant to the slice.
+done_when:
+  - The intended role can complete the flow through SSR/REST adapters or the durable service contract exists.
+  - Business rules are enforced on the server and documented.
+  - Relevant checks pass or failures are explicitly reported.
