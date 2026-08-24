@@ -4,6 +4,11 @@ These are proposed stable route names for code generation. SSR routes map to
 Spring MVC `@Controller` methods and JSPs under `WEB-INF/views`. REST routes map
 to `@RestController` methods in the same WAR and reuse the same Service layer.
 
+For the course-project MVP, implement only routes needed for the core flow:
+periods, topics, groups, registrations, reports and simple evaluations/results.
+Board management, advanced announcements and optional polish routes are Should
+Have unless explicitly selected.
+
 ## Public/authentication
 
 | Method | Route | Controller/view | Access |
@@ -31,9 +36,9 @@ to `@RestController` methods in the same WAR and reuse the same Service layer.
 | GET/POST | `/faculty/periods` | `RegistrationPeriodController` → list/create/update |
 | GET/POST | `/faculty/topics/review` | `TopicReviewController` → approve/reject/publish |
 | GET/POST | `/faculty/registrations/review` | `RegistrationReviewController` → approve/reject |
-| GET/POST | `/faculty/boards` | `ReviewBoardController` → board/member/topic assignment |
+| GET/POST | `/faculty/boards` | `ReviewBoardController` → full board/member/topic assignment (Should Have) |
 | GET/POST | `/faculty/results` | `ResultController` → aggregate/publish |
-| GET/POST | `/announcements/manage` | `AnnouncementController` → create/edit/hide/publish |
+| GET/POST | `/announcements/manage` | `AnnouncementController` → advanced create/edit/hide/publish (Should Have) |
 
 ## Lecturer
 

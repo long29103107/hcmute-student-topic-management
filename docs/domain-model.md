@@ -11,6 +11,19 @@
 
 ## Core aggregates
 
+### Course-project MVP model
+
+For the môn học đồ án, the default model is intentionally small:
+`User`, `Department`, `RegistrationPeriod`, `Topic`, `StudentGroup`,
+`TopicRegistration`, `Report` and `Evaluation`. The detailed aggregates below
+describe extension points, not a requirement to create every table in the first
+implementation.
+
+The MVP can keep assigned lecturer, score, comment, average and publication
+status inside `Evaluation`. `ReviewBoard`, separate reviewer assignments,
+component-score records and final-result aggregates are Should Have unless the
+rubric explicitly requires them.
+
 ### User and Department
 
 `User` có tài khoản đăng nhập, họ tên, email/mã số, role, trạng thái active và
@@ -72,6 +85,9 @@ Thành viên group, GVHD và người chấm được xem/tải theo quyền.
 Hạn nộp báo cáo, loại file và dung lượng tối đa chưa được xác nhận.
 
 ### ReviewBoard and assignments
+
+This is the extended Should Have model. It is not required for the default MVP;
+the MVP may store the assigned lecturer directly on `Evaluation`.
 
 `ReviewBoard` có tên, period/topic scope nếu cần và trạng thái. `ReviewBoardMember`
 liên kết lecturer với board và có role `CHAIR`, `SECRETARY`, `MEMBER`.

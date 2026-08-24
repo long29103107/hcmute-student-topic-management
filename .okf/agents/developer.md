@@ -11,6 +11,11 @@ Make focused changes that keep the application runnable on Maven/Tomcat and
 preserve the Spring MVC Controller/REST Controller → Service → DAO/JDBC → MySQL
 boundary.
 
+Implement the smallest course-project MVP slice. Prefer the core
+`Evaluation` record with an assigned lecturer over separate review-board/member,
+assignment and score aggregates unless a task explicitly requests the extended
+Should Have model.
+
 ## Responsibilities
 
 - Inspect current code, schema and existing user changes before editing.

@@ -21,6 +21,15 @@ Thư mục này theo dõi các phase và implementation task của hệ thống 
   Java Mail và test.
 - `docs/`: đặc tả miền và hợp đồng dùng chung để sinh code.
 
+## Current course-project scope
+
+Mục tiêu hiện tại là một MVP vừa sức đồ án môn học: hoàn thành luồng đăng nhập,
+đợt đăng ký, đề tài, nhóm, đăng ký đề tài, báo cáo và đánh giá/kết quả. Dùng
+`REQUEST.md` để giữ capability, nhưng không tự triển khai mô hình hội đồng đầy
+đủ, nhiều reviewer, dashboard, audit log, email hoặc nhiều phiên bản báo cáo.
+Các phần này chỉ làm khi được chọn rõ trong Should/Nice to Have hoặc rubric yêu
+cầu.
+
 Không sao chép các tài liệu hoặc phase từ dự án khác nếu chúng đưa vào stack,
 kiến trúc hoặc hạ tầng ngoài phạm vi `REQUEST.md`.
 

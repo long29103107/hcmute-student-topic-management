@@ -29,7 +29,8 @@ Tests must cover, as the corresponding phases are implemented:
 - groups capped at three students and one leader;
 - one group registration per group and leader-only actions;
 - report upload permissions and file validation;
-- board size 3–5, exactly one chair and one secretary;
+- if the extended board is selected: board size 3–5, exactly one chair and one
+  secretary;
 - supervisor cannot score their own topic;
 - final average calculation and result visibility after publication.
 
@@ -39,3 +40,9 @@ Final task notes must list passed checks and explicitly state checks skipped due
 to missing Maven dependencies, MySQL, Tomcat or configuration. Do not mark a
 phase complete based only on compilation if its done criteria require runtime
 behavior.
+# Testing scope
+
+For this course project, prioritize tests for the core MVP flow and server-side
+rules. Do not require coverage for dashboard, email, audit log, AJAX search,
+multiple report versions or the extended review board unless that optional scope
+is explicitly selected.

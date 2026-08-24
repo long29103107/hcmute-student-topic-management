@@ -3,6 +3,12 @@
 Đây là ứng dụng MVC monolith cho Khoa Công nghệ Thông tin, được đặc tả trong
 [`REQUEST.md`](REQUEST.md).
 
+Đây là đồ án môn học nên mục tiêu hiện tại là MVP có thể demo end-to-end:
+đăng nhập → đợt đăng ký → đề tài → nhóm → đăng ký → báo cáo → đánh giá/kết
+quả. Không tự mở rộng thành hệ thống production hoặc triển khai hội đồng nhiều
+tầng, dashboard, audit log, email và nhiều phiên bản báo cáo nếu chưa được
+chọn rõ trong Must/Should/Nice to Have.
+
 ## Tài liệu nguồn cho code generation
 
 - `REQUEST.md` là nguồn sự thật cho mục tiêu, chức năng, quy tắc nghiệp vụ và

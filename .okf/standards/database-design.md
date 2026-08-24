@@ -1,5 +1,9 @@
 # Database Design Standard
 
+For the course-project MVP, prefer the eight core tables listed in
+`docs/database-design.md`. Do not pre-create separate review-board, reviewer,
+score-component or final-result tables for optional features.
+
 - MySQL is the only required database provider for this project.
 - Table and column names use `snake_case`; Java fields use `camelCase`.
 - Foreign keys, unique constraints and check-like invariants should be encoded

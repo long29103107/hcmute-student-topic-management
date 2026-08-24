@@ -1,5 +1,10 @@
 # Verification runbook
 
+For the course-project MVP, verify the core path first: authentication, period,
+topic, group, registration, report and simple evaluation/result publication.
+Full review-board, dashboard, email, audit-log and report-version checks are
+optional and should only be run when that scope is selected.
+
 ## Local Maven checks
 
 Run from repository root after `pom.xml` exists:
@@ -28,7 +33,9 @@ Verify at least:
 
 - schema can be created from the repository resources;
 - foreign keys/unique constraints exist;
-- transaction rollback leaves no partial group, registration, board or score;
+- transaction rollback leaves no partial group, registration or evaluation;
+- if the extended board is selected, also verify no partial board/member/topic
+  assignment;
 - prepared statements handle quotes and malicious-looking input as data.
 
 ## Spring MVC/Tomcat smoke checklist

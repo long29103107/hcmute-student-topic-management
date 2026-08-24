@@ -9,10 +9,10 @@ agents:
 steps:
   - id: clarify
     owner: leader
-    action: Define the outcome, affected role, acceptance criteria and REQUEST alignment.
+    action: Define the outcome, affected role, Must/Should/Nice priority, MVP boundary, acceptance criteria and REQUEST alignment.
   - id: plan
     owner: planner
-    action: Identify phase task, domain rules, SSR/REST routes, Service/DAO/JDBC boundaries, JSP views and verification.
+    action: Identify the smallest phase task, domain rules, SSR/REST routes, Service/DAO/JDBC boundaries, JSP views and verification; do not add optional aggregates by default.
   - id: implement
     owner: developer
     action: Add the smallest complete slice using Spring MVC, JSP/JSTL, REST DTOs, JDBC/MySQL and server-side validation.

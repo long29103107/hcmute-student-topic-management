@@ -10,12 +10,14 @@ Faculty Head creates period
   -> Group leader submits one topic registration
   -> Faculty Head approves registration
   -> Group leader submits report
-  -> Faculty Head creates board and assignments
-  -> Assigned lecturers enter scores
-  -> Chair aggregates final result
-  -> Faculty publishes result
+  -> Faculty Head assigns a lecturer for the MVP evaluation
+  -> Assigned lecturer enters score and comment
+  -> Faculty Head publishes the evaluation result
   -> Group members view their result
 ```
+
+The full board workflow (3–5 lecturers, chair, secretary and multiple
+assignments) is a Should Have extension. It must not block the MVP workflow.
 
 ## Time gates
 
@@ -65,10 +67,23 @@ avoid two concurrent submissions passing the same uniqueness check.
 - Re-submission before deadline is a Should Have and must not be implemented as
   a mandatory behavior until selected.
 
-## Board and score gates
+## Evaluation gates
 
-- Board cannot be saved unless it has 3–5 members, exactly one chair and one
-  secretary.
+For the MVP:
+
+- An approved registration must have one evaluation record and at least one
+  assigned lecturer before scoring.
+- The assigned lecturer cannot be a supervisor of the topic.
+- The lecturer submits a score/comment before the configured deadline when the
+  deadline applies.
+- Faculty Head publishes only after the score is present.
+- The final score is the average of the configured score values; keep the
+  grading scale and rounding configurable.
+
+## Extended board and score gates
+
+- The extended board cannot be saved unless it has 3–5 members, exactly one
+  chair and one secretary.
 - Topic must be assigned to board before scores are accepted.
 - A lecturer cannot submit a score if they are a supervisor of the topic.
 - Score deadline, if applicable, is checked server-side.

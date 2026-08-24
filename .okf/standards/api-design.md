@@ -1,5 +1,9 @@
 # Spring MVC HTTP and REST Contract Standard
 
+REST endpoints are required only for the selected MVP/core flow. Do not add
+AJAX-specific endpoints for search, dashboards, email or extended board
+management unless the corresponding Should/Nice to Have scope is approved.
+
 This project is a Spring MVC monolith with SSR pages and a RESTful API adapter.
 The API is deployed in the same WAR and reuses the same Service/DAO contracts;
 it is not a separate service or SPA backend.

@@ -3,6 +3,11 @@
 `REQUEST.md` vẫn là nguồn sự thật cao nhất. Các tài liệu dưới đây là bản phân
 rã để lập kế hoạch và sinh code, không mở rộng phạm vi sản phẩm.
 
+Đây là đồ án môn học nên mặc định triển khai MVP: luồng đăng nhập → đợt → đề
+tài → nhóm → đăng ký → báo cáo → đánh giá/kết quả. Không tự mở rộng thành hệ
+thống production với hội đồng nhiều tầng, dashboard, audit log, email hoặc
+nhiều phiên bản báo cáo nếu chưa được chọn trong `REQUEST.md`.
+
 | Tài liệu | Dùng khi |
 |---|---|
 | [`domain-model.md`](domain-model.md) | Tạo model, enum, DTO và quan hệ domain |

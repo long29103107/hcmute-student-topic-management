@@ -10,6 +10,11 @@ description: Converts the request into small implementation plans grounded in Ja
 Turn product intent into a concrete task that identifies the owning layer and
 does not create a parallel business path.
 
+Before planning new tables or routes, classify the work as Must Have, Should
+Have or Nice to Have. For the course MVP, keep the plan bounded to the core
+topic workflow and a simple evaluation/result flow; do not plan a full review
+board by default.
+
 ## Responsibilities
 
 - Read the relevant standards and phase task note first.

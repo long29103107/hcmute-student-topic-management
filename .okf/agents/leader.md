@@ -10,6 +10,11 @@ description: Owns product direction, scope, tradeoffs and final acceptance for t
 Keep implementation aligned with `REQUEST.md`: a Spring MVC Java monolith
 with JSP SSR, RESTful adapters and the end-to-end topic workflow.
 
+For this course project, protect the MVP boundary: eight core entities and one
+simple evaluation flow are enough. Keep full review boards, multiple reviewer
+roles, dashboards, audit logs, email and report versioning deferred unless the
+task or rubric explicitly promotes them.
+
 ## Responsibilities
 
 - Clarify the outcome and success criteria for the next task.

@@ -38,14 +38,15 @@ ngoài phạm vi môn học. Spring MVC, RESTful API và Java Mail là công ngh
 - Tạo và quản lý đợt đăng ký.
 - Phê duyệt và công bố danh sách đề tài.
 - Chấp thuận hoặc từ chối nhóm đăng ký đề tài.
-- Phân công GVHD, GVPB và quản lý hội đồng phản biện.
+- Phân công GVHD và giảng viên đánh giá; quản lý hội đồng phản biện đầy đủ là
+  Should Have.
 - Công bố kết quả đánh giá.
 
 ### 3.3. Giảng viên
 
 - Đăng ký/đề xuất đề tài trong thời gian quy định.
 - Hướng dẫn các đề tài được phân công.
-- Tham gia hội đồng phản biện.
+- Tham gia hội đồng phản biện khi chức năng Should Have được chọn.
 - Chấm điểm và nhập đánh giá cho đề tài được phân công.
 
 ### 3.4. Sinh viên
@@ -70,13 +71,30 @@ Trưởng khoa tạo đợt đăng ký
 → Sinh viên tạo nhóm và đăng ký một đề tài
 → Trưởng khoa chấp thuận đăng ký
 → Nhóm thực hiện và nhóm trưởng nộp báo cáo
-→ Thành lập hội đồng, phân công phản biện
-→ Giảng viên chấm điểm, chủ tịch tổng hợp kết quả
+→ Tạo phiên đánh giá, phân công giảng viên chấm
+→ Giảng viên chấm điểm, Khoa tổng hợp kết quả
 → Khoa CNTT công bố kết quả
 → Sinh viên xem kết quả
 ```
 
 ## 5. Yêu cầu chức năng bắt buộc - Must Have
+
+### Ranh giới MVP cho đồ án môn học
+
+Các chức năng bên dưới vẫn là phạm vi đầy đủ của hệ thống, nhưng phiên bản
+đồ án chỉ cần triển khai bản tối thiểu chạy được end-to-end. Không xây thêm
+module, bảng hoặc màn hình phức tạp nếu chưa phục vụ một tiêu chí Must Have.
+
+- Luồng MVP: đăng nhập → đợt đăng ký → đề tài → nhóm → đăng ký đề tài → nộp
+  báo cáo → đánh giá/điểm → công bố kết quả.
+- Mô hình lõi: `User`, `Department`, `RegistrationPeriod`, `Topic`,
+  `StudentGroup`, `TopicRegistration`, `Report` và `Evaluation`.
+- `ReviewBoard` đầy đủ, phân công nhiều người, chair/secretary và workflow
+  phản biện chi tiết là Should Have; bản Must Have chỉ cần một phiên đánh giá
+  và ít nhất một giảng viên được phân công chấm.
+- Thông báo có thể triển khai dạng danh sách đăng/xem cơ bản; quản lý phạm vi,
+  ẩn/công bố nâng cao là Should Have.
+- Chỉ mở rộng lên bản đầy đủ nếu rubric hoặc giảng viên yêu cầu rõ.
 
 ### FR-01. Đăng nhập và phân quyền
 
@@ -143,18 +161,18 @@ Hệ thống không cho phép đăng ký ngoài thời gian quy định.
 ### FR-09. Phân công giảng viên
 
 - Quản lý từ 1 đến 2 GVHD cho mỗi đề tài.
-- Phân công GVPB và giảng viên tham gia chấm.
+- Bản MVP phân công ít nhất một giảng viên được phép chấm cho mỗi đề tài.
 - Một giảng viên có thể chấm nhiều đề tài.
 - Giảng viên không được chấm đề tài mình đang hướng dẫn.
+- Phân công nhiều loại reviewer và lịch sử phân công chi tiết là Should Have.
 
 ### FR-10. Hội đồng phản biện
 
-- Thành lập hội đồng và phân công đề tài cho hội đồng.
-- Mỗi hội đồng có từ 3 đến 5 giảng viên.
-- Có đúng 1 chủ tịch và đúng 1 thư ký thuộc hội đồng.
-- Thành viên nhập đánh giá và điểm cho đề tài được phân công.
-- Chủ tịch tổng hợp đánh giá và điểm để đưa ra kết quả phản biện cuối cùng.
+- Bản MVP có một phiên đánh giá gắn với đề tài và giảng viên được phân công.
+- Giảng viên được phân công nhập đánh giá và điểm.
 - Không phân công GVHD chấm chính đề tài họ hướng dẫn.
+- Hội đồng 3–5 giảng viên, chair/secretary và tổng hợp nhiều đánh giá là
+  Should Have, trừ khi rubric bắt buộc.
 
 ### FR-11. Chấm điểm và công bố kết quả
 
@@ -165,8 +183,9 @@ Hệ thống không cho phép đăng ký ngoài thời gian quy định.
 
 ### FR-12. Quản lý thông báo
 
-- Người có quyền đăng, sửa, ẩn và công bố thông báo của trường hoặc khoa.
-- Người dùng xem được các thông báo đã công bố.
+- Bản MVP cho phép tạo và xem thông báo cơ bản.
+- Quản lý thông báo theo phạm vi trường/khoa, sửa, ẩn và công bố nâng cao là
+  Should Have.
 
 ## 6. Chức năng nên có - Should Have
 
@@ -180,6 +199,10 @@ Chỉ làm sau khi luồng Must Have đã hoạt động:
 - Khóa sửa điểm sau khi công bố kết quả.
 - Giao diện responsive trên desktop/mobile.
 - Validation phía client; server vẫn phải kiểm tra lại.
+- Hội đồng phản biện đầy đủ: 3–5 giảng viên, chair/secretary, phân công topic
+  và tổng hợp nhiều đánh giá.
+- Phân công nhiều reviewer/GVPB và lịch sử phân công.
+- Quản lý thông báo đầy đủ theo phạm vi, trạng thái và quyền.
 
 ## 7. Chức năng có thì tốt - Nice to Have
 
@@ -204,31 +227,58 @@ Không bắt buộc cho phiên bản đầu:
 | BR-07 | Chỉ được đăng ký trong thời gian quy định. |
 | BR-08 | Hạn GVPB chỉ áp dụng cho TLCN hoặc KLTN. |
 | BR-09 | Ngày báo cáo hội đồng chỉ áp dụng cho KLTN. |
-| BR-10 | Hội đồng có 3–5 GV, đúng 1 chủ tịch và 1 thư ký. |
+| BR-10 | MVP có ít nhất 1 giảng viên được phân công đánh giá; hội đồng 3–5 GV, đúng 1 chủ tịch và 1 thư ký là Should Have. |
 | BR-11 | GV không được chấm đề tài mình hướng dẫn. |
 | BR-12 | Điểm cuối cùng là trung bình cộng các điểm thành phần. |
 | BR-13 | Sinh viên chỉ xem kết quả của đề tài mình tham gia. |
 
-## 9. Dữ liệu chính
+## 9. Dữ liệu chính và mối quan hệ rút gọn
 
-Các bảng/nhóm dữ liệu dự kiến:
+Để dễ phân tích và triển khai phiên bản đầu, mô hình khái niệm được rút gọn
+thành các thực thể lõi sau. Khi thiết kế database, các bảng liên kết kỹ thuật
+vẫn có thể tách riêng nhưng không tạo thêm aggregate nghiệp vụ mới nếu không
+cần thiết.
 
-- `users`: tài khoản và vai trò.
-- `departments`: bộ môn.
-- `registration_periods`: đợt đăng ký và các mốc thời gian.
-- `topics`: đề tài.
-- `topic_supervisors`: GVHD của đề tài.
-- `student_groups`, `group_members`: nhóm và thành viên.
-- `topic_registrations`: đăng ký đề tài và trạng thái duyệt.
-- `reports`: báo cáo đã nộp.
-- `reviewer_assignments`: phân công GVPB/người chấm.
-- `review_boards`, `review_board_members`: hội đồng và thành viên.
-- `board_topic_assignments`: đề tài của hội đồng.
-- `scores`: điểm, nhận xét và người chấm.
-- `final_results`: kết quả tổng hợp và trạng thái công bố.
-- `announcements`: thông báo.
+### 9.1. Các thực thể lõi
 
-Tên bảng có thể thay đổi khi thiết kế database nhưng phải giữ đúng quan hệ nghiệp vụ.
+- `User`: tài khoản, thông tin cá nhân, vai trò và trạng thái hoạt động. Bao
+  gồm quản trị viên, trưởng khoa, giảng viên và sinh viên; `GROUP_LEADER` là
+  thuộc tính của thành viên nhóm.
+- `Department`: bộ môn thuộc Khoa CNTT.
+- `RegistrationPeriod`: đợt đăng ký, loại đề tài và các mốc thời gian cho GV,
+  SV, GVPB và hội đồng.
+- `Topic`: đề tài, nội dung, bộ môn, đợt đăng ký, trạng thái và các giảng viên
+  hướng dẫn.
+- `StudentGroup`: nhóm sinh viên, danh sách thành viên và nhóm trưởng.
+- `TopicRegistration`: yêu cầu nhóm đăng ký một đề tài và trạng thái duyệt.
+- `Report`: báo cáo của nhóm, thông tin file, người nộp và thời gian nộp.
+- `ReviewBoard`: cấu trúc hội đồng mở rộng cho Should Have; MVP chỉ cần giữ
+  thông tin giảng viên được phân công trong `Evaluation`.
+- `Evaluation`: phiên đánh giá tối giản, người chấm, điểm, nhận xét, điểm tổng
+  hợp và trạng thái công bố kết quả.
+- `Announcement`: thông báo, phạm vi hiển thị, người đăng và trạng thái công
+  bố.
+
+### 9.2. Mối quan hệ chính
+
+| Quan hệ | Bội số | Quy tắc chính |
+|---|---:|---|
+| `Department` - `Topic` | 1 - N | Mỗi đề tài thuộc đúng một bộ môn. |
+| `RegistrationPeriod` - `Topic` | 1 - N | Mỗi đề tài thuộc đúng một đợt đăng ký. |
+| `Topic` - `User` (giảng viên hướng dẫn) | N - N | Mỗi đề tài có từ 1 đến 2 GVHD. |
+| `User` (sinh viên) - `StudentGroup` | N - N | Nhóm tối đa 3 SV, đúng 1 nhóm trưởng; một SV không tham gia trùng nhóm. |
+| `StudentGroup` - `TopicRegistration` | 1 - N theo lịch sử | Mỗi nhóm chỉ có một đăng ký hiện hành trong cùng ngữ cảnh. |
+| `Topic` - `TopicRegistration` | 1 - N | Chỉ đề tài đã công bố và đúng đợt mới được đăng ký. |
+| `TopicRegistration` - `Report` | 1 - N theo phiên bản | Chỉ nhóm trưởng của đăng ký đã được chấp thuận được nộp. |
+| `ReviewBoard` - `User` (giảng viên) | N - N, Should | Chỉ cần khi triển khai hội đồng đầy đủ; board có 3–5 GV, đúng 1 chủ tịch và 1 thư ký. |
+| `ReviewBoard` - `Topic` | N - N, Should | Chỉ cần khi triển khai phân công topic vào hội đồng; MVP dùng `Evaluation` trực tiếp. |
+| `TopicRegistration` - `Evaluation` | 1 - 0..1 | Kết quả được tổng hợp sau khi chấm và chỉ hiển thị sau khi công bố. |
+| `User` - `Announcement` | 1 - N | Người có quyền tạo, sửa, ẩn và công bố thông báo. |
+
+Các quan hệ nhiều-nhiều có thể được triển khai bằng bảng liên kết như
+`topic_supervisors`, `group_members`, `review_board_members` và
+`board_topic_assignments`; đây là chi tiết database, không phải thực thể lõi
+độc lập trong mô hình khái niệm rút gọn.
 
 ## 10. Yêu cầu kỹ thuật tối thiểu
 
@@ -253,11 +303,11 @@ Tên bảng có thể thay đổi khi thiết kế database nhưng phải giữ 
 5. Sinh viên tạo nhóm tối đa 3 thành viên, không tham gia trùng nhóm.
 6. Nhóm trưởng đăng ký đúng 1 đề tài trong đúng thời gian.
 7. Nhóm trưởng nộp được báo cáo.
-8. Tạo được hội đồng 3–5 GV có chủ tịch và thư ký.
+8. Tạo được một phiên đánh giá và phân công ít nhất một giảng viên chấm.
 9. Hệ thống chặn GV chấm đề tài mình hướng dẫn.
 10. Giảng viên nhập điểm; hệ thống tính đúng điểm trung bình.
 11. Khoa công bố kết quả; sinh viên chỉ xem kết quả của nhóm mình.
-12. Quản lý được tài khoản và thông báo cơ bản.
+12. Người dùng xem được thông báo cơ bản; quản lý nâng cao là Should Have.
 
 ## 12. Ngoài phạm vi phiên bản đầu
 
@@ -266,6 +316,9 @@ Tên bảng có thể thay đổi khi thiết kế database nhưng phải giữ 
 - Docker, Kubernetes hoặc CI/CD.
 - Email, dashboard và audit log nâng cao, trừ khi task Nice to Have tương ứng được chọn.
 - Báo cáo thống kê phức tạp.
+- Hội đồng 3–5 giảng viên với chair/secretary nếu rubric không yêu cầu; bản
+  MVP dùng phiên đánh giá đơn giản.
+- Mô hình phân công reviewer nhiều tầng hoặc nhiều loại điểm thành phần.
 
 ## 13. Điểm cần xác nhận với giảng viên
 

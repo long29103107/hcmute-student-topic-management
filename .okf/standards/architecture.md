@@ -1,5 +1,14 @@
 # Architecture Standard
 
+## Course-project MVP boundary
+
+Use the smallest architecture that demonstrates the core flow in
+`REQUEST.md`. The default domain aggregates are User, Department,
+RegistrationPeriod, Topic, StudentGroup, TopicRegistration, Report and
+Evaluation. Do not introduce a separate review-board/member/assignment/score/
+final-result aggregate unless the task explicitly selects the Should Have
+extension.
+
 ## Repository shape
 
 ```text

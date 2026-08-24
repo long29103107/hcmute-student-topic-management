@@ -3,6 +3,10 @@
 `GROUP_LEADER` is a group membership attribute. A request must satisfy both
 the system role and the resource relationship where a row says “own/group”.
 
+For the course-project MVP, use this matrix with a simple assigned-lecturer
+evaluation. The full review-board/member/role flow is a Should Have extension;
+do not create extra authorization paths for it unless selected.
+
 | Capability | Admin | Faculty Head | Lecturer | Student | Group leader |
 |---|---:|---:|---:|---:|---:|
 | Sign in/out | yes | yes | yes | yes | yes |
@@ -17,9 +21,9 @@ the system role and the resource relationship where a row says “own/group”.
 | Approve/reject group registration | no | yes | no | no | no |
 | Submit report | no | no | no | no | group leader only |
 | View/download permitted report | yes | yes | assigned roles | group members + assigned roles | group member |
-| Manage supervisors/board/assignments | no | yes | no | no | no |
+| Manage supervisors/board/assignments | no | yes, Should | no | no | no |
 | Enter score for assigned topic | no | no | assigned lecturer | no | no |
-| Aggregate board result | no | yes/assigned chair | chair only | no | no |
+| Aggregate board result | no | yes/assigned chair, Should | chair only, Should | no | no |
 | Publish final result | no | yes | no | no | no |
 | View own group result after publication | no | no | no | own group only | own group only |
 | Manage announcements | yes | yes if granted | no | no | no |

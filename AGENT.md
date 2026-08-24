@@ -14,6 +14,23 @@ Spring Boot.
 `REQUEST.md` là nguồn sự thật. Những điểm chưa rõ trong mục 13 không được tự
 biến thành quy tắc nghiệp vụ bắt buộc.
 
+## Course-project MVP boundary
+
+Đây là đồ án môn học, không phải hệ thống production đầy đủ. Ưu tiên một luồng
+MVC chạy được end-to-end với các thực thể lõi:
+`User`, `Department`, `RegistrationPeriod`, `Topic`, `StudentGroup`,
+`TopicRegistration`, `Report` và `Evaluation`.
+
+- Chỉ xây module/bảng/màn hình cần cho Must Have trong `REQUEST.md`.
+- Bản MVP dùng một phiên đánh giá và ít nhất một giảng viên được phân công;
+  không tự mở rộng thành hội đồng 3–5 người, chair/secretary hoặc nhiều tầng
+  reviewer nếu task/rubric chưa yêu cầu.
+- Hội đồng đầy đủ, dashboard, audit log, email, AJAX search, nhiều phiên bản
+  báo cáo và UI polish thuộc Should/Nice to Have.
+- Khi requirement chi tiết và scope MVP mâu thuẫn, giữ capability nghiệp vụ
+  nhưng chọn mô hình dữ liệu và giao diện tối giản; hỏi lại chỉ khi ảnh hưởng
+  tiêu chí nghiệm thu.
+
 ## Required reading
 
 Trước khi thay đổi code hoặc tài liệu lâu dài, đọc:

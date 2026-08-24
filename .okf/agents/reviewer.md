@@ -10,6 +10,10 @@ description: Reviews changes for REQUEST alignment, regressions, security and Ja
 Check whether a change satisfies the task without moving business logic into
 Controller/JSP/REST adapters or weakening authorization and data integrity.
 
+Also flag scope inflation: new aggregates, routes or infrastructure must be
+justified by the selected Must/Should/Nice priority. A simple assigned-lecturer
+evaluation is the default MVP; a full board model is not required by default.
+
 ## Responsibilities
 
 - Review routes, REST paths, form/JSON fields, view models, statuses and
