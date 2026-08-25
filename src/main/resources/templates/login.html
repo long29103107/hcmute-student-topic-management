@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập · HCMUTE Student Topic Management</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+</head>
+<body>
+<main class="card">
+    <div class="brand">
+        <span class="brand-mark" aria-hidden="true">T</span>
+        <div><strong>HCMUTE Student Topic Management</strong><span>Cổng quản lý đề tài sinh viên</span></div>
+    </div>
+    <h1>Đăng nhập</h1>
+    <p class="intro">Đăng nhập để quản lý nhóm, đề tài, báo cáo và kết quả của bạn.</p>
+
+    <div class="message" th:if="${loginError}">Tên đăng nhập hoặc mật khẩu không đúng.</div>
+    <div class="message success" th:if="${loggedOut}">Bạn đã đăng xuất thành công.</div>
+
+    <form th:action="@{/login}" method="post">
+        <label for="username">Tên đăng nhập</label>
+        <input id="username" name="username" type="text" autocomplete="username" required autofocus>
+        <label for="password">Mật khẩu</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <button type="submit">Đăng nhập</button>
+    </form>
+
+    <a class="back" href="/">← Về trang chủ</a>
+    <p class="note">Đây là màn hình đăng nhập đầu tiên của MVP. Tài khoản và phân quyền thực tế sẽ được nối vào module User/Role ở phase tiếp theo.</p>
+</main>
+</body>
+</html>

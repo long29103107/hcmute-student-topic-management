@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main}">
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+</head>
+<body>
+    <main layout:fragment="content" id="overview">
+        <section class="page-intro" aria-labelledby="page-title">
+            <div>
+                <p class="eyebrow">Overview</p>
+                <h1 id="page-title">Dashboard</h1>
+                <p>Toàn cảnh nhanh về đợt đăng ký, đề tài, nhóm sinh viên và trạng thái đánh giá.</p>
+            </div>
+            <div class="sync-label">Last synced<strong th:text="${serverTime}">25/08/2026 00:00:00 +07:00</strong></div>
+        </section>
+
+        <section class="stats-grid" aria-label="Chỉ số tổng quan">
+            <article class="stat-card"><span class="stat-label">Đề tài đã công bố</span><div class="stat-value" th:text="${topicCount}">24</div><p class="stat-note">Topics available for students</p></article>
+            <article class="stat-card"><span class="stat-label">Đơn đăng ký chờ xử lý</span><div class="stat-value" th:text="${registrationCount}">12</div><p class="stat-note">Registrations in current period</p></article>
+            <article class="stat-card"><span class="stat-label">Nhóm sinh viên</span><div class="stat-value" th:text="${groupCount}">8</div><p class="stat-note">Active groups in workspace</p></article>
+            <article class="stat-card"><span class="stat-label">Thông báo mới</span><div class="stat-value" th:text="${announcementCount}">3</div><p class="stat-note">Updates to review</p></article>
+        </section>
+
+        <section class="two-col" aria-label="Đợt đăng ký và thao tác nhanh">
+            <article class="panel" id="registrations">
+                <div class="panel-header"><div><p class="eyebrow">Registration period</p><h2 th:text="${activePeriod}">Đợt đăng ký đồ án học kỳ I</h2><p class="panel-subtitle">Thời gian hiện tại và các trạng thái chính của luồng đăng ký.</p></div><span class="status-pill success" th:text="${periodStatus}">Đang mở</span></div>
+                <div class="period-row"><div><strong>Giảng viên đề xuất đề tài</strong><span>Đề tài có thể được tạo và cập nhật</span></div><span class="status-pill success">Available</span></div>
+                <div class="period-row"><div><strong>Sinh viên đăng ký đề tài</strong><span>Leader gửi đơn cho nhóm</span></div><span class="status-pill success">Available</span></div>
+            </article>
+
+            <article class="panel" id="topics">
+                <div class="panel-header"><div><p class="eyebrow">Quick actions</p><h2>Điểm vào chức năng</h2><p class="panel-subtitle">Các module sẽ được nối service/database theo từng phase.</p></div></div>
+                <div class="action-grid">
+                    <a class="action-link" href="#topics">Danh sách đề tài <span>→</span></a>
+                    <a class="action-link" href="#groups">Nhóm của tôi <span>→</span></a>
+                    <a class="action-link" href="#reports">Nộp báo cáo <span>→</span></a>
+                    <a class="action-link" href="#activity">Xem hoạt động <span>→</span></a>
+                </div>
+            </article>
+        </section>
+
+        <section class="panel health-panel" id="groups" aria-labelledby="health-title">
+            <div class="panel-header"><div><p class="eyebrow">Workflow health</p><h2 class="health-title" id="health-title">Luồng nghiệp vụ đang hoạt động</h2><p class="health-copy">Các thành phần cốt lõi của MVP đã có điểm vào để nhóm phát triển tiếp từ dashboard.</p></div><span class="status-pill success">Operational</span></div>
+            <div class="health-grid">
+                <div class="health-item"><strong>Đề tài & khoa</strong><span class="health-badge">Available</span></div>
+                <div class="health-item"><strong>Nhóm & thành viên</strong><span class="health-badge">Available</span></div>
+                <div class="health-item"><strong>Đăng ký & xét duyệt</strong><span class="health-badge">Available</span></div>
+            </div>
+        </section>
+
+        <section class="two-col lower-grid">
+            <article class="panel" id="activity">
+                <div class="panel-header"><div><p class="eyebrow">Recent activity</p><h2>Hoạt động gần đây</h2></div><span class="panel-link">MVP timeline</span></div>
+                <div class="announcement"><span class="announcement-dot" aria-hidden="true"></span><div><h3>Mở đợt đăng ký đề tài</h3><p>Sinh viên có thể gửi đơn trong thời gian của đợt hiện tại.</p><time>Hôm nay</time></div></div>
+                <div class="announcement"><span class="announcement-dot" aria-hidden="true"></span><div><h3>Nhắc cập nhật thành viên nhóm</h3><p>Leader kiểm tra danh sách trước khi đăng ký đề tài.</p><time>Hôm qua</time></div></div>
+                <div class="announcement" id="announcements"><span class="announcement-dot" aria-hidden="true"></span><div><h3>Lịch nộp báo cáo</h3><p>Thông tin chi tiết sẽ được cập nhật theo từng đợt.</p><time>20/08/2026</time></div></div>
+            </article>
+
+            <article class="panel" id="reports">
+                <div class="panel-header"><div><p class="eyebrow">System note</p><h2>Phạm vi MVP</h2></div></div>
+                <p class="mvp-note"><strong>Operational:</strong> trang này đang dùng dữ liệu mẫu từ controller để dựng first look. Các module phía sau sẽ dùng chung service và database.</p>
+                <ul class="tech-list"><li>Đăng nhập và phân quyền</li><li>Đợt đăng ký, đề tài và nhóm</li><li>Nộp báo cáo, đánh giá và công bố kết quả</li></ul>
+            </article>
+        </section>
+    </main>
+</body>
+</html>

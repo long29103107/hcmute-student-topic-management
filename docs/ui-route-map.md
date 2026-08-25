@@ -22,7 +22,8 @@ Have unless explicitly selected.
 
 | Method | Route | Purpose |
 |---|---|---|
-| GET | `/` | role-aware dashboard/redirect |
+| GET | `/` | `HomeController` → `home.html`, first-look MVP dashboard |
+| GET | `/home` | same view as `/`, explicit home endpoint |
 | GET | `/announcements` | published announcements |
 | GET | `/topics` | published topic list and filters when available |
 | GET | `/topics/view?id=...` | topic detail |

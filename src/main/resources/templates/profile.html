@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main}">
+<head>
+    <title>My Profile</title>
+    <link rel="stylesheet" th:href="@{/css/profile.css}">
+</head>
+<body>
+    <main layout:fragment="content" class="profile-main">
+        <section class="panel profile-card">
+            <p class="eyebrow">My Profile</p>
+            <h1>Thông tin tài khoản</h1>
+            <p class="profile-subtitle">Trang placeholder để nhóm nối thêm thông tin User/Role ở phase sau.</p>
+            <div class="profile-row">
+                <span class="avatar" sec:authentication="name">U</span>
+                <div>
+                    <strong sec:authentication="name">user</strong>
+                    <span>Đang đăng nhập vào hệ thống</span>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

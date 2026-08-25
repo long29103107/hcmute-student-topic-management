@@ -1,0 +1,8 @@
+.profile-main { max-width: 900px; }
+.profile-card { max-width: 720px; padding: 30px; }
+.profile-card h1 { font-size: clamp(2rem, 4vw, 2.7rem); }
+.profile-subtitle { margin: 10px 0 24px; color: var(--muted); line-height: 1.55; }
+.profile-row { display: flex; align-items: center; gap: 14px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--primary-soft); }
+.profile-row .avatar { width: 48px; height: 48px; }
+.profile-row strong { display: block; }
+.profile-row span:not(.avatar) { display: block; margin-top: 4px; color: var(--muted); font-size: .85rem; }

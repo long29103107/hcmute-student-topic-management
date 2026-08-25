@@ -11,19 +11,30 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-public class StartController {
+public class HomeController {
 
     private static final DateTimeFormatter TIME_FORMATTER =
             DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss XXX");
 
-    @GetMapping({"/", "/start"})
-    public String start(Model model) {
+    @GetMapping("/")
+    public String root() {
+        return "redirect:/home";
+    }
+
+    @GetMapping("/home")
+    public String home(Model model) {
         model.addAttribute("applicationName", "HCMUTE Student Topic Management");
-        model.addAttribute("status", "RUNNING");
+        model.addAttribute("pageTitle", "Dashboard");
+        model.addAttribute("activePeriod", "Đợt đăng ký đồ án học kỳ I");
+        model.addAttribute("periodStatus", "Đang mở");
+        model.addAttribute("topicCount", 24);
+        model.addAttribute("registrationCount", 12);
+        model.addAttribute("groupCount", 8);
+        model.addAttribute("announcementCount", 3);
+        model.addAttribute("serverTime", OffsetDateTime.now(ZoneId.systemDefault()).format(TIME_FORMATTER));
         model.addAttribute("javaVersion", System.getProperty("java.version"));
         model.addAttribute("springVersion", SpringVersion.getVersion());
         model.addAttribute("springBootVersion", SpringBootVersion.getVersion());
-        model.addAttribute("serverTime", OffsetDateTime.now(ZoneId.systemDefault()).format(TIME_FORMATTER));
-        return "start";
+        return "home";
     }
 }

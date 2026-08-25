@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<aside class="sidebar" aria-label="Thanh điều hướng chính" th:fragment="sidebar">
+    <a class="brand" th:href="@{/home}" aria-label="Về dashboard">
+        <span class="brand-mark" aria-hidden="true">TM</span>
+        <span>
+            <span class="brand-name">Topic Manager</span>
+            <span class="brand-caption">HCMUTE Student Portal</span>
+        </span>
+    </a>
+
+    <div class="sidebar-intro">
+        <strong>MVP workspace enabled</strong>
+        <span><b>8</b> core entities · <b>12</b> Must Have flows</span>
+    </div>
+
+    <p class="sidebar-label">Workspace</p>
+    <nav class="sidebar-nav">
+        <a th:href="@{/home#overview}" aria-current="page">
+            <span class="sidebar-icon">▦</span><span>Dashboard</span>
+        </a>
+    </nav>
+</aside>
+</body>
+</html>
