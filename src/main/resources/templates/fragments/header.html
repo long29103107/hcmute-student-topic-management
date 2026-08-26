@@ -11,10 +11,10 @@
         <button class="icon-button" type="button" onclick="window.location.reload()" aria-label="Refresh page" title="Refresh">⟳</button>
         <details class="account-menu" sec:authorize="isAuthenticated()">
             <summary class="account-summary" aria-label="Mở menu tài khoản">
-                <span class="avatar" sec:authentication="name">U</span>
+                <span class="avatar" th:text="${#authentication.principal.initials}">SA</span>
                 <span class="account-copy">
-                    <strong sec:authentication="name">user</strong>
-                    <small>Tài khoản</small>
+                    <strong th:text="${#authentication.principal.fullName}">System Administrator</strong>
+                    <small th:text="${#authentication.principal.primaryRoleName}">Administrator</small>
                 </span>
                 <span class="chevron" aria-hidden="true">⌄</span>
             </summary>

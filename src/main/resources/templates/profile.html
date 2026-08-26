@@ -9,11 +9,12 @@
         <section class="panel profile-card">
             <p class="eyebrow">My Profile</p>
             <h1>Thông tin tài khoản</h1>
-            <p class="profile-subtitle">Trang placeholder để nhóm nối thêm thông tin User/Role ở phase sau.</p>
+            <p class="profile-subtitle">Thông tin tài khoản và role hiện tại.</p>
             <div class="profile-row">
-                <span class="avatar" sec:authentication="name">U</span>
+                <span class="avatar" th:text="${#authentication.principal.initials}">SA</span>
                 <div>
-                    <strong sec:authentication="name">user</strong>
+                    <strong th:text="${#authentication.principal.fullName}">System Administrator</strong>
+                    <span th:text="${#authentication.principal.primaryRoleName}">Administrator</span>
                     <span>Đang đăng nhập vào hệ thống</span>
                 </div>
             </div>

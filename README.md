@@ -22,18 +22,18 @@ chọn rõ trong Must/Should/Nice to Have.
 Đọc theo thứ tự: `REQUEST.md` → `.okf/README.md` → phase hiện tại → tài liệu
 liên quan trong `docs/`.
 
-## Stack dùng trong môn học và project
+## Stack dùng trong project
 
-- Java + Spring Framework/Spring MVC trên Jakarta Servlet
-- JSP + JSTL, server-side rendering
-- RESTful API trong cùng Spring MVC monolith
-- JDBC + MySQL
-- Maven + Apache Tomcat
-- HTML/CSS/JavaScript, Tailwind CSS và jQuery
-- Java Mail cho luồng email tùy chọn
+- Java 21 + Spring Boot/Spring MVC
+- Thymeleaf + Layout Dialect cho server-side rendering
+- Spring Data JPA/Hibernate
+- Spring Security với BCrypt và RBAC
+- MySQL cho dữ liệu thật; H2 in-memory cho test/first-look
+- Maven + embedded Tomcat
+- HTML/CSS/JavaScript thuần cho giao diện MVP
 
-Giao diện dùng Tailwind CSS. Không đưa SPA, React/Vue/Angular,
-microservices, Docker/Kubernetes hoặc CI/CD vào phiên bản đầu.
+Không đưa SPA, React/Vue/Angular, microservices, Docker/Kubernetes hoặc CI/CD
+vào phiên bản đầu.
 
 ## Quy ước triển khai
 
@@ -51,46 +51,37 @@ mvn package
 
 Việc chạy đầy đủ còn cần MySQL và Apache Tomcat theo cấu hình môi trường.
 
-## Code base hiện tại
-
-Nền tảng đã có:
-
-- WAR Maven chạy trên Tomcat 10.1.
-- Java config cho Spring Framework Core/Spring MVC; không dùng Spring Boot.
-- `@Controller` cho SSR và `@RestController` cho `/api`.
-- `DataSource`/DAO JDBC với `PreparedStatement` và schema nền tảng cho users/departments.
-- JSP/JSTL dưới `WEB-INF/views`.
-- Tailwind CLI và jQuery WebJar.
-
-### Build backend
+## Chạy backend
 
 ```powershell
-mvn clean test package
+mvn test
+mvn spring-boot:run
 ```
 
-WAR tạo tại `target/hcmute-student-topic-management.war`.
-
-### Build Tailwind
-
-```powershell
-npm install
-npm run css:build
-```
+Không cấu hình biến môi trường thì app dùng H2 in-memory để debug giao diện.
 
 ### Cấu hình MySQL
 
-Override các biến runtime trước khi chạy Tomcat:
+Chạy lần lượt [`database/ddl.sql`](database/ddl.sql) và
+[`database/seed.sql`](database/seed.sql) trên MySQL trước khi chạy app.
+Sau đó override các biến runtime:
 
 ```powershell
-$env:DB_URL = 'jdbc:mysql://localhost:3306/hcmute_topic_management?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true'
+$env:DB_URL = 'jdbc:mysql://127.0.0.1:3306/hcmute_topic_management?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true'
 $env:DB_USERNAME = 'root'
 $env:DB_PASSWORD = '<local-secret>'
+$env:DB_DRIVER = 'com.mysql.cj.jdbc.Driver'
+mvn spring-boot:run
 ```
 
-Các route kiểm tra nền tảng sau khi deploy:
+Schema MVP được quản lý explicit bằng hai file SQL nên Hibernate để
+`ddl-auto=none` và Flyway được tắt cho đến khi project có migration riêng.
 
-- `/` — trang SSR foundation.
-- `/api/health` — REST health response.
+Các route hiện có:
 
-Project dùng Spring Framework Core/Spring MVC trực tiếp với
-`DispatcherServlet`/Java config; không thêm `spring-boot-starter-*`.
+- `/login` — đăng nhập bắt buộc.
+- `/home` — dashboard sau khi đăng nhập.
+- `/profile` — thông tin tài khoản và role hiện tại.
+
+Tài khoản local và quyền mẫu được tạo bởi `database/seed.sql`; không commit
+mật khẩu mới hoặc mật khẩu plaintext vào source.
