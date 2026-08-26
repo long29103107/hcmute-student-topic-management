@@ -11,7 +11,7 @@ workflow:
 
 | Table | Main columns/relationships |
 |---|---|
-| `users` | id, login identifier, full name, email/code, password_hash, role, active |
+| `users` | id, login identifier, full name, email/code, password_hash, role_id, active |
 | `departments` | id, code/name, active |
 | `registration_periods` | id, name, type, lecturer_start/end, student_start/end |
 | `topics` | id, period_id, department_id, title, description, status, supervisor_id or a small supervisor relation |
@@ -19,6 +19,21 @@ workflow:
 | `topic_registrations` | id, group_id, topic_id, submitted_by, submitted_at, status |
 | `reports` | id, registration_id, stored_name, original_name, content_type, size, uploader_id, submitted_at |
 | `evaluations` | id, registration_id/topic_id, lecturer_id, score, comment, average_score, status, published_at |
+
+## Authentication and authorization tables
+
+These tables support the login and role-management UI without expanding the
+course-project business workflow:
+
+| Table | Main columns/relationships |
+|---|---|
+| `roles` | id, code, name, description, system_role, active |
+| `permissions` | id, code, name, permission_group, description, active |
+| `role_permissions` | role_id, permission_id; unique per pair |
+
+`users.role_id` references `roles.id`. The four default role codes are
+`ADMIN`, `FACULTY_HEAD`, `LECTURER` and `STUDENT`; `GROUP_LEADER` remains a
+group-membership attribute.
 
 `announcements` can be a small optional table or seeded static data for the
 MVP. Do not create separate review-board, board-member, reviewer-assignment,

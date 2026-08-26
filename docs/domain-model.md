@@ -1,11 +1,17 @@
 # Domain model
 
-## Roles
+## Roles and permissions
 
-- `ADMIN`: quản lý tài khoản và thông báo.
-- `FACULTY_HEAD`: quản lý đợt, duyệt/công bố, phân công, hội đồng và kết quả.
-- `LECTURER`: đề xuất đề tài, hướng dẫn, phản biện và chấm theo phân công.
-- `STUDENT`: tạo/tham gia nhóm, đăng ký và xem kết quả của nhóm mình.
+- `RoleEntity` là access bundle được gán cho tài khoản.
+- `PermissionEntity` là quyền thao tác nhỏ nhất, có `code`, tên hiển thị và
+  nhóm chức năng để giao diện gom theo từng section.
+- Một role có nhiều permission thông qua `role_permissions`; một permission có
+  thể dùng lại cho nhiều role.
+- Các role hệ thống mặc định vẫn là:
+  - `ADMIN`: quản lý tài khoản và thông báo.
+  - `FACULTY_HEAD`: quản lý đợt, duyệt/công bố, phân công, hội đồng và kết quả.
+  - `LECTURER`: đề xuất đề tài, hướng dẫn, phản biện và chấm theo phân công.
+  - `STUDENT`: tạo/tham gia nhóm, đăng ký và xem kết quả của nhóm mình.
 - `GROUP_LEADER`: một sinh viên giữ vai trò đại diện trong đúng một nhóm; đây
   là thuộc tính thành viên, không nhất thiết là system role riêng.
 
@@ -15,9 +21,10 @@
 
 For the môn học đồ án, the default model is intentionally small:
 `User`, `Department`, `RegistrationPeriod`, `Topic`, `StudentGroup`,
-`TopicRegistration`, `Report` and `Evaluation`. The detailed aggregates below
-describe extension points, not a requirement to create every table in the first
-implementation.
+`TopicRegistration`, `Report` and `Evaluation`. `RoleEntity` và
+`PermissionEntity` là nhóm thực thể hỗ trợ authentication/authorization. The
+detailed aggregates below describe extension points, not a requirement to
+create every table in the first implementation.
 
 The MVP can keep assigned lecturer, score, comment, average and publication
 status inside `Evaluation`. `ReviewBoard`, separate reviewer assignments,
@@ -27,7 +34,9 @@ rubric explicitly requires them.
 ### User and Department
 
 `User` có tài khoản đăng nhập, họ tên, email/mã số, role, trạng thái active và
-password hash. `Department` là bộ môn; mỗi `Topic` tham chiếu đúng một bộ môn.
+password hash. `User` tham chiếu một `RoleEntity`; role chứa các
+`PermissionEntity` được phép thực hiện. `Department` là bộ môn; mỗi `Topic`
+tham chiếu đúng một bộ môn.
 
 ### RegistrationPeriod
 
