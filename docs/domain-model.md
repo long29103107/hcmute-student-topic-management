@@ -5,8 +5,9 @@
 - `RoleEntity` là access bundle được gán cho tài khoản.
 - `PermissionEntity` là quyền thao tác nhỏ nhất, có `code`, tên hiển thị và
   nhóm chức năng để giao diện gom theo từng section.
-- Một role có nhiều permission thông qua `role_permissions`; một permission có
-  thể dùng lại cho nhiều role.
+- Một `UserEntity` có thể nhận nhiều role thông qua `UserRoleEntity`.
+- Một role có nhiều permission thông qua `RolePermissionEntity`; một permission
+  có thể dùng lại cho nhiều role.
 - Các role hệ thống mặc định vẫn là:
   - `ADMIN`: quản lý tài khoản và thông báo.
   - `FACULTY_HEAD`: quản lý đợt, duyệt/công bố, phân công, hội đồng và kết quả.
@@ -22,9 +23,10 @@
 For the môn học đồ án, the default model is intentionally small:
 `User`, `Department`, `RegistrationPeriod`, `Topic`, `StudentGroup`,
 `TopicRegistration`, `Report` and `Evaluation`. `RoleEntity` và
-`PermissionEntity` là nhóm thực thể hỗ trợ authentication/authorization. The
-detailed aggregates below describe extension points, not a requirement to
-create every table in the first implementation.
+`PermissionEntity`, `UserRoleEntity` và `RolePermissionEntity` là nhóm thực
+thể hỗ trợ authentication/authorization. The detailed aggregates below
+describe extension points, not a requirement to create every table in the
+first implementation.
 
 The MVP can keep assigned lecturer, score, comment, average and publication
 status inside `Evaluation`. `ReviewBoard`, separate reviewer assignments,
@@ -35,8 +37,9 @@ rubric explicitly requires them.
 
 `User` có tài khoản đăng nhập, họ tên, email/mã số, role, trạng thái active và
 password hash. `User` tham chiếu một `RoleEntity`; role chứa các
-`PermissionEntity` được phép thực hiện. `Department` là bộ môn; mỗi `Topic`
-tham chiếu đúng một bộ môn.
+`PermissionEntity` được phép thực hiện. Quan hệ gán role và permission được
+lưu qua `UserRoleEntity` và `RolePermissionEntity`. `Department` là bộ môn;
+mỗi `Topic` tham chiếu đúng một bộ môn.
 
 ### RegistrationPeriod
 

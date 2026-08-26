@@ -11,7 +11,7 @@ workflow:
 
 | Table | Main columns/relationships |
 |---|---|
-| `users` | id, login identifier, full name, email/code, password_hash, role_id, active |
+| `users` | id, login identifier, full name, email/code, password_hash, active |
 | `departments` | id, code/name, active |
 | `registration_periods` | id, name, type, lecturer_start/end, student_start/end |
 | `topics` | id, period_id, department_id, title, description, status, supervisor_id or a small supervisor relation |
@@ -29,10 +29,12 @@ course-project business workflow:
 |---|---|
 | `roles` | id, code, name, description, system_role, active |
 | `permissions` | id, code, name, permission_group, description, active |
-| `role_permissions` | role_id, permission_id; unique per pair |
+| `user_roles` | user_id, role_id, assigned_at, active; unique per pair |
+| `role_permissions` | role_id, permission_id, assigned_at, active; unique per pair |
 
-`users.role_id` references `roles.id`. The four default role codes are
-`ADMIN`, `FACULTY_HEAD`, `LECTURER` and `STUDENT`; `GROUP_LEADER` remains a
+`user_roles` references `users` and `roles`. `role_permissions` references
+`roles` and `permissions`. The four default role codes are `ADMIN`,
+`FACULTY_HEAD`, `LECTURER` and `STUDENT`; `GROUP_LEADER` remains a
 group-membership attribute.
 
 `announcements` can be a small optional table or seeded static data for the
