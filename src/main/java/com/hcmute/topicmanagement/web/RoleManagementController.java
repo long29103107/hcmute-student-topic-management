@@ -1,5 +1,7 @@
 package com.hcmute.topicmanagement.web;
 
+import java.util.List;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.validation.Valid;
@@ -29,19 +32,21 @@ public class RoleManagementController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('ROLE_READ')")
-    public String list(Model model) {
-        model.addAttribute("pageTitle", "Role permissions");
-        model.addAttribute("roles", roleManagementService.listRoles());
-        return "admin/roles";
+    public String list(@RequestParam(name = "roleId", required = false) Long roleId, Model model) {
+        List<RoleManagementService.RoleSummary> roles = roleManagementService.listRoles();
+        RolePermissionData selectedRole = selectRole(roles, roleId);
+        PermissionAssignmentForm form = new PermissionAssignmentForm();
+        if (selectedRole != null) {
+            form.setPermissionIds(selectedRole.getPermissionIds());
+        }
+        return renderRoleWorkspace(model, roles, selectedRole, form);
     }
 
     @GetMapping("/{id}/permissions")
     @PreAuthorize("hasAuthority('ROLE_UPDATE') and hasAuthority('PERMISSION_ASSIGN')")
     public String permissionForm(@PathVariable Long id, Model model) {
-        RolePermissionData role = roleManagementService.getRoleForPermissions(id);
-        PermissionAssignmentForm form = new PermissionAssignmentForm();
-        form.setPermissionIds(role.getPermissionIds());
-        return renderPermissionForm(model, form, role);
+        roleManagementService.getRoleForPermissions(id);
+        return "redirect:/admin/roles?roleId=" + id;
     }
 
     @PostMapping("/{id}/permissions")
@@ -54,16 +59,16 @@ public class RoleManagementController {
             RedirectAttributes redirectAttributes) {
         RolePermissionData role = roleManagementService.getRoleForPermissions(id);
         if (bindingResult.hasErrors()) {
-            return renderPermissionForm(model, form, role);
+            return renderRoleWorkspace(model, roleManagementService.listRoles(), role, form);
         }
 
         try {
             roleManagementService.updateRolePermissions(id, form.getPermissionIds());
             redirectAttributes.addFlashAttribute("successMessage", "Role permissions updated successfully.");
-            return "redirect:/admin/roles/" + id + "/permissions";
+            return "redirect:/admin/roles?roleId=" + id;
         } catch (RoleManagementService.RoleValidationException exception) {
             bindingResult.reject("permissions.invalid", exception.getMessage());
-            return renderPermissionForm(model, form, role);
+            return renderRoleWorkspace(model, roleManagementService.listRoles(), role, form);
         }
     }
 
@@ -73,11 +78,30 @@ public class RoleManagementController {
         return "redirect:/admin/roles";
     }
 
-    private String renderPermissionForm(Model model, PermissionAssignmentForm form, RolePermissionData role) {
-        model.addAttribute("pageTitle", "Manage permissions");
+    private String renderRoleWorkspace(
+            Model model,
+            List<RoleManagementService.RoleSummary> roles,
+            RolePermissionData selectedRole,
+            PermissionAssignmentForm form) {
+        model.addAttribute("pageTitle", "Roles & access controls");
+        model.addAttribute("roles", roles);
+        model.addAttribute("selectedRole", selectedRole);
         model.addAttribute("form", form);
-        model.addAttribute("role", role);
         model.addAttribute("permissionGroups", roleManagementService.getPermissionGroups());
-        return "admin/role-form";
+        return "admin/roles";
+    }
+
+    private RolePermissionData selectRole(List<RoleManagementService.RoleSummary> roles, Long roleId) {
+        if (roles.isEmpty()) {
+            return null;
+        }
+
+        Long selectedId = roleId == null ? roles.get(0).getId() : roleId;
+        boolean visibleRole = roles.stream().anyMatch(role -> role.getId().equals(selectedId));
+        if (!visibleRole) {
+            throw new RoleManagementService.RoleValidationException(
+                    "Only visible system roles can be managed here.");
+        }
+        return roleManagementService.getRoleForPermissions(selectedId);
     }
 }

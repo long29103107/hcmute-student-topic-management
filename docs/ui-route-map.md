@@ -33,8 +33,8 @@ Have unless explicitly selected.
 | Method | Route | Purpose |
 |---|---|---|
 | GET/POST | `/admin/users` | `AdminUserController` → list/create/update/lock |
-| GET | `/admin/roles` | `RoleManagementController` → list system roles and permission counts (ADMIN hidden) |
-| GET/POST | `/admin/roles/{id}/permissions` | `RoleManagementController` → toggle permissions for a system role only |
+| GET | `/admin/roles?roleId=...` | `RoleManagementController` → combined system-role directory and permission editor (ADMIN hidden) |
+| GET/POST | `/admin/roles/{id}/permissions` | `RoleManagementController` → select/toggle permissions for a system role only; GET redirects to the combined editor |
 | GET/POST | `/faculty/departments` | `DepartmentController` → management |
 | GET/POST | `/faculty/periods` | `RegistrationPeriodController` → list/create/update |
 | GET/POST | `/faculty/topics/review` | `TopicReviewController` → approve/reject/publish |

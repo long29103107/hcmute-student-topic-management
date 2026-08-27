@@ -19,6 +19,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.hcmute.topicmanagement.model.RoleEntity;
+import com.hcmute.topicmanagement.model.PermissionEntity;
+import com.hcmute.topicmanagement.repository.PermissionRepository;
 import com.hcmute.topicmanagement.repository.RoleRepository;
 import com.hcmute.topicmanagement.security.DatabaseUserPrincipal;
 
@@ -32,12 +34,15 @@ class RoleManagementControllerTest {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private PermissionRepository permissionRepository;
+
     @Test
     void adminCanOpenRoleDirectory() throws Exception {
         mockMvc.perform(get("/admin/roles").with(user(admin("ROLE_READ"))))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/roles"))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Role permissions")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Roles &amp; access controls")));
     }
 
     @Test
@@ -47,9 +52,24 @@ class RoleManagementControllerTest {
 
         mockMvc.perform(get("/admin/roles/" + role.getId() + "/permissions")
                         .with(user(admin("ROLE_UPDATE", "PERMISSION_ASSIGN"))))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .redirectedUrl("/admin/roles?roleId=" + role.getId()));
+    }
+
+    @Test
+    void combinedWorkspaceRendersSelectedRoleAndPermissions() throws Exception {
+        RoleEntity role = roleRepository.save(new RoleEntity(
+                "LECTURER", "Lecturer", "Propose and supervise topics."));
+        permissionRepository.save(new PermissionEntity("TOPIC_PROPOSE", "Propose topics", "Topics"));
+
+        mockMvc.perform(get("/admin/roles?roleId=" + role.getId())
+                        .with(user(admin("ROLE_READ", "ROLE_UPDATE", "PERMISSION_ASSIGN"))))
                 .andExpect(status().isOk())
-                .andExpect(view().name("admin/role-form"))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Manage permissions")));
+                .andExpect(view().name("admin/roles"))
+                .andExpect(content().string(containsString("Lecturer")))
+                .andExpect(content().string(containsString("Propose topics")))
+                .andExpect(content().string(containsString("Save changes")));
     }
 
     @Test

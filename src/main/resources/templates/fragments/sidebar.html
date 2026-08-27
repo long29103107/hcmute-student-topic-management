@@ -19,7 +19,7 @@
     <p class="sidebar-label" sec:authorize="hasRole('ADMIN')">Administration</p>
     <nav class="sidebar-nav" sec:authorize="hasRole('ADMIN')">
         <a th:href="@{/admin/roles}"
-           th:aria-current="${pageTitle == 'Role permissions' or pageTitle == 'Manage permissions' ? 'page' : null}">
+           th:aria-current="${pageTitle == 'Roles & access controls' or pageTitle == 'Role permissions' or pageTitle == 'Manage permissions' ? 'page' : null}">
             <span class="sidebar-icon">⚿</span><span>Roles &amp; permissions</span>
         </a>
     </nav>

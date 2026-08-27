@@ -233,7 +233,7 @@ INSERT INTO users (
     'admin',
     'System Administrator',
     'admin@hcmute.local',
-    '$2a$10$6iC74PQoleTF9Yy2Cjkw0OX7EOD2QuRlOxqbBrdlyooMSItw6WbiK',
+    '$2a$10$VI1jWffo.Jg/04uyrX73TufViz1kOmzLTa9trum0bK61bf9gwh5cq',
     TRUE,
     CURRENT_TIMESTAMP(6),
     CURRENT_TIMESTAMP(6)
