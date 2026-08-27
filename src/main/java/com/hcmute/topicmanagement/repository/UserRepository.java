@@ -13,6 +13,12 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     Optional<UserEntity> findByLoginIdentifier(String loginIdentifier);
 
+    @Query("select u from UserEntity u "
+            + "where lower(u.loginIdentifier) = lower(:identifier) "
+            + "or lower(u.emailOrCode) = lower(:identifier)")
+    Optional<UserEntity> findByLoginIdentifierOrEmailOrCodeIgnoreCase(
+            @Param("identifier") String identifier);
+
     boolean existsByLoginIdentifier(String loginIdentifier);
 
     @Query("select distinct u from UserEntity u "

@@ -34,8 +34,22 @@ public class DatabaseUserDetailsService implements UserDetailsService {
         UserEntity user = userRepository.findByLoginIdentifier(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
+        return toPrincipal(user, username);
+    }
+
+    @Transactional(readOnly = true)
+    public UserDetails loadUserByLoginIdentifierOrEmail(String identifier) throws UsernameNotFoundException {
+        UserEntity user = userRepository
+                .findByLoginIdentifierOrEmailOrCodeIgnoreCase(identifier)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return toPrincipal(user, identifier);
+    }
+
+    private UserDetails toPrincipal(UserEntity user, String attemptedIdentifier) {
+
         if (!user.isActive()) {
-            throw new DisabledException("User is inactive: " + username);
+            throw new DisabledException("User is inactive: " + attemptedIdentifier);
         }
 
         Set<SimpleGrantedAuthority> authorities = new LinkedHashSet<>();
@@ -60,11 +74,15 @@ public class DatabaseUserDetailsService implements UserDetailsService {
             }
         }
 
+        if (primaryRoleName == null) {
+            throw new DisabledException("User has no active role");
+        }
+
         return new DatabaseUserPrincipal(
                 user.getLoginIdentifier(),
                 user.getPasswordHash(),
                 user.getFullName(),
-                primaryRoleName == null ? "Tài khoản" : primaryRoleName,
+                primaryRoleName == null ? "Account" : primaryRoleName,
                 authorities);
     }
 }

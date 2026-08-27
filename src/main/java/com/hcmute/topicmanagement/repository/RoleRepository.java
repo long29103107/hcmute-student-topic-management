@@ -13,6 +13,8 @@ public interface RoleRepository extends JpaRepository<RoleEntity, Long> {
 
     Optional<RoleEntity> findByCode(String code);
 
+    List<RoleEntity> findAllByOrderByNameAsc();
+
     List<RoleEntity> findByActiveTrueOrderByNameAsc();
 
     @Query("select distinct r from RoleEntity r "

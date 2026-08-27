@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@import "./app.css";
+@import "./home.css";
+@import "./login.css";
+@import "./profile.css";
+@import "./roles.css";
+
+@source "../../templates";

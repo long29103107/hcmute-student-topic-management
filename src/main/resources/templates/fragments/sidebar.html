@@ -1,24 +1,26 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
-<aside class="sidebar" aria-label="Thanh điều hướng chính" th:fragment="sidebar">
-    <a class="brand" th:href="@{/home}" aria-label="Về dashboard">
+<aside class="sidebar" aria-label="Main navigation" th:fragment="sidebar">
+    <a class="brand" th:href="@{/dashboard}" aria-label="Go to dashboard">
         <span class="brand-mark" aria-hidden="true">TM</span>
         <span>
-            <span class="brand-name">Topic Manager</span>
+            <span class="brand-name">Topic Manager</span><br/>
             <span class="brand-caption">HCMUTE Student Portal</span>
         </span>
     </a>
 
-    <div class="sidebar-intro">
-        <strong>MVP workspace enabled</strong>
-        <span><b>8</b> core entities · <b>12</b> Must Have flows</span>
-    </div>
-
-    <p class="sidebar-label">Workspace</p>
-    <nav class="sidebar-nav">
-        <a th:href="@{/home#overview}" aria-current="page">
+    <nav class="sidebar-nav pt-2">
+        <a th:href="@{/dashboard#overview}" th:aria-current="${pageTitle == 'Dashboard' ? 'page' : null}">
             <span class="sidebar-icon">▦</span><span>Dashboard</span>
+        </a>
+    </nav>
+
+    <p class="sidebar-label" sec:authorize="hasRole('ADMIN')">Administration</p>
+    <nav class="sidebar-nav" sec:authorize="hasRole('ADMIN')">
+        <a th:href="@{/admin/roles}"
+           th:aria-current="${pageTitle == 'Role permissions' or pageTitle == 'Manage permissions' ? 'page' : null}">
+            <span class="sidebar-icon">⚿</span><span>Roles &amp; permissions</span>
         </a>
     </nav>
 </aside>

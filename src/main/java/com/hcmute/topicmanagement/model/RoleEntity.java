@@ -73,10 +73,6 @@ public class RoleEntity extends BaseEntity {
         return systemRole;
     }
 
-    public void setSystemRole(boolean systemRole) {
-        this.systemRole = systemRole;
-    }
-
     public boolean isActive() {
         return active;
     }

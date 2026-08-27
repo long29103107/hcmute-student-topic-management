@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main}">
+<head>
+    <title>Manage permissions</title>
+</head>
+<body>
+<main layout:fragment="content" class="roles-main">
+    <section class="roles-intro" aria-labelledby="page-title">
+        <div>
+            <p class="eyebrow">Administration / System roles</p>
+            <h1 id="page-title">Manage permissions</h1>
+            <p>Role details are read-only. Turn permissions on or off for this system role, then save the assignment changes.</p>
+        </div>
+        <a class="button-secondary" th:href="@{/admin/roles}">← Back to roles</a>
+    </section>
+
+    <form class="panel permission-management-panel" th:action="@{/admin/roles/{id}/permissions(id=${role.id})}" th:object="${form}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+        <section class="role-profile" aria-labelledby="profile-heading">
+            <div>
+                <p class="eyebrow">System role</p>
+                <h2 id="profile-heading" th:text="${role.name}">Faculty Head</h2>
+                <p th:text="${role.description ?: 'No description provided.'}">Manages faculty workflows.</p>
+            </div>
+            <div class="role-profile-meta">
+                <span class="code-badge" th:text="${role.code}">FACULTY_HEAD</span>
+                <span class="role-type system">System-managed</span>
+                <span class="status-pill success" th:if="${role.active}">Active</span>
+                <span class="status-pill inactive" th:unless="${role.active}">Inactive</span>
+            </div>
+        </section>
+
+        <div class="global-error" th:if="${#fields.hasGlobalErrors()}">
+            <p th:each="error : ${#fields.globalErrors()}" th:text="${error.defaultMessage}">Permissions could not be updated.</p>
+        </div>
+
+        <section class="permission-panel permission-panel--embedded" aria-labelledby="permission-heading">
+            <div class="permission-panel-header">
+                <div>
+                    <h2 id="permission-heading">Permission assignments</h2>
+                    <p>Select the capabilities available to this role. Role code, name, status, and deletion are not editable.</p>
+                </div>
+                <span class="permission-count" th:text="${#sets.size(form.permissionIds) + ' selected'}">0 selected</span>
+            </div>
+
+            <div class="permission-group" th:each="group : ${permissionGroups}">
+                <h3 class="permission-group-title" th:text="${group.name}">Roles</h3>
+                <div class="permission-list">
+                    <label class="permission-card" th:each="permission : ${group.permissions}">
+                        <input type="checkbox" th:field="*{permissionIds}" th:value="${permission.id}">
+                        <span class="permission-copy">
+                            <strong th:text="${permission.name}">View topics</strong>
+                            <small th:text="${permission.description ?: 'No description provided.'}">View published topics.</small>
+                            <span class="permission-code" th:text="${permission.code}">TOPIC_READ</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <p class="empty-state" th:if="${#lists.isEmpty(permissionGroups)}">No active permissions are available.</p>
+        </section>
+
+        <div class="form-actions">
+            <button class="button-primary" type="submit">Save permission changes</button>
+            <a class="button-secondary" th:href="@{/admin/roles}">Cancel</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

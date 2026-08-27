@@ -2,7 +2,7 @@
 -- MySQL 8+ / InnoDB / utf8mb4
 -- DDL only: creates the database and MVP schema. No DROP and no seed data.
 -- Run from the project root:
---   mysql -u root -p < database/ddl.sql
+--   mysql -u root -p < database/1.ddl.sql
 -- DBeaver: use "Execute SQL Script" (Alt+X), not "Execute SQL Statement"
 -- (Ctrl+Enter), because this file contains multiple MySQL statements.
 
@@ -29,7 +29,8 @@ CREATE TABLE IF NOT EXISTS roles (
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
         ON UPDATE CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_roles PRIMARY KEY (id),
-    CONSTRAINT uk_roles_code UNIQUE (code)
+    CONSTRAINT uk_roles_code UNIQUE (code),
+    CONSTRAINT chk_roles_system_role CHECK (system_role = TRUE)
 ) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS permissions (

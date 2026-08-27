@@ -18,15 +18,15 @@ public class HomeController {
 
     @GetMapping("/")
     public String root() {
-        return "redirect:/home";
+        return "redirect:/dashboard";
     }
 
-    @GetMapping("/home")
-    public String home(Model model) {
+    @GetMapping("/dashboard")
+    public String dashboard(Model model) {
         model.addAttribute("applicationName", "HCMUTE Student Topic Management");
         model.addAttribute("pageTitle", "Dashboard");
-        model.addAttribute("activePeriod", "Đợt đăng ký đồ án học kỳ I");
-        model.addAttribute("periodStatus", "Đang mở");
+        model.addAttribute("activePeriod", "Project registration period — Semester 1");
+        model.addAttribute("periodStatus", "Open");
         model.addAttribute("topicCount", 24);
         model.addAttribute("registrationCount", 12);
         model.addAttribute("groupCount", 8);

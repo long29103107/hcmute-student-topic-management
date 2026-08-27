@@ -22,8 +22,8 @@ Have unless explicitly selected.
 
 | Method | Route | Purpose |
 |---|---|---|
-| GET | `/` | `HomeController` → `home.html`, first-look MVP dashboard |
-| GET | `/home` | same view as `/`, explicit home endpoint |
+| GET | `/` | `HomeController` → `home.html`, redirects to the dashboard |
+| GET | `/dashboard` | `HomeController` → `home.html`, first-look MVP dashboard |
 | GET | `/announcements` | published announcements |
 | GET | `/topics` | published topic list and filters when available |
 | GET | `/topics/view?id=...` | topic detail |
@@ -33,6 +33,8 @@ Have unless explicitly selected.
 | Method | Route | Purpose |
 |---|---|---|
 | GET/POST | `/admin/users` | `AdminUserController` → list/create/update/lock |
+| GET | `/admin/roles` | `RoleManagementController` → list system roles and permission counts (ADMIN hidden) |
+| GET/POST | `/admin/roles/{id}/permissions` | `RoleManagementController` → toggle permissions for a system role only |
 | GET/POST | `/faculty/departments` | `DepartmentController` → management |
 | GET/POST | `/faculty/periods` | `RegistrationPeriodController` → list/create/update |
 | GET/POST | `/faculty/topics/review` | `TopicReviewController` → approve/reject/publish |

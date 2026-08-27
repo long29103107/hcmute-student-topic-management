@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 <header class="topbar" th:fragment="header">
     <div class="breadcrumb" aria-label="Breadcrumb">
@@ -8,9 +8,9 @@
         <strong th:text="${pageTitle ?: 'Dashboard'}">Dashboard</strong>
     </div>
     <div class="topbar-actions">
-        <button class="icon-button" type="button" onclick="window.location.reload()" aria-label="Refresh page" title="Refresh">⟳</button>
+        <button class="icon-button" type="button" data-action="reload" aria-label="Refresh page" title="Refresh">⟳</button>
         <details class="account-menu" sec:authorize="isAuthenticated()">
-            <summary class="account-summary" aria-label="Mở menu tài khoản">
+            <summary class="account-summary" aria-label="Open account menu">
                 <span class="avatar" th:text="${#authentication.principal.initials}">SA</span>
                 <span class="account-copy">
                     <strong th:text="${#authentication.principal.fullName}">System Administrator</strong>
@@ -21,7 +21,7 @@
             <div class="account-dropdown">
                 <a th:href="@{/profile}">My Profile</a>
                 <form th:action="@{/logout}" method="post">
-                    <button type="submit">Đăng xuất</button>
+                    <button type="submit">Sign out</button>
                 </form>
             </div>
         </details>

@@ -74,13 +74,22 @@ $env:DB_DRIVER = 'com.mysql.cj.jdbc.Driver'
 mvn spring-boot:run
 ```
 
+### Cấu hình security khi chạy thật
+
+- `SESSION_COOKIE_SECURE=true` khi ứng dụng chạy sau HTTPS.
+- Remember-me bị tắt mặc định. Nếu bật bằng `REMEMBER_ME_ENABLED=true`, phải
+  cung cấp `REMEMBER_ME_KEY` runtime có tối thiểu 32 ký tự.
+- Google OAuth chỉ bật khi có credential, domain được phép qua
+  `GOOGLE_OAUTH_ALLOWED_DOMAINS`, và email Google phải khớp một tài khoản đang
+  được cấp trong hệ thống.
+
 Schema MVP được quản lý explicit bằng hai file SQL nên Hibernate để
 `ddl-auto=none` và Flyway được tắt cho đến khi project có migration riêng.
 
 Các route hiện có:
 
 - `/login` — đăng nhập bắt buộc.
-- `/home` — dashboard sau khi đăng nhập.
+- `/dashboard` — dashboard sau khi đăng nhập.
 - `/profile` — thông tin tài khoản và role hiện tại.
 
 Tài khoản local và quyền mẫu được tạo bởi `database/seed.sql`; không commit

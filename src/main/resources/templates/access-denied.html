@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access denied · HCMUTE Student Topic Management</title>
+    <link rel="stylesheet" th:href="@{/css/tailwind.css}">
+</head>
+<body class="auth-page">
+<main class="card">
+    <div class="brand">
+        <span class="brand-mark" aria-hidden="true">T</span>
+        <div><strong>HCMUTE Student Topic Management</strong><span>Student topic management portal</span></div>
+    </div>
+    <h1>Access denied</h1>
+    <p class="intro">Your account does not have permission to access this page.</p>
+    <a class="back" th:href="@{/dashboard}">← Back to dashboard</a>
+</main>
+</body>
+</html>

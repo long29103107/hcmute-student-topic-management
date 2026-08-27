@@ -1,35 +1,45 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập · HCMUTE Student Topic Management</title>
-    <link rel="stylesheet" th:href="@{/css/app.css}">
-    <link rel="stylesheet" th:href="@{/css/login.css}">
+    <title>Sign in · HCMUTE Student Topic Management</title>
+    <link rel="stylesheet" th:href="@{/css/tailwind.css}">
 </head>
-<body>
+<body class="auth-page">
 <main class="card">
     <div class="brand">
         <span class="brand-mark" aria-hidden="true">T</span>
-        <div><strong>HCMUTE Student Topic Management</strong><span>Cổng quản lý đề tài sinh viên</span></div>
+        <div><strong>HCMUTE Student Topic Management</strong><span>Student topic management portal</span></div>
     </div>
-    <h1>Đăng nhập</h1>
-    <p class="intro">Đăng nhập để quản lý nhóm, đề tài, báo cáo và kết quả của bạn.</p>
+    <h1>Sign in</h1>
 
-    <div class="message" th:if="${loginError}">Tên đăng nhập hoặc mật khẩu không đúng.</div>
-    <div class="message success" th:if="${loggedOut}">Bạn đã đăng xuất thành công.</div>
+    <div class="message" th:if="${loginError}">Incorrect username or password.</div>
+    <div class="message success" th:if="${loggedOut}">You have been signed out.</div>
 
     <form th:action="@{/login}" method="post">
-        <label for="username">Tên đăng nhập</label>
+        <label for="username">Username</label>
         <input id="username" name="username" type="text" autocomplete="username" required autofocus>
-        <label for="password">Mật khẩu</label>
+        <label for="password">Password</label>
         <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <div class="login-options">
+            <label class="remember-option" for="remember-me" th:if="${rememberMeEnabled}">
+                <input id="remember-me" name="remember-me" type="checkbox">
+                <span>Remember me</span>
+            </label>
+            <a class="forgot-link" th:href="@{/forgot-password}">Forgot password?</a>
+        </div>
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-        <button type="submit">Đăng nhập</button>
+        <button type="submit">Sign in</button>
     </form>
 
-    <a class="back" href="/">← Về trang chủ</a>
-    <p class="note">Đăng nhập bằng tài khoản đã được cấp trong hệ thống. Liên hệ quản trị viên nếu cần hỗ trợ.</p>
+    <div class="oauth-divider" th:if="${googleLoginEnabled}"><span>OR</span></div>
+    <a class="google-button" th:if="${googleLoginEnabled}" th:href="@{/oauth2/authorization/google}">
+        <span class="google-mark" aria-hidden="true">G</span>
+        <span>Sign in with Google</span>
+    </a>
+
+    <p class="note">Sign in with your assigned account. Contact an administrator if you need assistance.</p>
 </main>
 </body>
 </html>

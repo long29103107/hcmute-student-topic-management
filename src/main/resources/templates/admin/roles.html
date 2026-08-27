@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main}">
+<head>
+    <title>Role permissions</title>
+</head>
+<body>
+<main layout:fragment="content" class="roles-main">
+    <section class="roles-intro" aria-labelledby="page-title">
+        <div>
+            <p class="eyebrow">Administration</p>
+            <h1 id="page-title">Role permissions</h1>
+            <p>Roles are system-managed and cannot be created, edited, or deleted here. Use this screen only to control permission assignments.</p>
+        </div>
+    </section>
+
+    <p class="flash-message" th:if="${successMessage}" th:text="${successMessage}" role="status">Role permissions updated successfully.</p>
+    <p class="flash-message error" th:if="${errorMessage}" th:text="${errorMessage}" role="alert">This role cannot be changed here.</p>
+
+    <section class="panel roles-panel" aria-labelledby="roles-heading">
+        <div class="roles-panel-header">
+            <div>
+                <h2 id="roles-heading">System roles</h2>
+                <p th:text="${#lists.size(roles) + ' roles available for permission assignment'}">3 roles available for permission assignment</p>
+            </div>
+            <span class="role-type system">System-managed</span>
+        </div>
+        <div class="roles-table-wrap" th:if="${!#lists.isEmpty(roles)}">
+            <table class="roles-table">
+                <thead>
+                <tr>
+                    <th scope="col">Role</th>
+                    <th scope="col">Code</th>
+                    <th scope="col">Permissions</th>
+                    <th scope="col">Status</th>
+                    <th scope="col"><span class="sr-only">Actions</span></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="role : ${roles}">
+                    <td>
+                        <div class="role-name">
+                            <span class="role-mark" aria-hidden="true">⚿</span>
+                            <div>
+                                <strong th:text="${role.name}">Faculty Head</strong>
+                                <small th:text="${role.description ?: 'No description provided.'}">Manages faculty workflows.</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="code-badge" th:text="${role.code}">FACULTY_HEAD</span></td>
+                    <td th:text="${role.permissionCount}">6</td>
+                    <td><span class="status-pill success" th:if="${role.active}">Active</span><span class="status-pill inactive" th:unless="${role.active}">Inactive</span></td>
+                    <td><a class="table-action" th:href="@{/admin/roles/{id}/permissions(id=${role.id})}">Manage permissions<span class="sr-only" th:text="${' for ' + role.name}"> for role</span></a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(roles)}">No non-administrator system roles are available.</div>
+    </section>
+</main>
+</body>
+</html>

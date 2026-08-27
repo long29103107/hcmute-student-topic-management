@@ -1,3 +1,4 @@
+@layer components {
 :root {
     --bg: #f4f8ff;
     --sidebar: #ffffff;
@@ -57,10 +58,6 @@ button { font: inherit; }
 .brand-mark { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 11px; color: white; background: linear-gradient(145deg, #2e7cff, #0b4fc4); font-size: .95rem; font-weight: 850; box-shadow: 0 8px 20px rgba(18, 97, 223, .2); }
 .brand-name { color: var(--primary-dark); font-size: 1.05rem; font-weight: 850; letter-spacing: -.02em; }
 .brand-caption { margin-top: 4px; color: var(--muted); font-size: .72rem; }
-.sidebar-intro { margin: 36px 7px 24px; }
-.sidebar-intro strong { display: block; color: var(--accent); font-size: .88rem; }
-.sidebar-intro span { display: block; margin-top: 7px; color: var(--muted); font-size: .8rem; }
-.sidebar-intro b { color: var(--blue); font-weight: 750; }
 .sidebar-label { margin: 0 14px 8px; color: var(--accent); font-size: .71rem; font-weight: 850; letter-spacing: .13em; text-transform: uppercase; }
 .sidebar-nav { display: grid; gap: 4px; }
 .sidebar-nav + .sidebar-label { margin-top: 24px; }
@@ -119,4 +116,5 @@ footer { padding: 0 40px 26px; color: #727a86; font-size: .72rem; }
     .icon-button { width: 42px; height: 42px; }
     .account-copy { display: none; }
     .footer-inner { flex-direction: column; }
+}
 }

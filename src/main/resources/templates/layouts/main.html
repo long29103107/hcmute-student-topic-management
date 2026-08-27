@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi"
+<html lang="en"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
@@ -7,7 +7,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title layout:title-pattern="$LAYOUT_TITLE · $CONTENT_TITLE">HCMUTE Student Topic Management</title>
-    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link rel="stylesheet" th:href="@{/css/tailwind.css}">
+    <script th:src="@{/js/app.js}" defer></script>
 </head>
 <body>
 <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>

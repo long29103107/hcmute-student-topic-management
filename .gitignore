@@ -8,6 +8,9 @@ build/
 # Maven Wrapper
 .mvn/wrapper/maven-wrapper.jar
 
+# Node.js / Tailwind CSS
+node_modules/
+
 # Spring Boot / Java
 *.log
 hs_err_pid*
