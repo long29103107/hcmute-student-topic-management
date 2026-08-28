@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main}">
+<head><title th:text="${editMode ? 'Edit user' : 'Create user'}">Create user</title></head>
+<body>
+<main layout:fragment="content" class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <section aria-labelledby="page-title">
+        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <div><p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Administration / Accounts</p><h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900" th:text="${editMode ? 'Edit user' : 'Create user'}">Create user</h1><p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500" th:text="${editMode ? 'Update account details and role assignments.' : 'Create a local account with at least one active system role.'}">Create a local account with at least one active system role.</p></div>
+            <a class="inline-flex w-fit items-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100" th:href="@{/admin/users}">← Back to users</a>
+        </div>
+
+        <div class="grid items-start gap-6 lg:grid-cols-3">
+            <div class="lg:col-span-2" th:replace="~{fragments/user-form :: userForm(formObjectName='form', formAction=${formAction}, editing=${editMode}, title=${editMode ? 'Edit user' : 'Create user'}, submitLabel=${editMode ? 'Save changes' : 'Create account'}, fieldPrefix='user-form')}"></div>
+            <aside class="rounded-lg border border-green-200 bg-green-50 p-6 shadow-sm"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-green-100 font-bold text-green-700">✓</span><h2 class="mt-4 text-lg font-semibold text-gray-900">Security checklist</h2><ul class="mt-4 space-y-3 text-sm leading-5 text-gray-600"><li class="flex gap-2"><span class="text-green-700">•</span><span>Passwords are hashed with BCrypt.</span></li><li class="flex gap-2"><span class="text-green-700">•</span><span>Every account must have an active role.</span></li><li class="flex gap-2"><span class="text-green-700">•</span><span>Only active role permissions reach the session.</span></li><li class="flex gap-2"><span class="text-green-700">•</span><span>An administrator cannot lock the last active admin or their own account.</span></li></ul></aside>
+        </div>
+    </section>
+</main>
+</body>
+</html>

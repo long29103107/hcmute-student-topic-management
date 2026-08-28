@@ -1,9 +1,8 @@
+@import "flowbite/src/themes/default";
 @import "tailwindcss";
+@plugin "flowbite/plugin";
 
 @import "./app.css";
-@import "./home.css";
-@import "./login.css";
-@import "./profile.css";
-@import "./roles.css";
 
 @source "../../templates";
+@source "../../../../../node_modules/flowbite";

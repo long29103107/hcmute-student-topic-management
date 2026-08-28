@@ -18,7 +18,7 @@ Build stylesheet trước khi deploy JSP:
 
 ```powershell
 npm install
-npm run css:build
+npm run build:assets
 ```
 
 Use a focused test class while iterating, then rerun the full suite before

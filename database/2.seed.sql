@@ -243,6 +243,78 @@ ON DUPLICATE KEY UPDATE
     updated_at = CURRENT_TIMESTAMP(6);
 
 -- ================================================================
+-- Optional local accounts for manual role testing
+-- Password for each account: admin123 (BCrypt)
+-- ================================================================
+
+INSERT INTO users (
+    login_identifier,
+    full_name,
+    email_or_code,
+    password_hash,
+    active,
+    created_at,
+    updated_at
+) VALUES
+    (
+        'faculty.head.test',
+        'Faculty Head Test',
+        'faculty.head.test@hcmute.local',
+        '$2a$10$VI1jWffo.Jg/04uyrX73TufViz1kOmzLTa9trum0bK61bf9gwh5cq',
+        TRUE,
+        CURRENT_TIMESTAMP(6),
+        CURRENT_TIMESTAMP(6)
+    ),
+    (
+        'lecturer.test',
+        'Lecturer Test',
+        'lecturer.test@hcmute.local',
+        '$2a$10$VI1jWffo.Jg/04uyrX73TufViz1kOmzLTa9trum0bK61bf9gwh5cq',
+        TRUE,
+        CURRENT_TIMESTAMP(6),
+        CURRENT_TIMESTAMP(6)
+    ),
+    (
+        'student.test',
+        'Student Test',
+        'student.test@hcmute.local',
+        '$2a$10$VI1jWffo.Jg/04uyrX73TufViz1kOmzLTa9trum0bK61bf9gwh5cq',
+        TRUE,
+        CURRENT_TIMESTAMP(6),
+        CURRENT_TIMESTAMP(6)
+    )
+ON DUPLICATE KEY UPDATE
+    full_name = VALUES(full_name),
+    email_or_code = VALUES(email_or_code),
+    password_hash = VALUES(password_hash),
+    active = TRUE,
+    updated_at = CURRENT_TIMESTAMP(6);
+
+INSERT INTO user_roles (
+    user_id,
+    role_id,
+    assigned_at,
+    active,
+    created_at,
+    updated_at
+)
+SELECT
+    u.id,
+    r.id,
+    CURRENT_TIMESTAMP(6),
+    TRUE,
+    CURRENT_TIMESTAMP(6),
+    CURRENT_TIMESTAMP(6)
+FROM users u
+JOIN roles r
+WHERE (u.login_identifier = 'faculty.head.test' AND r.code = 'FACULTY_HEAD')
+   OR (u.login_identifier = 'lecturer.test' AND r.code = 'LECTURER')
+   OR (u.login_identifier = 'student.test' AND r.code = 'STUDENT')
+ON DUPLICATE KEY UPDATE
+    active = TRUE,
+    updated_at = CURRENT_TIMESTAMP(6);
+
+-- ================================================================
 -- Assign all admin permissions to ADMIN
 -- ================================================================
 

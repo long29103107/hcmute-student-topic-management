@@ -13,6 +13,20 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     Optional<UserEntity> findByLoginIdentifier(String loginIdentifier);
 
+    boolean existsByLoginIdentifierIgnoreCase(String loginIdentifier);
+
+    @Query("select distinct u from UserEntity u "
+            + "left join fetch u.userRoles ur "
+            + "left join fetch ur.role "
+            + "order by lower(u.fullName), lower(u.loginIdentifier)")
+    List<UserEntity> findAllWithRolesOrderByFullNameAsc();
+
+    @Query("select distinct u from UserEntity u "
+            + "left join fetch u.userRoles ur "
+            + "left join fetch ur.role "
+            + "where u.id = :id")
+    Optional<UserEntity> findByIdWithRoles(@Param("id") Long id);
+
     @Query("select u from UserEntity u "
             + "where lower(u.loginIdentifier) = lower(:identifier) "
             + "or lower(u.emailOrCode) = lower(:identifier)")

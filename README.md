@@ -30,10 +30,21 @@ liên quan trong `docs/`.
 - Spring Security với BCrypt và RBAC
 - MySQL cho dữ liệu thật; H2 in-memory cho test/first-look
 - Maven + embedded Tomcat
-- HTML/CSS/JavaScript thuần cho giao diện MVP
+- Tailwind CSS 4 + Flowbite 4 cho UI; JavaScript thuần cho các tương tác riêng
 
 Không đưa SPA, React/Vue/Angular, microservices, Docker/Kubernetes hoặc CI/CD
 vào phiên bản đầu.
+
+### Frontend assets
+
+Tailwind CSS được build từ `src/main/resources/static/css/input.css`. Flowbite
+được tích hợp qua Tailwind plugin/source scan và JavaScript vendor local để các
+component tương tác vẫn chạy khi deploy không có CDN:
+
+```powershell
+npm install
+npm run build:assets
+```
 
 ## Quy ước triển khai
 
@@ -62,8 +73,8 @@ Không cấu hình biến môi trường thì app dùng H2 in-memory để debug
 
 ### Cấu hình MySQL
 
-Chạy lần lượt [`database/ddl.sql`](database/ddl.sql) và
-[`database/seed.sql`](database/seed.sql) trên MySQL trước khi chạy app.
+Chạy lần lượt [`database/1.ddl.sql`](database/1.ddl.sql) và
+[`database/2.seed.sql`](database/2.seed.sql) trên MySQL trước khi chạy app.
 Sau đó override các biến runtime:
 
 ```powershell
@@ -92,5 +103,5 @@ Các route hiện có:
 - `/dashboard` — dashboard sau khi đăng nhập.
 - `/profile` — thông tin tài khoản và role hiện tại.
 
-Tài khoản local và quyền mẫu được tạo bởi `database/seed.sql`; không commit
+Tài khoản local và quyền mẫu được tạo bởi `database/2.seed.sql`; không commit
 mật khẩu mới hoặc mật khẩu plaintext vào source.

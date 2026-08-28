@@ -23,7 +23,7 @@ business requirements in `REQUEST.md`.
 | Spring/Spring MVC | Main MVC framework, dependency injection and controller layer. |
 | RESTful API | REST controllers under `/api` in the same WAR; they reuse Service/DAO and do not become a separate service or SPA backend. |
 | JDBC | DAO persistence with MySQL and `PreparedStatement`; no ORM is assumed. |
-| Bootstrap + jQuery | Use Tailwind CSS + jQuery; Bootstrap is not a project dependency. |
+| Bootstrap + jQuery | Use Tailwind CSS 4 + Flowbite 4 for the UI layer; Bootstrap is not a project dependency. |
 | Java Mail | Optional Nice to Have notification adapter; it is not required for the core workflow. |
 
 The baseline uses Spring Framework Core/Spring MVC directly with Java

@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
             trigger.addEventListener('click', () => {
                 const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
                 trigger.setAttribute('aria-expanded', String(!isExpanded));
-                group.classList.toggle('is-collapsed', isExpanded);
+                body.hidden = isExpanded;
             });
         }
 
@@ -113,4 +113,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     syncSelectedCount();
+
+    const userSearch = document.querySelector('[data-user-search]');
+    const userRows = [...document.querySelectorAll('[data-user-row]')];
+    const userFilterEmpty = document.querySelector('[data-user-filter-empty]');
+
+    if (userSearch) {
+        userSearch.addEventListener('input', () => {
+            const query = userSearch.value.trim().toLowerCase();
+            let visibleCount = 0;
+
+            userRows.forEach((row) => {
+                const matches = !query || (row.dataset.userSearchValue || '').toLowerCase().includes(query);
+                row.hidden = !matches;
+                if (matches) {
+                    visibleCount += 1;
+                }
+            });
+
+            if (userFilterEmpty) {
+                userFilterEmpty.hidden = userRows.length === 0 || visibleCount > 0;
+            }
+        });
+    }
+
+    document.querySelectorAll('[data-confirm]').forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            if (!window.confirm(form.dataset.confirm)) {
+                event.preventDefault();
+            }
+        });
+    });
 });

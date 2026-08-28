@@ -7,13 +7,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title layout:title-pattern="$LAYOUT_TITLE · $CONTENT_TITLE">HCMUTE Student Topic Management</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
     <link rel="stylesheet" th:href="@{/css/tailwind.css}">
+    <script th:src="@{/js/vendor/flowbite.min.js}" defer></script>
     <script th:src="@{/js/app.js}" defer></script>
 </head>
-<body>
+<body class="bg-gray-50 text-gray-900 antialiased">
 <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
 
-<div class="page-content">
+<div class="md:ml-64">
     <header th:replace="~{fragments/header :: header}"></header>
 
     <main layout:fragment="content"></main>

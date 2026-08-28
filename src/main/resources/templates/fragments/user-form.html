@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="userForm(formObjectName, formAction, editing, title, submitLabel, fieldPrefix)" class="relative rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div class="border-b border-gray-200 px-6 py-5 pe-16 sm:px-8">
+            <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900" th:text="${title}">Create user</h2>
+                    <p class="mt-2 text-sm leading-5 text-gray-500" th:text="${editing ? 'Update account details and role assignments.' : 'Create a local account with at least one active system role.'}">Create a local account with at least one active system role.</p>
+                </div>
+                <span class="w-fit shrink-0 rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800" th:text="${editing ? 'Existing account' : 'New account'}">New account</span>
+            </div>
+        </div>
+
+        <form class="p-6 sm:p-8" th:action="${formAction}" th:object="${__${formObjectName}__}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <div class="flex items-start rounded-lg bg-red-50 p-4 text-sm text-red-800" th:if="${#fields.hasGlobalErrors()}" role="alert">
+                <svg class="me-3 mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9 5h2v6H9V5Zm0 8h2v2H9v-2Z"/></svg>
+                <div><p th:each="error : ${#fields.globalErrors()}" th:text="${error}">The account could not be saved.</p></div>
+            </div>
+
+            <div class="grid gap-5 sm:grid-cols-2" th:classappend="${#fields.hasGlobalErrors() ? 'mt-6' : ''}">
+                <div class="sm:col-span-2">
+                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-loginIdentifier'}">Login identifier</label>
+                    <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 read-only:cursor-not-allowed read-only:bg-gray-100 read-only:text-gray-500" th:id="${fieldPrefix + '-loginIdentifier'}" type="text" th:field="*{loginIdentifier}" autocomplete="username" th:readonly="${editing}">
+                    <p class="mt-2 text-xs text-gray-500" th:text="${editing ? 'Login identifier is immutable after account creation.' : 'Use a short, unique identifier for sign-in.'}">Use a short, unique identifier for sign-in.</p>
+                    <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('loginIdentifier')}" th:errors="*{loginIdentifier}">Login identifier is required.</p>
+                </div>
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-fullName'}">Full name</label>
+                    <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" th:id="${fieldPrefix + '-fullName'}" type="text" th:field="*{fullName}" autocomplete="name">
+                    <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}">Full name is required.</p>
+                </div>
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-emailOrCode'}">Email or student code</label>
+                    <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" th:id="${fieldPrefix + '-emailOrCode'}" type="text" th:field="*{emailOrCode}" autocomplete="email">
+                    <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('emailOrCode')}" th:errors="*{emailOrCode}">Email or student code is invalid.</p>
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-password'}" th:text="${editing ? 'New password (optional)' : 'Password'}">Password</label>
+                    <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" th:id="${fieldPrefix + '-password'}" type="password" th:field="*{password}" autocomplete="new-password" th:required="${!editing}">
+                    <p class="mt-2 text-xs text-gray-500" th:text="${editing ? 'Leave blank to keep the current password.' : 'Use at least 8 characters.'}">Use at least 8 characters.</p>
+                    <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password is invalid.</p>
+                </div>
+            </div>
+
+            <fieldset class="mt-7 border-t border-gray-200 pt-6">
+                <legend class="text-sm font-semibold text-gray-900">System roles</legend>
+                <p class="mt-2 text-sm text-gray-500">Select at least one role. Role definitions remain system-managed.</p>
+                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                    <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-200 p-4 hover:bg-gray-50" th:each="role : ${roles}" th:for="${fieldPrefix + '-role-' + role.id}">
+                        <input class="mt-0.5 h-4 w-4 rounded border-gray-300 bg-gray-100 text-blue-600 focus:ring-2 focus:ring-blue-500" th:id="${fieldPrefix + '-role-' + role.id}" type="checkbox" th:field="*{roleIds}" th:value="${role.id}">
+                        <span class="min-w-0"><strong class="block truncate text-sm font-semibold text-gray-900" th:text="${role.name}">Faculty Head</strong><small class="mt-1 block truncate font-mono text-xs text-gray-500" th:text="${role.code}">FACULTY_HEAD</small></span>
+                    </label>
+                </div>
+            </fieldset>
+
+            <div class="mt-7 flex flex-wrap gap-3 border-t border-gray-200 pt-6">
+                <button class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300" type="submit" th:text="${submitLabel}">Create account</button>
+                <a class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100" th:href="@{/admin/users}">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <div th:fragment="userModal(modalId, formObjectName, formAction, editing, title, submitLabel, fieldPrefix)" th:id="${modalId}" tabindex="-1" aria-hidden="true" role="dialog" aria-modal="true" class="fixed inset-0 z-50 hidden h-full w-full overflow-y-auto overflow-x-hidden bg-gray-900/50 p-4 md:inset-0">
+        <div class="relative mx-auto my-8 w-full max-w-2xl">
+            <button type="button" class="absolute end-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-900" th:attr="data-modal-hide=${modalId}" aria-label="Close modal">
+                <svg class="h-3 w-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 12 12M13 1 1 13"/></svg>
+            </button>
+            <div th:replace="~{fragments/user-form :: userForm(formObjectName=${formObjectName}, formAction=${formAction}, editing=${editing}, title=${title}, submitLabel=${submitLabel}, fieldPrefix=${fieldPrefix})}"></div>
+        </div>
+    </div>
+</body>
+</html>

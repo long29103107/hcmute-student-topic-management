@@ -3,10 +3,15 @@
   "private": true,
   "scripts": {
     "build:css": "npx --no-install @tailwindcss/cli -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/tailwind.css --minify",
+    "sync:flowbite": "node ./scripts/sync-flowbite.mjs",
+    "build:assets": "npm run build:css && npm run sync:flowbite",
     "watch:css": "npx --no-install @tailwindcss/cli -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/tailwind.css --watch"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",
     "tailwindcss": "^4.3.3"
+  },
+  "dependencies": {
+    "flowbite": "^4.0.2"
   }
 }

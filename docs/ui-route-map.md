@@ -32,7 +32,10 @@ Have unless explicitly selected.
 
 | Method | Route | Purpose |
 |---|---|---|
-| GET/POST | `/admin/users` | `AdminUserController` → list/create/update/lock |
+| GET | `/admin/users` | `UserManagementController` → account directory, search, status summary |
+| GET/POST | `/admin/users/new` | `UserManagementController` → create account and assign system roles |
+| GET/POST | `/admin/users/{id}/edit` | `UserManagementController` → update account details and role assignments |
+| POST | `/admin/users/{id}/status` | `UserManagementController` → lock/unlock account with self/last-admin safeguards |
 | GET | `/admin/roles?roleId=...` | `RoleManagementController` → combined system-role directory and permission editor (ADMIN hidden) |
 | GET/POST | `/admin/roles/{id}/permissions` | `RoleManagementController` → select/toggle permissions for a system role only; GET redirects to the combined editor |
 | GET/POST | `/faculty/departments` | `DepartmentController` → management |
