@@ -100,16 +100,17 @@ Trang `/seed` gọi các API theo đúng thứ tự sau:
 
 ### Seed không cần đăng nhập trên local
 
-Để bootstrap database mới khi chưa có tài khoản admin, mở một PowerShell mới
-và chạy:
+Local mặc định đã bật chế độ bootstrap anonymous. Nếu muốn tắt anonymous
+migration, mở một PowerShell mới và chạy:
 
 ```powershell
-$env:SEED_PUBLIC_ENABLED = 'true'
+$env:SEED_PUBLIC_ENABLED = 'false'
 mvn spring-boot:run
 ```
 
-Sau đó mở `/seed` và bấm **Run seed pipeline**. Trang sẽ tự gửi CSRF token cho
-các request POST.
+Khi `SEED_PUBLIC_ENABLED=true`, `/seed` và các API pipeline không yêu cầu login
+nhưng vẫn yêu cầu CSRF token. Chỉ giữ giá trị `true` trên local. Trang sẽ tự
+gửi CSRF token cho các request POST.
 
 ### Seed khi đã có tài khoản admin
 
@@ -155,7 +156,7 @@ mysql -u root -p -D hcmute_topic_management -e "SELECT student_code FROM student
 Database local chuẩn thường có:
 
 - 4 roles
-- 20 permissions
+- 21 permissions
 - 4 users
 - 1 Student Profile mẫu
 

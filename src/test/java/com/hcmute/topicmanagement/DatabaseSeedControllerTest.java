@@ -100,7 +100,7 @@ class DatabaseSeedControllerTest {
         }
 
         org.assertj.core.api.Assertions.assertThat(roleRepository.count()).isEqualTo(4);
-        org.assertj.core.api.Assertions.assertThat(permissionRepository.count()).isEqualTo(20);
+        org.assertj.core.api.Assertions.assertThat(permissionRepository.count()).isEqualTo(21);
         org.assertj.core.api.Assertions.assertThat(userRepository.count()).isEqualTo(4);
         org.assertj.core.api.Assertions.assertThat(studentProfileRepository.count()).isEqualTo(1);
         org.assertj.core.api.Assertions.assertThat(passwordEncoder.matches(
@@ -122,12 +122,12 @@ class DatabaseSeedControllerTest {
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.roles").value(4))
-                .andExpect(jsonPath("$.permissions").value(20))
+                .andExpect(jsonPath("$.permissions").value(21))
                 .andExpect(jsonPath("$.users").value(4))
                 .andExpect(jsonPath("$.studentProfiles").value(1));
 
         org.assertj.core.api.Assertions.assertThat(roleRepository.count()).isEqualTo(4);
-        org.assertj.core.api.Assertions.assertThat(permissionRepository.count()).isEqualTo(20);
+        org.assertj.core.api.Assertions.assertThat(permissionRepository.count()).isEqualTo(21);
         org.assertj.core.api.Assertions.assertThat(userRepository.count()).isEqualTo(4);
         org.assertj.core.api.Assertions.assertThat(studentProfileRepository.count()).isEqualTo(1);
         org.assertj.core.api.Assertions.assertThat(departmentRepository.count()).isZero();

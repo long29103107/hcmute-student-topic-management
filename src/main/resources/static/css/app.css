@@ -31,6 +31,18 @@
         color: #1d4ed8;
     }
 
+    [data-group-body] {
+        max-height: 2000px;
+        overflow: hidden;
+        opacity: 1;
+        transition: max-height 260ms ease, opacity 180ms ease;
+    }
+
+    [data-group-body][aria-hidden="true"] {
+        opacity: 0;
+        pointer-events: none;
+    }
+
     .ui-info-tooltip-content {
         position: absolute;
         z-index: 30;

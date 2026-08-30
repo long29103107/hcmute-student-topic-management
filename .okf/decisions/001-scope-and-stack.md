@@ -13,7 +13,7 @@ Spring Framework Core/Spring MVC is configured directly with Java config and
 
 ## Decision
 
-Use a single Maven WAR application with the dependency direction:
+Use a single Maven executable Spring Boot application with the dependency direction:
 
 ```text
 Spring MVC Controller/REST Controller -> Service -> DAO/JDBC -> MySQL

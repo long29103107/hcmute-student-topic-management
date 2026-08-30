@@ -109,6 +109,10 @@ public class UserEntity extends BaseEntity {
         return studentProfile;
     }
 
+    public void clearStudentProfile() {
+        this.studentProfile = null;
+    }
+
     public void addRole(RoleEntity role) {
         userRoles.add(new UserRoleEntity(this, role));
     }

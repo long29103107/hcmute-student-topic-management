@@ -4,7 +4,7 @@
 milestone hiện tại được xác định trong [`PRODUCT_VISION.md`](PRODUCT_VISION.md).
 
 Milestone hiện tại chỉ hoàn thành Identity and Access: Login, User, Role và
-Permission CRUD/authorization. Các module học vụ được ghi nhận trong Later
+seed-managed Role/Permission catalog và authorization. Các module học vụ được ghi nhận trong Later
 product roadmap và chỉ được mở sau khi user chọn scope tiếp theo.
 
 ## Tài liệu nguồn cho code generation

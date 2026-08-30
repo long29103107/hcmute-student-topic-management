@@ -1,4 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const trimInputTypes = new Set(['text', 'email', 'search', 'tel', 'url']);
+    document.querySelectorAll('form').forEach((form) => {
+        form.addEventListener('submit', () => {
+            form.querySelectorAll('input, textarea').forEach((field) => {
+                const type = (field.type || '').toLowerCase();
+                if (field instanceof HTMLTextAreaElement || trimInputTypes.has(type)) {
+                    field.value = field.value.trim();
+                }
+            });
+        });
+    });
+
     const toastElements = [...document.querySelectorAll('[data-toast]')];
     const maxToasts = 3;
     toastElements.slice(0, Math.max(0, toastElements.length - maxToasts)).forEach((toast) => toast.remove());
@@ -177,13 +189,21 @@ document.addEventListener('DOMContentLoaded', () => {
     permissionGroups.forEach((group) => {
         const trigger = group.querySelector('[data-group-trigger]');
         const body = group.querySelector('[data-group-body]');
+        const chevron = group.querySelector('[data-group-chevron]');
         const toggle = group.querySelector('[data-group-toggle]');
 
         if (trigger && body) {
+            const setGroupExpanded = (expanded) => {
+                body.setAttribute('aria-hidden', String(!expanded));
+                body.style.maxHeight = expanded ? `${body.scrollHeight}px` : '0px';
+            };
+
+            setGroupExpanded(true);
             trigger.addEventListener('click', () => {
                 const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
                 trigger.setAttribute('aria-expanded', String(!isExpanded));
-                body.hidden = isExpanded;
+                setGroupExpanded(!isExpanded);
+                chevron?.classList.toggle('rotate-180', isExpanded);
             });
         }
 

@@ -62,9 +62,9 @@ public class SecurityConfig {
                     }
                     auth.requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN");
                     auth.requestMatchers("/faculty/**").hasRole("FACULTY_HEAD");
-                    auth.requestMatchers("/api/faculty/scores/**").hasRole("LECTURER");
+                    auth.requestMatchers("/api/faculty/scores/**").hasAnyRole("LECTURER", "FACULTY_HEAD");
                     auth.requestMatchers("/api/faculty/**").hasRole("FACULTY_HEAD");
-                    auth.requestMatchers("/lecturer/**", "/api/lecturer/**").hasRole("LECTURER");
+                    auth.requestMatchers("/lecturer/**", "/api/lecturer/**").hasAnyRole("LECTURER", "FACULTY_HEAD");
                     auth.requestMatchers("/student/**", "/api/student/**").hasRole("STUDENT");
                     auth.requestMatchers("/announcements/manage", "/api/announcements/manage/**")
                             .hasAnyRole("ADMIN", "FACULTY_HEAD");

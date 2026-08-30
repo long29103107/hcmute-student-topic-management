@@ -44,12 +44,17 @@ fully usable, server-authorized identity and access-management foundation.
   administrator sets it. Lecturer creation assigns `LECTURER` automatically
   and uses a manually entered email as the login identifier and email, leaving
   the password unset until an administrator sets it. The directory has separate
-  student, lecturer and faculty-head views with a reusable account modal.
-- Role CRUD and role-to-permission assignment.
-- Permission CRUD and permission-to-role assignment.
+  student and lecturer-capability views with a reusable account modal. The
+  lecturer directory includes both `LECTURER` and `FACULTY_HEAD` accounts.
+- Seed-managed system roles and permissions. Administrators may view the
+  catalog and maintain role-permission assignments; adding, renaming or
+  removing a system role/permission requires a reviewed seed or schema change,
+  not runtime CRUD.
 - Duplicate/invalid input validation, PRG feedback and safe password hashing.
-- Reproducible local identity fixtures through an admin-only seed endpoint and
-  `/seed` page that resets the application database before reseeding.
+- Reproducible local identity fixtures through the seed endpoint and `/seed`
+  page that resets the application database before reseeding. Anonymous seed
+  access is a local bootstrap mode; shared/staging/production deployments must
+  disable it and require `ADMIN` plus CSRF.
 - Flowbite/Thymeleaf UI for the above, including reusable user add/edit modal
   fragments.
 - Service/controller authorization tests and an end-to-end smoke of the
@@ -87,8 +92,10 @@ fully usable, server-authorized identity and access-management foundation.
   cannot establish a session.
 - Direct access to protected routes is blocked for anonymous users and users
   without the required permission.
-- Authorized administrators can complete the agreed CRUD flows for users,
-  roles and permissions through the UI and direct requests.
+- Authorized administrators can complete the agreed user-management flows and
+  maintain role-permission assignments through the UI and direct requests.
+  The system role/permission catalog is reproducibly restored by seed and has
+  no runtime create/update/delete API.
 - Role and permission changes take effect in server-side authorization.
 - Student Profile is separate from User, uses `user_id`, and enforces unique
   MSSV; normal User edits never change MSSV.
@@ -96,10 +103,12 @@ fully usable, server-authorized identity and access-management foundation.
   password is an explicit edit/reset action.
 - Passwords are never stored or rendered as plaintext; validation and duplicate
   constraints are enforced on the server.
-- Local seed/reset is explicit, authenticated as `ADMIN`, and available from
-  the `/seed` page, which calls the CSRF-protected API after confirmation. It
-  truncates the fixed application table set before restoring roles,
-  permissions, test accounts and the sample Student Profile.
+- Local seed/reset is explicit and available from the `/seed` page, which calls
+  the CSRF-protected API after confirmation. Local bootstrap may run without a
+  login when `SEED_PUBLIC_ENABLED=true`; shared/staging/production deployments
+  must set it to `false`, requiring `ADMIN`. It truncates the fixed application
+  table set before restoring roles, permissions, test accounts and the sample
+  Student Profile.
 - Relevant tests and `mvn test` pass; unavailable environment checks are
   recorded explicitly.
 
@@ -107,12 +116,12 @@ fully usable, server-authorized identity and access-management foundation.
 
 | Task | Outcome | Status |
 |---|---|---|
-| 001_001 | Reconcile the current identity schema, seed data and service contracts with this vision. | in progress |
-| 001_002 | Complete login, logout, session and route authorization behavior. | planned |
-| 001_003 | Complete role-aware User CRUD, Student Profile/MSSV handling, status management and credential reset. | planned |
-| 001_004 | Complete Role and Permission CRUD plus role-permission assignment. | planned |
-| 001_005 | Apply permission checks consistently to UI routes and mutations. | planned |
-| 001_006 | Verify the full identity-and-access milestone and record evidence. | planned |
+| 001_001 | Reconcile the current identity schema, seed data and service contracts with this vision. | completed |
+| 001_002 | Complete login, logout, session and route authorization behavior. | completed |
+| 001_003 | Complete role-aware User CRUD, Student Profile/MSSV handling, status management and credential reset. | completed |
+| 001_004 | Verify seed-managed role/permission catalog and role-permission assignment. | completed |
+| 001_005 | Apply permission checks consistently to UI routes and mutations. | completed |
+| 001_006 | Verify the full identity-and-access milestone and record evidence. | completed |
 
 The shared admin layout provides reusable success, warning, and error toast
 feedback for redirect-based operations. Toasts are dismissible and auto-hide;

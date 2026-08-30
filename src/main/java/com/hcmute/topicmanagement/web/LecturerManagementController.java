@@ -85,6 +85,19 @@ public class LecturerManagementController {
         return "redirect:/admin/lecturers";
     }
 
+    @PostMapping("/{id}/delete")
+    @PreAuthorize("hasAuthority('USER_DELETE')")
+    public String delete(@PathVariable Long id, org.springframework.security.core.Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+        try {
+            service.deleteUser(id, authentication.getName(), "LECTURER");
+            redirectAttributes.addFlashAttribute("successMessage", "Lecturer account deleted successfully.");
+        } catch (UserManagementService.UserValidationException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        }
+        return "redirect:/admin/lecturers";
+    }
+
     @PostMapping("/{id}/password")
     @PreAuthorize("hasAuthority('USER_UPDATE')")
     public String setPassword(@PathVariable Long id, @Valid @ModelAttribute("passwordForm") PasswordForm form,
@@ -142,6 +155,7 @@ public class LecturerManagementController {
         model.addAttribute("createAccountType", "LECTURER");
         model.addAttribute("statusBasePath", "/admin/lecturers");
         model.addAttribute("editBasePath", "/admin/lecturers");
+        model.addAttribute("deleteBasePath", "/admin/lecturers");
     }
 
     private static LecturerForm toForm(UserEditorData user) {

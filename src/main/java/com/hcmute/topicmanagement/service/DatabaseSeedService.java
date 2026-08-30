@@ -68,6 +68,7 @@ public class DatabaseSeedService {
             new PermissionSeed("USER_CREATE", "Create account", "Users", "Create a new user account."),
             new PermissionSeed("USER_UPDATE", "Update account", "Users", "Update account information."),
             new PermissionSeed("USER_LOCK", "Lock/unlock account", "Users", "Lock or unlock an account."),
+            new PermissionSeed("USER_DELETE", "Delete account", "Users", "Delete an account when it has no dependent records."),
             new PermissionSeed("USER_ROLE_ASSIGN", "Assign role to user", "Users", "Assign or remove a user role."),
             new PermissionSeed("ROLE_READ", "View roles", "Roles", "View the role list and current permissions."),
             new PermissionSeed("ROLE_UPDATE", "Manage role permissions", "Roles",
@@ -101,7 +102,7 @@ public class DatabaseSeedService {
 
     private static final Map<String, List<String>> ROLE_PERMISSIONS = Map.of(
             "ADMIN", List.of("DASHBOARD_VIEW", "USER_READ", "USER_CREATE", "USER_UPDATE", "USER_LOCK",
-                    "USER_ROLE_ASSIGN", "ROLE_READ", "ROLE_UPDATE", "PERMISSION_ASSIGN"),
+                    "USER_DELETE", "USER_ROLE_ASSIGN", "ROLE_READ", "ROLE_UPDATE", "PERMISSION_ASSIGN"),
             "FACULTY_HEAD", withLecturerPermissions(
                     "DEPARTMENT_MANAGE", "PERIOD_MANAGE", "TOPIC_REVIEW", "REGISTRATION_REVIEW"),
             "LECTURER", LECTURER_PERMISSIONS,

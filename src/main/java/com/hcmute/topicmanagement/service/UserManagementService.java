@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -343,6 +344,35 @@ public class UserManagementService {
         user.setActive(!user.isActive());
         userRepository.save(user);
         return user.isActive();
+    }
+
+    @Transactional
+    public void deleteUser(Long id, String currentIdentity, String directoryRoleCode) {
+        UserEntity user = findUserWithRoles(id);
+        String normalizedCurrentIdentity = normalizeOptional(currentIdentity);
+        if (StringUtils.hasText(normalizedCurrentIdentity)
+                && (user.getLoginIdentifier().equalsIgnoreCase(normalizedCurrentIdentity)
+                        || (StringUtils.hasText(user.getEmailOrCode())
+                                && user.getEmailOrCode().equalsIgnoreCase(normalizedCurrentIdentity)))) {
+            throw new UserValidationException("You cannot delete your own account.");
+        }
+        if (!matchesDirectoryRole(user, normalizeRoleCode(directoryRoleCode))) {
+            throw new UserValidationException("This account is not part of the selected directory.");
+        }
+
+        try {
+            StudentProfileEntity profile = studentProfileRepository.findByUser_Id(id).orElse(null);
+            if (profile != null) {
+                user.clearStudentProfile();
+                studentProfileRepository.delete(profile);
+            }
+            userRoleRepository.deleteAllByUser_Id(id);
+            userRepository.delete(user);
+            userRepository.flush();
+        } catch (DataIntegrityViolationException exception) {
+            throw new UserValidationException(
+                    "This account cannot be deleted because it is referenced by existing records. Lock it instead.");
+        }
     }
 
     private void saveRoleAssignments(UserEntity user, List<RoleEntity> selectedRoles) {

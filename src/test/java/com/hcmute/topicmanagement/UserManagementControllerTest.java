@@ -116,6 +116,83 @@ class UserManagementControllerTest {
     }
 
     @Test
+    void studentAndLecturerDirectoriesExposeDropdownActionsAndDeleteConfirmation() throws Exception {
+        UserEntity student = saveUser("student-actions", "Student Actions", "STUDENT", "Password123");
+        UserEntity lecturer = saveUser("lecturer-actions", "Lecturer Actions", "LECTURER", "Password123");
+        DatabaseUserPrincipal administrator = admin("USER_READ", "USER_UPDATE", "USER_ROLE_ASSIGN", "USER_LOCK",
+                "USER_DELETE");
+
+        mockMvc.perform(get("/admin/students").with(user(administrator)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(
+                        "data-dropdown-toggle=\"user-actions-menu-" + student.getId() + "\"")))
+                .andExpect(content().string(containsString(
+                        "data-modal-target=\"delete-user-modal-" + student.getId() + "\"")))
+                .andExpect(content().string(containsString("Delete account?")))
+                .andExpect(content().string(containsString(
+                        "action=\"/admin/students/" + student.getId() + "/delete\"")));
+
+        mockMvc.perform(get("/admin/lecturers").with(user(administrator)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(
+                        "data-dropdown-toggle=\"user-actions-menu-" + lecturer.getId() + "\"")))
+                .andExpect(content().string(containsString(
+                        "data-modal-target=\"delete-user-modal-" + lecturer.getId() + "\"")))
+                .andExpect(content().string(containsString("Delete account?")))
+                .andExpect(content().string(containsString(
+                        "action=\"/admin/lecturers/" + lecturer.getId() + "/delete\"")));
+    }
+
+    @Test
+    void adminCanDeleteStudentAndLecturerAccountsThroughTheirDirectories() throws Exception {
+        UserEntity student = saveUser("student-delete", "Student Delete", "STUDENT", "Password123");
+        studentProfileRepository.saveAndFlush(new StudentProfileEntity(
+                student, "24119991", "2024-2025", "Information Technology", "22110CL9"));
+        UserEntity lecturer = saveUser("lecturer-delete", "Lecturer Delete", "LECTURER", "Password123");
+
+        mockMvc.perform(post("/admin/students/" + student.getId() + "/delete")
+                        .with(user(admin("USER_DELETE")))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/students"))
+                .andExpect(flash().attribute("successMessage", "Student account deleted successfully."));
+
+        org.junit.jupiter.api.Assertions.assertTrue(userRepository.findById(student.getId()).isEmpty());
+        org.junit.jupiter.api.Assertions.assertTrue(studentProfileRepository.findByUser_Id(student.getId()).isEmpty());
+        org.junit.jupiter.api.Assertions.assertTrue(userRoleRepository.findByUser_Id(student.getId()).isEmpty());
+
+        mockMvc.perform(post("/admin/lecturers/" + lecturer.getId() + "/delete")
+                        .with(user(admin("USER_DELETE")))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/lecturers"))
+                .andExpect(flash().attribute("successMessage", "Lecturer account deleted successfully."));
+
+        org.junit.jupiter.api.Assertions.assertTrue(userRepository.findById(lecturer.getId()).isEmpty());
+        org.junit.jupiter.api.Assertions.assertTrue(userRoleRepository.findByUser_Id(lecturer.getId()).isEmpty());
+    }
+
+    @Test
+    void deleteRequiresPermissionAndCannotDeleteCurrentAccount() throws Exception {
+        UserEntity protectedUser = saveUser("delete-permission", "Delete Permission", "STUDENT", "Password123");
+
+        mockMvc.perform(post("/admin/students/" + protectedUser.getId() + "/delete")
+                        .with(user(admin("USER_READ")))
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+
+        UserEntity currentUser = saveUser("delete-current", "Delete Current", "STUDENT", "Password123");
+        mockMvc.perform(post("/admin/students/" + currentUser.getId() + "/delete")
+                        .with(user(adminAs("delete-current", "USER_DELETE")))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/students"))
+                .andExpect(flash().attribute("errorMessage", "You cannot delete your own account."));
+
+        org.junit.jupiter.api.Assertions.assertTrue(userRepository.findById(currentUser.getId()).isPresent());
+    }
+
+    @Test
     void lecturerEditModalHidesLoginPasswordAndRoleControls() throws Exception {
         saveUser("lecturer-edit", "Lecturer Edit", "LECTURER", "Password123");
 

@@ -87,6 +87,19 @@ public class StudentManagementController {
         return "redirect:/admin/students";
     }
 
+    @PostMapping("/{id}/delete")
+    @PreAuthorize("hasAuthority('USER_DELETE')")
+    public String delete(@PathVariable Long id, org.springframework.security.core.Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+        try {
+            service.deleteUser(id, authentication.getName(), "STUDENT");
+            redirectAttributes.addFlashAttribute("successMessage", "Student account deleted successfully.");
+        } catch (UserManagementService.UserValidationException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        }
+        return "redirect:/admin/students";
+    }
+
     @PostMapping("/{id}/password")
     @PreAuthorize("hasAuthority('USER_UPDATE')")
     public String setPassword(@PathVariable Long id, @Valid @ModelAttribute("passwordForm") PasswordForm form,
@@ -143,6 +156,7 @@ public class StudentManagementController {
         model.addAttribute("createAccountType", "STUDENT");
         model.addAttribute("statusBasePath", "/admin/students");
         model.addAttribute("editBasePath", "/admin/students");
+        model.addAttribute("deleteBasePath", "/admin/students");
     }
 
     private static StudentForm toForm(UserEditorData user) {

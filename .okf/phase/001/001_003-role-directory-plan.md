@@ -10,14 +10,14 @@
 - User outcome: an authorized administrator can create the appropriate account,
   browse a role-specific list and open a safe detail view for Students,
   Lecturers and Faculty Heads.
-- Explicitly out of scope: topic/department/registration workflows, role
-  permission CRUD, delete/reset/status changes beyond existing behavior, audit
+- Explicitly out of scope: topic/department/registration workflows, runtime
+  role/permission CRUD, delete/reset/status changes beyond existing behavior, audit
   history, search API optimization and separate authentication tables.
 
 ## Objective
 
-Implement one shared User service contract and three role-specific directory
-surfaces. The role determines which profile fields and permissions are shown;
+Implement one shared User service contract and separate Student/Lecturer-
+capability directory surfaces. The role determines which profile fields and permissions are shown;
 it must not create a second User/credential persistence path.
 
 ### Role behavior
@@ -26,7 +26,7 @@ it must not create a second User/credential persistence path.
 |---|---|---|---|
 | `STUDENT` | Enter unique 8-digit MSSV; server generates readonly `<MSSV>@student.hcmute.edu.vn`; create `student_profiles` | Account fields, status, roles, MSSV, academic year, major and class | MSSV is immutable in normal edit and unique in the database |
 | `LECTURER` | Enter and server-validate email; no MSSV/profile fields | Account fields, status, roles and email | Add Lecturer assigns only `LECTURER` |
-| `FACULTY_HEAD` | Create/prepare a normal staff account, then explicitly assign `FACULTY_HEAD` through role assignment | Account fields, status, roles and email | No permission inheritance from `LECTURER`; a person needing both roles receives both assignments |
+| `FACULTY_HEAD` | Create/prepare a normal staff account, then explicitly assign `FACULTY_HEAD` through role assignment | Account fields, status, roles and email | Receives the explicit seeded Faculty Head permission bundle; no runtime role inheritance |
 
 Faculty Head creation remains a separate role-assignment step. A dedicated
 Faculty Head directory may list/detail accounts with that active role, but the
@@ -73,11 +73,11 @@ Prefer a single role-filtered resource over three duplicated business paths:
    create commands. Exclude password hashes and enforce active role checks,
    Student MSSV/email generation, Lecturer email validation and explicit
    Faculty Head assignment.
-4. Add the three SSR directory routes/views. Reuse the existing Flowbite/
-   Thymeleaf account template; show MSSV/profile data only for Students and
-   show email-only staff data for Lecturer/Faculty Head.
-5. Add the Faculty Head sidebar entry and role-specific links without hiding
-   unauthorized actions as the only security control.
+4. Add the Student and Lecturer-capability SSR directory routes/views. Reuse
+   the existing Flowbite/Thymeleaf account template; show MSSV/profile data
+   only for Students and show email-only staff data for Lecturer/Faculty Head.
+5. Keep Faculty Head accounts in the Lecturer-capability directory; role
+   assignment remains explicit and must not create a separate directory.
 6. Add REST DTOs/controller only when the current client needs them; route all
    mutations and reads through the same service as SSR.
 7. Add focused tests for each role’s create/list/detail path, duplicate and
@@ -106,8 +106,9 @@ Prefer a single role-filtered resource over three duplicated business paths:
   and list/detail expose MSSV without exposing password data.
 - Lecturer create accepts a valid email, rejects invalid/duplicate email, and
   list/detail never render Student fields.
-- Faculty Head list/detail returns only accounts with active `FACULTY_HEAD`;
-  assigning it does not grant `LECTURER` permissions automatically.
+- Lecturer-capability list/detail includes active `LECTURER` and
+  `FACULTY_HEAD` accounts; its Lecturer-capability permissions come from the
+  explicit seeded `role_permissions` bundle, not an implicit second role.
 - An account with both `LECTURER` and `FACULTY_HEAD` appears in both relevant
   directories and retains both explicit role assignments.
 - Anonymous, non-admin and insufficient-permission requests receive the

@@ -2,7 +2,8 @@
 
 These are proposed stable route names for code generation. SSR routes map to
 Spring MVC `@Controller` methods and JSPs under `WEB-INF/views`. REST routes map
-to `@RestController` methods in the same WAR and reuse the same Service layer.
+to `@RestController` methods in the same executable Spring Boot application
+and reuse the same Service layer.
 
 For the course-project MVP, implement only routes needed for the core flow:
 periods, topics, groups, registrations, reports and simple evaluations/results.
@@ -33,9 +34,9 @@ Have unless explicitly selected.
 | Method | Route | Purpose |
 |---|---|---|
 | GET | `/admin/students` | `StudentManagementController` → student directory, search, status summary |
-| GET | `/admin/lecturers` | `LecturerManagementController` → lecturer directory, search, status summary |
-| POST | `/admin/students`, `/admin/students/{id}/edit`, `/admin/students/{id}/status` | `StudentManagementController` → student create, update and lock/unlock |
-| POST | `/admin/lecturers`, `/admin/lecturers/{id}/edit`, `/admin/lecturers/{id}/status` | `LecturerManagementController` → lecturer create, update and lock/unlock |
+| GET | `/admin/lecturers` | `LecturerManagementController` → lecturer-capability directory (`LECTURER` or `FACULTY_HEAD`), search, status summary |
+| POST | `/admin/students`, `/admin/students/{id}/edit`, `/admin/students/{id}/status`, `/admin/students/{id}/delete` | `StudentManagementController` → student create, update, lock/unlock and safe delete |
+| POST | `/admin/lecturers`, `/admin/lecturers/{id}/edit`, `/admin/lecturers/{id}/status`, `/admin/lecturers/{id}/delete` | `LecturerManagementController` → lecturer create, update, lock/unlock and safe delete |
 | GET | `/admin/users` | `UserManagementController` → legacy combined account directory |
 | GET/POST | `/admin/users/new` | `UserManagementController` → create account and assign system roles |
 | GET/POST | `/admin/users/{id}/edit` | `UserManagementController` → update account details and role assignments |

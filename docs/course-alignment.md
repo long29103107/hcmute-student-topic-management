@@ -21,7 +21,7 @@ business requirements in `REQUEST.md`.
 |---|---|
 | Servlet/JSP/JSTL | JSP/JSTL server-rendered pages under `WEB-INF/views`; Spring MVC runs on Jakarta Servlet/Tomcat. |
 | Spring/Spring MVC | Main MVC framework, dependency injection and controller layer. |
-| RESTful API | REST controllers under `/api` in the same WAR; they reuse Service/DAO and do not become a separate service or SPA backend. |
+| RESTful API | REST controllers under `/api` in the same executable Spring Boot application; they reuse Service/DAO and do not become a separate service or SPA backend. |
 | JDBC | DAO persistence with MySQL and `PreparedStatement`; no ORM is assumed. |
 | Bootstrap + jQuery | Use Tailwind CSS 4 + Flowbite 4 for the UI layer; Bootstrap is not a project dependency. |
 | Java Mail | Optional Nice to Have notification adapter; it is not required for the core workflow. |

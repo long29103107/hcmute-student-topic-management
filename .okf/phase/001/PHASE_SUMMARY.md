@@ -1,12 +1,12 @@
 ---
 phase: 001
 title: Identity and Access — Users, Roles, Permissions and Login
-status: in_progress
+status: complete
 created_at: 2026-08-20
-updated_at: 2026-08-29
-current_task: 001_001
+updated_at: 2026-08-30
+current_task: 001_006
 task_count: 6
-done_count: 0
+done_count: 6
 depends_on: []
 ---
 
@@ -20,7 +20,7 @@ areas may be added here without an explicit user decision.
 
 ## Phase Goal
 
-Complete Login, User, Role and Permission modules, including CRUD and
+Complete Login, User, and seed-managed Role/Permission modules, including
 server-side authorization, as one usable identity-and-access foundation.
 
 ## Phase Done Criteria
@@ -33,7 +33,8 @@ server-side authorization, as one usable identity-and-access foundation.
   `<MSSV>@student.hcmute.edu.vn` email and leaves the password unset until an
   administrator sets it. Lecturer creation auto-assigns `LECTURER` and accepts
   a manually entered email/password. The directory separates student,
-  lecturer and faculty-head views and reuses the same account modal template.
+  lecturer-capability view (including Faculty Head accounts) and reuses the
+  same account modal template.
 - Student Profile uses a separate `user_id` relation and normal User edit never
   changes MSSV.
 - Users without a configured password cannot authenticate; setting a password
@@ -43,17 +44,21 @@ server-side authorization, as one usable identity-and-access foundation.
   Lecturer permissions plus faculty/registration workflow permissions. The
   bundle is explicit in `role_permissions`, and Faculty Head assignment is
   separate from Add Lecturer.
-- Roles and permissions support CRUD and role-permission assignment.
+- Roles and permissions are system-managed seed data; administrators can view
+  the catalog and maintain role-permission assignments, while catalog changes
+  require a reviewed seed/schema change rather than runtime CRUD.
 - Role/permission changes are enforced by server-side checks, not hidden UI.
 - All mutations have server validation, authorization and meaningful feedback.
-- Local identity fixtures can be reset reproducibly through the authenticated
-  admin seed API; the API truncates the fixed application table set before
-  reseeding.
+- Local identity fixtures can be reset reproducibly through the seed pipeline;
+  anonymous access is supported for local bootstrap, while shared/staging/
+  production deployments must disable it and require an authenticated admin.
+  The API truncates the fixed application table set before reseeding.
 - Relevant tests and `mvn test` pass; skipped environment checks are recorded.
 
 ## Scope
 
-In: User, Role, Permission and Login CRUD/authorization only.
+In: User and Login CRUD/authorization, plus seed-managed Role/Permission
+catalog and role-permission assignment.
 
 Out: departments, periods, topics, groups, registrations, reports, evaluations,
 results, announcements, dashboards, email and audit logging.
@@ -62,22 +67,22 @@ results, announcements, dashboards, email and audit logging.
 
 | Task | Title | Status | Done At |
 |---|---|---|---|
-| 001_001 | Reconcile identity baseline and persistence contracts | in_progress | |
-| 001_002 | Login, logout, session and protected-route behavior | planned | |
-| 001_003 | Role-aware User CRUD, Student Profile/MSSV handling, status and credential reset | planned | |
-| 001_004 | Role and permission CRUD with assignment management | planned | |
-| 001_005 | Permission enforcement and cross-route authorization audit | planned | |
-| 001_006 | Identity-and-access verification and phase closure | planned | |
+| 001_001 | Reconcile identity baseline and persistence contracts | completed | 2026-08-30 |
+| 001_002 | Login, logout, session and protected-route behavior | completed | 2026-08-30 |
+| 001_003 | Role-aware User CRUD, Student Profile/MSSV handling, status and credential reset | completed | 2026-08-30 |
+| 001_004 | Seed-managed role/permission catalog and assignment policy | completed | 2026-08-30 |
+| 001_005 | Permission enforcement and cross-route authorization audit | completed | 2026-08-30 |
+| 001_006 | Identity-and-access verification and phase closure | completed | 2026-08-30 |
 
 ## Current Task
 
-`001_001` — compare the existing implementation with the active product vision,
-then create the smallest gap-closing task. Do not start academic-workflow work.
+`001_006` — run final verification and close the identity-and-access phase.
+Do not start academic-workflow work in this phase.
 
-The identity seed source of truth is now `DatabaseSeedService`; the legacy
-`database/2.seed.sql` file is retained only as a pointer to its API endpoint.
-Existing MySQL databases must run `database/4.update-ddl.sql` before starting
-the application when they predate the current User and Student Profile schema.
+The identity seed source of truth is `DatabaseSeedService`; the only database
+script kept in the repository is `database/1.ddl.sql`. Existing databases must
+be recreated or brought to the current schema before starting the application;
+the deleted legacy `database/4.update-ddl.sql` is not part of the pipeline.
 Shared admin feedback now uses the reusable layout toast fragment for success,
 warning and error flash messages; form validation feedback remains inline.
 Student and lecturer directories now have typed canonical routes and separate
@@ -86,8 +91,20 @@ legacy compatibility.
 
 ## Next Task Proposal
 
-After the baseline is reconciled, complete the first missing identity behavior
-from `001_002` through `001_005`; prioritize the smallest user-facing gap.
+Phase 001 is complete. Move academic workflow work to the next explicitly
+selected milestone. The existing role/permission catalog remains seed-managed
+by design; do not create runtime CRUD tickets for it.
+
+## Verification Evidence
+
+- `mvn test` — pass, 42 tests, 0 failures, 0 errors, 0 skipped.
+- `mvn package -DskipTests` — pass; produced
+  `target/student-topic-management-0.0.1-SNAPSHOT.jar` as an executable
+  Spring Boot JAR.
+- `git diff --check` — pass.
+- MySQL and deployed-browser/Tomcat smoke checks — not run in this workspace;
+  the automated suite uses H2 and the runbook records the required environment
+  checks for handoff.
 
 ## Task Notes
 

@@ -22,7 +22,9 @@ npm run build:assets
 ```
 
 Use a focused test class while iterating, then rerun the full suite before
-closing the task. Package output should be a deployable WAR.
+closing the task. Package output should be an executable Spring Boot JAR with
+embedded Tomcat. The repository's automated H2 test context does not replace
+the required MySQL smoke check.
 
 ## MySQL checks
 
@@ -40,7 +42,7 @@ Verify at least:
 
 ## Spring MVC/Tomcat smoke checklist
 
-With the WAR deployed:
+With the executable JAR running:
 
 1. Anonymous user is redirected to login for protected pages.
 2. Invalid login does not create an authenticated session.

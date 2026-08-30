@@ -45,6 +45,12 @@ class SecurityConfigTest {
     }
 
     @Test
+    void facultyHeadCanReachLecturerCapabilityRoutes() throws Exception {
+        mockMvc.perform(get("/lecturer/topics").with(user("faculty-head").roles("FACULTY_HEAD")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void stateChangingLogoutRequiresCsrf() throws Exception {
         mockMvc.perform(post("/logout").with(user("admin").roles("ADMIN")))
                 .andExpect(status().isForbidden());
