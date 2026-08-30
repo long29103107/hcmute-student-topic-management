@@ -408,15 +408,22 @@ class UserManagementControllerTest {
     }
 
     @Test
-    void createdAccountCanSignInThroughTheLoginFlow() throws Exception {
+    void createdAccountCanSignInWithEmailThroughTheLoginFlow() throws Exception {
         saveUser("login-user", "Login User", "STUDENT", "StrongPass123");
+
+        mockMvc.perform(post("/login")
+                        .with(csrf())
+                        .param("email", "login-user@hcmute.local")
+                        .param("password", "StrongPass123"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/dashboard"));
 
         mockMvc.perform(post("/login")
                         .with(csrf())
                         .param("username", "login-user")
                         .param("password", "StrongPass123"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/dashboard"));
+                .andExpect(redirectedUrl("/login?error"));
     }
 
     @Test

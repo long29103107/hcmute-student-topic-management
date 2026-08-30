@@ -12,7 +12,7 @@
             <div>
                 <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Development tools</p>
                 <h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Seed data</h1>
-                <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500">Restore the local database with the identity fixtures used by the application.</p>
+                <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500">Create the schema and restore the local identity fixtures used by the application.</p>
             </div>
             <span class="inline-flex w-fit items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
                 <span class="me-1.5 h-2 w-2 rounded-full bg-red-500"></span>
@@ -25,76 +25,92 @@
                 <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9 5h2v6H9V5Zm0 8h2v2H9v-2Z"/>
             </svg>
             <div>
-                <h2 class="font-semibold">This action is destructive</h2>
-                <p class="mt-1 leading-5">The seed API truncates the application tables before recreating the local roles, permissions, test accounts and sample Student Profile.</p>
+                <h2 class="font-semibold">Run this on a local database</h2>
+                <p class="mt-1 leading-5">The pipeline creates the schema and creates or updates the local fixture roles, permissions, accounts and Student Profile.</p>
             </div>
         </div>
 
-        <ol class="space-y-4" aria-label="Available seed APIs">
-            <li>
         <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="seed-api-title">
-            <div class="flex flex-col justify-between gap-4 border-b border-gray-200 pb-5 sm:flex-row sm:items-start">
-                <div>
-                    <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Seed API</p>
-                    <h2 id="seed-api-title" class="text-xl font-semibold text-gray-900">Reset and seed all data</h2>
-                    <p class="mt-2 text-sm leading-6 text-gray-500">Rebuild the complete local identity fixture set in one transaction.</p>
-                </div>
-                <span class="inline-flex w-fit shrink-0 rounded-lg bg-gray-100 px-3 py-1.5 font-mono text-xs font-medium text-gray-700">POST /api/admin/seed</span>
-                <button type="button"
-                        class="inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-200 disabled:cursor-not-allowed disabled:opacity-60"
-                        data-seed-action
-                        data-seed-endpoint="/api/admin/seed"
-                        data-seed-confirm="This will truncate the application tables and recreate seed data. Continue?">
-                    <svg class="me-2 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M5.5 15A7.5 7.5 0 0 0 19 9M18.5 9A7.5 7.5 0 0 0 5 15"/></svg>
-                    Run reset &amp; seed
-                </button>
+            <div class="mb-5 border-b border-gray-200 pb-5">
+                <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Seed API pipeline</p>
+                <h2 id="seed-api-title" class="text-xl font-semibold text-gray-900">Create schema and seed fixtures</h2>
+                <p class="mt-2 text-sm leading-6 text-gray-500">Each API is called in order. The next step starts only after the previous step succeeds.</p>
             </div>
 
-            <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Seed contents">
-                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                    <span class="block text-xs font-medium uppercase tracking-wide text-gray-500">Roles</span>
-                    <strong class="mt-1 block text-2xl font-bold text-gray-900">4</strong>
-                    <span class="mt-1 block text-xs text-gray-500">System roles</span>
-                </div>
-                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                    <span class="block text-xs font-medium uppercase tracking-wide text-gray-500">Permissions</span>
-                    <strong class="mt-1 block text-2xl font-bold text-gray-900">19</strong>
-                    <span class="mt-1 block text-xs text-gray-500">Access permissions</span>
-                </div>
-                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                    <span class="block text-xs font-medium uppercase tracking-wide text-gray-500">Accounts</span>
-                    <strong class="mt-1 block text-2xl font-bold text-gray-900">4</strong>
-                    <span class="mt-1 block text-xs text-gray-500">Local test users</span>
-                </div>
-                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                    <span class="block text-xs font-medium uppercase tracking-wide text-gray-500">Profiles</span>
-                    <strong class="mt-1 block text-2xl font-bold text-gray-900">1</strong>
-                    <span class="mt-1 block text-xs text-gray-500">Student Profile</span>
-                </div>
-            </div>
+            <ol class="space-y-3" aria-label="Available seed APIs" data-seed-steps>
+                <li class="rounded-lg border border-gray-200 bg-gray-50 p-4" data-seed-step data-seed-endpoint="/api/seed/ddl" data-seed-label="Create database schema">
+                    <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                        <div class="flex min-w-0 items-start gap-3">
+                            <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-800">1</span>
+                            <div class="min-w-0"><h3 class="font-semibold text-gray-900">Create database schema</h3><p class="mt-1 font-mono text-xs text-gray-600">POST /api/seed/ddl</p></div>
+                        </div>
+                        <span class="w-fit rounded-full bg-gray-200 px-2.5 py-1 text-xs font-medium text-gray-700" data-seed-step-status>Pending</span>
+                    </div>
+                </li>
+                <li class="rounded-lg border border-gray-200 bg-gray-50 p-4" data-seed-step data-seed-endpoint="/api/seed/permissions" data-seed-label="Seed permissions">
+                    <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                        <div class="flex min-w-0 items-start gap-3">
+                            <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-800">2</span>
+                            <div class="min-w-0"><h3 class="font-semibold text-gray-900">Seed permissions</h3><p class="mt-1 font-mono text-xs text-gray-600">POST /api/seed/permissions</p></div>
+                        </div>
+                        <span class="w-fit rounded-full bg-gray-200 px-2.5 py-1 text-xs font-medium text-gray-700" data-seed-step-status>Pending</span>
+                    </div>
+                </li>
+                <li class="rounded-lg border border-gray-200 bg-gray-50 p-4" data-seed-step data-seed-endpoint="/api/seed/roles" data-seed-label="Seed roles">
+                    <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                        <div class="flex min-w-0 items-start gap-3">
+                            <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-800">3</span>
+                            <div class="min-w-0"><h3 class="font-semibold text-gray-900">Seed roles</h3><p class="mt-1 font-mono text-xs text-gray-600">POST /api/seed/roles</p></div>
+                        </div>
+                        <span class="w-fit rounded-full bg-gray-200 px-2.5 py-1 text-xs font-medium text-gray-700" data-seed-step-status>Pending</span>
+                    </div>
+                </li>
+                <li class="rounded-lg border border-gray-200 bg-gray-50 p-4" data-seed-step data-seed-endpoint="/api/seed/role-permissions" data-seed-label="Seed role permissions">
+                    <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                        <div class="flex min-w-0 items-start gap-3">
+                            <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-800">4</span>
+                            <div class="min-w-0"><h3 class="font-semibold text-gray-900">Seed role permissions</h3><p class="mt-1 font-mono text-xs text-gray-600">POST /api/seed/role-permissions</p></div>
+                        </div>
+                        <span class="w-fit rounded-full bg-gray-200 px-2.5 py-1 text-xs font-medium text-gray-700" data-seed-step-status>Pending</span>
+                    </div>
+                </li>
+                <li class="rounded-lg border border-gray-200 bg-gray-50 p-4" data-seed-step data-seed-endpoint="/api/seed/users" data-seed-label="Seed users">
+                    <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                        <div class="flex min-w-0 items-start gap-3">
+                            <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-800">5</span>
+                            <div class="min-w-0"><h3 class="font-semibold text-gray-900">Seed users</h3><p class="mt-1 font-mono text-xs text-gray-600">POST /api/seed/users</p></div>
+                        </div>
+                        <span class="w-fit rounded-full bg-gray-200 px-2.5 py-1 text-xs font-medium text-gray-700" data-seed-step-status>Pending</span>
+                    </div>
+                </li>
+                <li class="rounded-lg border border-gray-200 bg-gray-50 p-4" data-seed-step data-seed-endpoint="/api/seed/student-profiles" data-seed-label="Seed student profiles">
+                    <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                        <div class="flex min-w-0 items-start gap-3">
+                            <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-800">6</span>
+                            <div class="min-w-0"><h3 class="font-semibold text-gray-900">Seed student profiles</h3><p class="mt-1 font-mono text-xs text-gray-600">POST /api/seed/student-profiles</p></div>
+                        </div>
+                        <span class="w-fit rounded-full bg-gray-200 px-2.5 py-1 text-xs font-medium text-gray-700" data-seed-step-status>Pending</span>
+                    </div>
+                </li>
+            </ol>
 
             <div class="mt-6 flex flex-col gap-4 border-t border-gray-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-900" data-seed-status role="status">Ready to seed</p>
-                    <p class="mt-1 text-xs text-gray-500">A confirmation prompt appears before the request is sent.</p>
+                    <p class="text-sm font-medium text-gray-900" data-seed-status role="status">Ready to run pipeline</p>
+                    <p class="mt-1 text-xs text-gray-500">A confirmation prompt appears before the first request is sent.</p>
                 </div>
-                <button type="button" hidden
+                <button type="button"
                         class="inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-200 disabled:cursor-not-allowed disabled:opacity-60"
-                        data-seed-action
-                        data-seed-endpoint="/api/admin/seed"
-                        data-seed-confirm="This will truncate the application tables and recreate seed data. Continue?">
-                    <svg class="me-2 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M5.5 15A7.5 7.5 0 0 0 19 9M18.5 9A7.5 7.5 0 0 0 5 15"/>
-                    </svg>
-                    Run reset &amp; seed
+                        data-seed-action data-seed-run
+                        data-seed-confirm="Create the schema and update local seed fixtures?">
+                    <svg class="me-2 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M5.5 15A7.5 7.5 0 0 0 19 9M18.5 9A7.5 7.5 0 0 0 5 15"/></svg>
+                    Run seed pipeline
                 </button>
             </div>
 
             <div class="mt-5 hidden rounded-lg p-4 text-sm" data-seed-feedback role="status"></div>
             <pre class="mt-4 hidden max-h-72 overflow-auto rounded-lg bg-gray-900 p-4 text-xs leading-5 text-gray-100" data-seed-output aria-label="Seed API response"></pre>
         </section>
-            </li>
-        </ol>
     </section>
 </main>
 </body>

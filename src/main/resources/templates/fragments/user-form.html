@@ -24,13 +24,13 @@
                 <div class="sm:col-span-2" th:if="${studentAccount == true and !editing}">
                     <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-studentCode'}">Student code (MSSV)</label>
                     <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" th:id="${fieldPrefix + '-studentCode'}" type="text" th:field="*{studentCode}" inputmode="numeric" maxlength="8" autocomplete="off" data-student-code required>
-                    <p class="mt-2 text-xs text-gray-500">Enter the unique 8-digit MSSV. It will be used as the login identifier.</p>
+                    <p class="mt-2 text-xs text-gray-500">Enter the unique 8-digit MSSV. The login email will be generated from it.</p>
                     <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('studentCode')}" th:errors="*{studentCode}">Student code is invalid.</p>
                 </div>
                 <div class="sm:col-span-2" th:if="${(editing and studentAccount != true and accountType != 'LECTURER') or (!editing and accountType == null and studentAccount != false)}">
                     <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-loginIdentifier'}" th:text="${studentAccount == true ? 'Login identifier (Student Code)' : 'Login identifier'}">Login identifier</label>
                     <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 read-only:cursor-not-allowed read-only:bg-gray-100 read-only:text-gray-500" th:id="${fieldPrefix + '-loginIdentifier'}" type="text" th:field="*{loginIdentifier}" autocomplete="username" data-user-login th:readonly="${editing or studentAccount == true}">
-                    <p class="mt-2 text-xs text-gray-500" th:text="${studentAccount == true ? 'Uses the MSSV and cannot be edited.' : (editing ? 'Login identifier is immutable after account creation.' : 'Use a short, unique identifier for sign-in.')}">Use a short, unique identifier for sign-in.</p>
+                    <p class="mt-2 text-xs text-gray-500" th:text="${studentAccount == true ? 'Uses the MSSV as an internal identifier and cannot be edited.' : (editing ? 'Internal account identifier is immutable after account creation.' : 'Internal account identifier; users sign in with their email.')}">Internal account identifier; users sign in with their email.</p>
                     <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('loginIdentifier')}" th:errors="*{loginIdentifier}">Login identifier is required.</p>
                 </div>
                 <div>
@@ -44,7 +44,7 @@
                     <div class="mt-1" data-user-email-help>
                         <button type="button" class="ui-info-tooltip" aria-label="Email information">
                             <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path stroke="currentColor" stroke-linecap="round" stroke-width="1.8" d="M12 10.5v5m0-8h.01"/></svg>
-                            <span class="ui-info-tooltip-content" role="tooltip" data-user-email-tooltip th:text="${studentAccount == true ? 'Generated from the student code and cannot be edited.' : (!editing and accountType == 'LECTURER' ? 'This email is used as the lecturer login identifier.' : 'Enter the lecturer email address.')}">Enter the email address.</span>
+                            <span class="ui-info-tooltip-content" role="tooltip" data-user-email-tooltip th:text="${studentAccount == true ? 'Generated from the student code and used for login.' : (!editing and accountType == 'LECTURER' ? 'This email is used for login.' : 'Enter the email address used for login.')}">Enter the email address used for login.</span>
                         </button>
                     </div>
                     <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('emailOrCode')}" th:errors="*{emailOrCode}">Email address is invalid.</p>

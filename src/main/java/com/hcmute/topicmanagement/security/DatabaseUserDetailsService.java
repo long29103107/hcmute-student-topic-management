@@ -31,11 +31,12 @@ public class DatabaseUserDetailsService implements UserDetailsService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserEntity user = userRepository.findByLoginIdentifier(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        String normalizedEmail = email == null ? "" : email.trim();
+        UserEntity user = userRepository.findByEmailIgnoreCase(normalizedEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + normalizedEmail));
 
-        return toPrincipal(user, username);
+        return toPrincipal(user, normalizedEmail);
     }
 
     @Transactional(readOnly = true)
@@ -54,6 +55,9 @@ public class DatabaseUserDetailsService implements UserDetailsService {
         }
         if (!StringUtils.hasText(user.getPasswordHash())) {
             throw new DisabledException("User has no password configured: " + attemptedIdentifier);
+        }
+        if (!StringUtils.hasText(user.getEmailOrCode())) {
+            throw new DisabledException("User has no email configured: " + attemptedIdentifier);
         }
 
         Set<SimpleGrantedAuthority> authorities = new LinkedHashSet<>();
@@ -83,7 +87,7 @@ public class DatabaseUserDetailsService implements UserDetailsService {
         }
 
         return new DatabaseUserPrincipal(
-                user.getLoginIdentifier(),
+                user.getEmailOrCode(),
                 user.getPasswordHash(),
                 user.getFullName(),
                 primaryRoleName == null ? "Account" : primaryRoleName,

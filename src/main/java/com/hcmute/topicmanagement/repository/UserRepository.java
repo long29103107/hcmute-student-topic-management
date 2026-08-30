@@ -13,6 +13,10 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     Optional<UserEntity> findByLoginIdentifier(String loginIdentifier);
 
+    @Query("select u from UserEntity u "
+            + "where lower(u.emailOrCode) = lower(:email)")
+    Optional<UserEntity> findByEmailIgnoreCase(@Param("email") String email);
+
     boolean existsByLoginIdentifierIgnoreCase(String loginIdentifier);
 
     @Query("select count(u) > 0 from UserEntity u "

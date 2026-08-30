@@ -79,7 +79,13 @@ not replace the JSP flow or duplicate Service rules.
 |---|---|---|---|
 | POST | `/api/auth/login` | authenticate and create session | anonymous |
 | POST | `/api/auth/logout` | invalidate session | authenticated |
-| POST | `/api/admin/seed` | truncate the fixed application table set and recreate local identity fixtures | ADMIN only + CSRF; local destructive operation |
+| POST | `/api/seed/ddl` | create the MySQL schema from `database/1.ddl.sql` | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
+| POST | `/api/seed/permissions` | create or update local permission fixtures | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
+| POST | `/api/seed/roles` | create or update local role fixtures | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
+| POST | `/api/seed/role-permissions` | recreate role-permission fixture assignments | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
+| POST | `/api/seed/users` | create or update local test accounts and role assignments | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
+| POST | `/api/seed/student-profiles` | create or update the sample Student Profile | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
+| POST | `/api/admin/seed` | truncate the fixed application table set and recreate local identity fixtures | ADMIN only + CSRF; legacy local destructive operation |
 | GET | `/api/announcements` | published announcements | authenticated |
 | GET | `/api/topics` | published topics with period/department/status filters | authenticated |
 | GET/POST | `/api/faculty/periods` | list/create periods | Faculty Head |

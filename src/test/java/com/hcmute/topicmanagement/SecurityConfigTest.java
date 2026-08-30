@@ -6,6 +6,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -57,6 +58,8 @@ class SecurityConfigTest {
     void securityHeadersArePresent() throws Exception {
         mockMvc.perform(get("/login"))
                 .andExpect(status().isOk())
+                .andExpect(content().string(containsString("name=\"email\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("name=\"username\""))))
                 .andExpect(header().string("X-Content-Type-Options", "nosniff"))
                 .andExpect(header().string("X-Frame-Options", "DENY"))
                 .andExpect(header().string("Content-Security-Policy", containsString("script-src 'self'")));

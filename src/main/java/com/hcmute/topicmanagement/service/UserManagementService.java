@@ -325,9 +325,13 @@ public class UserManagementService {
     }
 
     @Transactional
-    public boolean toggleActive(Long id, String currentLoginIdentifier) {
+    public boolean toggleActive(Long id, String currentIdentity) {
         UserEntity user = findUserWithRoles(id);
-        if (user.getLoginIdentifier().equalsIgnoreCase(normalizeLoginIdentifier(currentLoginIdentifier))) {
+        String normalizedCurrentIdentity = normalizeOptional(currentIdentity);
+        if (StringUtils.hasText(normalizedCurrentIdentity)
+                && (user.getLoginIdentifier().equalsIgnoreCase(normalizedCurrentIdentity)
+                        || (StringUtils.hasText(user.getEmailOrCode())
+                                && user.getEmailOrCode().equalsIgnoreCase(normalizedCurrentIdentity)))) {
             throw new UserValidationException("You cannot lock or unlock your own account.");
         }
 

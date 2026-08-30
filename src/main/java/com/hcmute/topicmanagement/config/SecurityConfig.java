@@ -45,26 +45,34 @@ public class SecurityConfig {
             @Value("${security.remember-me.enabled:false}") boolean rememberMeEnabled,
             @Value("${security.remember-me.key:}") String rememberMeKey,
             @Value("${server.servlet.session.cookie.secure:false}") boolean secureCookies,
-            @Value("${security.remember-me.token-validity-seconds:1209600}") int rememberMeValiditySeconds)
+            @Value("${security.remember-me.token-validity-seconds:1209600}") int rememberMeValiditySeconds,
+            @Value("${seed.public-enabled:false}") boolean publicSeedEnabled)
             throws Exception {
         http
                 .authenticationProvider(authenticationProvider)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/dashboard").authenticated()
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
-                        .requestMatchers("/login", "/forgot-password", "/access-denied").permitAll()
-                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-                        .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/faculty/**").hasRole("FACULTY_HEAD")
-                        .requestMatchers("/api/faculty/scores/**").hasRole("LECTURER")
-                        .requestMatchers("/api/faculty/**").hasRole("FACULTY_HEAD")
-                        .requestMatchers("/lecturer/**", "/api/lecturer/**").hasRole("LECTURER")
-                        .requestMatchers("/student/**", "/api/student/**").hasRole("STUDENT")
-                        .requestMatchers("/announcements/manage", "/api/announcements/manage/**")
-                            .hasAnyRole("ADMIN", "FACULTY_HEAD")
-                        .anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> {
+                    auth.requestMatchers("/", "/dashboard").authenticated();
+                    auth.requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll();
+                    auth.requestMatchers("/login", "/forgot-password", "/access-denied").permitAll();
+                    auth.requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll();
+                    if (publicSeedEnabled) {
+                        auth.requestMatchers("/seed", "/api/seed/**").permitAll();
+                    } else {
+                        auth.requestMatchers("/seed", "/api/seed/**").hasRole("ADMIN");
+                    }
+                    auth.requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN");
+                    auth.requestMatchers("/faculty/**").hasRole("FACULTY_HEAD");
+                    auth.requestMatchers("/api/faculty/scores/**").hasRole("LECTURER");
+                    auth.requestMatchers("/api/faculty/**").hasRole("FACULTY_HEAD");
+                    auth.requestMatchers("/lecturer/**", "/api/lecturer/**").hasRole("LECTURER");
+                    auth.requestMatchers("/student/**", "/api/student/**").hasRole("STUDENT");
+                    auth.requestMatchers("/announcements/manage", "/api/announcements/manage/**")
+                            .hasAnyRole("ADMIN", "FACULTY_HEAD");
+                    auth.anyRequest().authenticated();
+                })
                 .formLogin(form -> form
                         .loginPage("/login")
+                        .usernameParameter("email")
                         .defaultSuccessUrl("/dashboard", true)
                         .permitAll())
                 .logout(logout -> logout

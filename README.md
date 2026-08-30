@@ -9,6 +9,8 @@ product roadmap và chỉ được mở sau khi user chọn scope tiếp theo.
 
 ## Tài liệu nguồn cho code generation
 
+- [`SETUP_GUIDE.md`](SETUP_GUIDE.md) — hướng dẫn tạo database MySQL và seed dữ liệu local.
+
 - `PRODUCT_VISION.md` là nguồn ưu tiên để agent tạo task, plan hoặc quyết định
   product scope.
 - `REQUEST.md` là tài liệu tham chiếu về yêu cầu và business rules khi không
@@ -73,44 +75,55 @@ Không cấu hình biến môi trường thì app dùng H2 in-memory để debug
 
 ### Cấu hình MySQL
 
-Chạy [`database/1.ddl.sql`](database/1.ddl.sql) trên database mới. Với database
-đã tồn tại, chạy [`database/4.update-ddl.sql`](database/4.update-ddl.sql) để
-patch các cột User/Profile hiện tại (đặc biệt `users.date_of_birth`). File
-[`database/3.student-profile.sql`](database/3.student-profile.sql) là script
-upgrade cũ, chỉ dùng khi cần giữ quy trình cũ.
+Chạy [`database/1.ddl.sql`](database/1.ddl.sql) trên database mới. Database
+cũ cần được backup và tạo lại theo schema hiện tại trước khi chạy seed.
 Sau đó override các biến runtime:
 
 ```powershell
-$env:DB_URL = 'jdbc:mysql://127.0.0.1:3306/hcmute_topic_management?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true'
-$env:DB_USERNAME = 'root'
-$env:DB_PASSWORD = '<local-secret>'
-$env:DB_DRIVER = 'com.mysql.cj.jdbc.Driver'
+$env:SPRING_DATASOURCE_URL = 'jdbc:mysql://127.0.0.1:3306/hcmute_topic_management?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true'
+$env:SPRING_DATASOURCE_USERNAME = 'root'
+$env:SPRING_DATASOURCE_PASSWORD = '<local-secret>'
+$env:SPRING_DATASOURCE_DRIVER_CLASS_NAME = 'com.mysql.cj.jdbc.Driver'
 mvn spring-boot:run
 ```
 
 ### Seed dữ liệu local qua API
 
-Seed không còn chạy bằng SQL thủ công. Sau khi có một tài khoản `ADMIN` đang
-đăng nhập, gọi endpoint từ browser session và gửi kèm CSRF token:
+Mặc định, sau khi có một tài khoản `ADMIN` đang đăng nhập, mở `/seed` và bấm
+**Run seed pipeline**. Nếu cần bootstrap database local trước khi có tài khoản,
+có thể bật tạm migration anonymous bằng biến môi trường:
 
-```javascript
-const csrfToken = document.querySelector('input[name="_csrf"]').value;
-fetch('/api/admin/seed', {
-  method: 'POST',
-  headers: { 'X-CSRF-TOKEN': csrfToken }
-});
+```powershell
+$env:SEED_PUBLIC_ENABLED = 'true'
+mvn spring-boot:run
 ```
 
-API sẽ truncate toàn bộ bảng ứng dụng rồi tạo lại roles, permissions, các tài
-khoản test và Student Profile mẫu. Đây là thao tác destructive dành cho local;
-không gọi trên database có dữ liệu cần giữ. Vì endpoint cần tài khoản ADMIN
-hiện có, database mới cần một bước bootstrap admin riêng trước khi gọi API.
-Tài khoản fixture dùng mật khẩu local cũ đã được hash trong source; hãy đổi
-trước khi chia sẻ hoặc deploy.
+Khi bật cờ này, `/seed` và các API pipeline không yêu cầu login nhưng vẫn yêu
+cầu CSRF token. Chỉ bật trên local, sau khi migrate xong hãy tắt cờ. Trang sẽ
+gọi tuần tự các API dưới đây:
 
-Khi tạo Student từ `Manage students`, MSSV đồng thời là login identifier,
-`STUDENT` được gán tự động, email được sinh theo MSSV và password để trống.
-Admin cần mở Edit để thiết lập password trước khi Student có thể đăng nhập.
+```text
+POST /api/seed/ddl
+POST /api/seed/permissions
+POST /api/seed/roles
+POST /api/seed/role-permissions
+POST /api/seed/users
+POST /api/seed/student-profiles
+```
+
+Các API seed fixture có thể chạy lại; chúng tạo/cập nhật roles, permissions, tài
+khoản test và Student Profile mẫu. API cũ `POST /api/admin/seed` vẫn được giữ
+cho việc reset toàn bộ bảng ứng dụng trong một transaction và vẫn là thao tác
+destructive dành cho local. Không gọi API reset trên database có dữ liệu cần
+giữ. Khi không bật anonymous migration, database mới cần một bước bootstrap
+admin riêng trước khi gọi API. Tài khoản fixture dùng mật khẩu local đã được
+hash trong source. Tài khoản quản trị mặc định là email `admin@hcmute.local` /
+`admin123`; chỉ dùng thông tin này cho môi trường local và đổi trước khi chia
+sẻ hoặc deploy.
+
+Khi tạo Student từ `Manage students`, MSSV được dùng để tạo email đăng nhập,
+`STUDENT` được gán tự động và password để trống. Admin cần mở Edit để thiết lập
+password trước khi Student có thể đăng nhập bằng email.
 
 ### Cấu hình security khi chạy thật
 
@@ -126,7 +139,7 @@ Schema MVP được quản lý explicit bằng hai file SQL nên Hibernate để
 
 Các route hiện có:
 
-- `/login` — đăng nhập bắt buộc.
+- `/login` — đăng nhập bằng email và password.
 - `/dashboard` — dashboard sau khi đăng nhập.
 - `/profile` — thông tin tài khoản và role hiện tại.
 

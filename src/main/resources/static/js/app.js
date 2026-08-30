@@ -308,7 +308,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('[data-seed-page]').forEach((page) => {
         const csrfInput = page.querySelector('[data-seed-csrf]');
-        const actions = [...page.querySelectorAll('[data-seed-action]')];
+        const runButton = page.querySelector('[data-seed-run]');
+        const steps = [...page.querySelectorAll('[data-seed-step]')];
         const status = page.querySelector('[data-seed-status]');
         const feedback = page.querySelector('[data-seed-feedback]');
         const output = page.querySelector('[data-seed-output]');
@@ -326,68 +327,109 @@ document.addEventListener('DOMContentLoaded', () => {
             feedback.classList.toggle('text-red-800', !successful);
         };
 
-        actions.forEach((button) => {
-            button.addEventListener('click', async () => {
-                if (!window.confirm(button.dataset.seedConfirm || 'Run this seed action?')) {
-                    return;
-                }
+        const setStepStatus = (step, label, state) => {
+            const stepStatus = step.querySelector('[data-seed-step-status]');
+            if (!stepStatus) {
+                return;
+            }
+            stepStatus.textContent = label;
+            stepStatus.classList.remove(
+                'bg-gray-200', 'text-gray-700',
+                'bg-blue-100', 'text-blue-800',
+                'bg-green-100', 'text-green-800',
+                'bg-red-100', 'text-red-800');
+            if (state === 'running') {
+                stepStatus.classList.add('bg-blue-100', 'text-blue-800');
+            } else if (state === 'success') {
+                stepStatus.classList.add('bg-green-100', 'text-green-800');
+            } else if (state === 'failed') {
+                stepStatus.classList.add('bg-red-100', 'text-red-800');
+            } else {
+                stepStatus.classList.add('bg-gray-200', 'text-gray-700');
+            }
+        };
 
-                actions.forEach((action) => {
-                    action.disabled = true;
-                });
-                if (status) {
-                    status.textContent = 'Seeding database…';
-                }
-                if (feedback) {
-                    feedback.hidden = true;
-                    feedback.classList.add('hidden');
-                }
-                if (output) {
-                    output.hidden = true;
-                    output.classList.add('hidden');
-                    output.textContent = '';
-                }
-
-                try {
-                    const response = await fetch(button.dataset.seedEndpoint, {
-                        method: 'POST',
-                        headers: {
-                            Accept: 'application/json',
-                            'X-CSRF-TOKEN': csrfInput?.value || ''
-                        }
-                    });
-                    const rawResponse = await response.text();
-                    let payload;
-                    try {
-                        payload = rawResponse ? JSON.parse(rawResponse) : null;
-                    } catch (error) {
-                        payload = null;
-                    }
-
-                    if (!response.ok) {
-                        throw new Error(payload?.message || `Seed request failed (${response.status}).`);
-                    }
-
-                    if (status) {
-                        status.textContent = 'Seed completed';
-                    }
-                    setFeedback('Seed data was recreated successfully.', true);
-                    if (output) {
-                        output.hidden = false;
-                        output.classList.remove('hidden');
-                        output.textContent = JSON.stringify(payload, null, 2);
-                    }
-                } catch (error) {
-                    if (status) {
-                        status.textContent = 'Seed failed';
-                    }
-                    setFeedback(error.message || 'The seed request failed.', false);
-                } finally {
-                    actions.forEach((action) => {
-                        action.disabled = false;
-                    });
+        const requestStep = async (step) => {
+            const response = await fetch(step.dataset.seedEndpoint, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfInput?.value || ''
                 }
             });
+            const rawResponse = await response.text();
+            let payload;
+            try {
+                payload = rawResponse ? JSON.parse(rawResponse) : null;
+            } catch (error) {
+                payload = null;
+            }
+
+            if (!response.ok) {
+                throw new Error(payload?.message || `${step.dataset.seedLabel} failed (${response.status}).`);
+            }
+            return payload;
+        };
+
+        runButton?.addEventListener('click', async () => {
+            if (!window.confirm(runButton.dataset.seedConfirm || 'Run the seed pipeline?')) {
+                return;
+            }
+
+            runButton.disabled = true;
+            steps.forEach((step) => setStepStatus(step, 'Pending', 'pending'));
+            if (status) {
+                status.textContent = 'Seeding database…';
+            }
+            if (feedback) {
+                feedback.hidden = true;
+                feedback.classList.add('hidden');
+            }
+            if (output) {
+                output.hidden = true;
+                output.classList.add('hidden');
+                output.textContent = '';
+            }
+
+            const results = [];
+            try {
+                for (const step of steps) {
+                    setStepStatus(step, 'Running', 'running');
+                    const payload = await requestStep(step);
+                    results.push({
+                        step: step.dataset.seedLabel,
+                        endpoint: step.dataset.seedEndpoint,
+                        response: payload
+                    });
+                    setStepStatus(step, 'Completed', 'success');
+                }
+
+                if (status) {
+                    status.textContent = 'Seed pipeline completed';
+                }
+                setFeedback('Schema and seed data were created successfully.', true);
+                if (output) {
+                    output.hidden = false;
+                    output.classList.remove('hidden');
+                    output.textContent = JSON.stringify(results, null, 2);
+                }
+            } catch (error) {
+                const failedStep = steps.find((step) => step.querySelector('[data-seed-step-status]')?.textContent === 'Running');
+                if (failedStep) {
+                    setStepStatus(failedStep, 'Failed', 'failed');
+                }
+                if (status) {
+                    status.textContent = 'Seed pipeline failed';
+                }
+                setFeedback(error.message || 'The seed pipeline failed.', false);
+                if (output) {
+                    output.hidden = false;
+                    output.classList.remove('hidden');
+                    output.textContent = JSON.stringify(results, null, 2);
+                }
+            } finally {
+                runButton.disabled = false;
+            }
         });
     });
 });

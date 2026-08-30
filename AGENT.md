@@ -35,14 +35,16 @@ MVC chạy được end-to-end với các thực thể lõi:
 
 ## Current identity rules
 
-- Student creation requires a unique 8-digit MSSV; the server uses MSSV as the
-  login identifier, assigns `STUDENT`, generates the Student email as
-  `<MSSV>@student.hcmute.edu.vn` and leaves `password_hash` unset. The UI does
-  not allow editing the generated login/email or setting a password in the
-  create flow. An account without a password is blocked from login until an
-  administrator sets one through edit/reset. Lecturer creation auto-assigns
-  `LECTURER` and uses the manually entered, server-validated email as both
-  the email and login identifier; a separate login identifier is not accepted.
+- All password logins use the normalized, case-insensitive `email_or_code`
+  value as the login email. `login_identifier` remains an immutable internal
+  account identifier and is not accepted by the login form. Student creation
+  requires a unique 8-digit MSSV; the server assigns `STUDENT`, generates the
+  login email as `<MSSV>@student.hcmute.edu.vn` and leaves `password_hash`
+  unset. The UI does not allow editing the generated email or setting a
+  password in the create flow. An account without a password is blocked from
+  login until an administrator sets one through edit/reset. Lecturer creation
+  auto-assigns `LECTURER` and uses the manually entered, server-validated email
+  as the login email; a separate login identifier is not accepted.
   Lecturer creation also leaves `password_hash` unset; an administrator must
   set a password through edit/reset before the account can log in.
   The admin directory exposes separate Manage students, Manage lecturers and
@@ -60,15 +62,16 @@ MVC chạy được end-to-end với các thực thể lõi:
 - Normal User edit never changes MSSV. Student edits may update profile metadata
   and common account fields; a future MSSV change must be a separately
   authorized action/API.
-- `database/2.seed.sql` is only a pointer to `POST /api/admin/seed`. The seed
-  endpoint is destructive: it requires an authenticated `ADMIN`, truncates
-  the fixed application table list before reseeding roles, permissions, local
-  test accounts and the sample Student Profile. Never expose or call it as a
-  public/anonymous endpoint; keep the normal session CSRF protection in place.
-  The admin-only `/seed` page is the UI entry point and invokes the API with
+- The admin-only `/seed` page invokes `POST /api/seed/ddl`, then the permissions,
+  roles, role-permissions, users and student-profiles endpoints in that order with
   `fetch` plus the session CSRF token; keep a confirmation before running it.
-  Run `database/4.update-ddl.sql` first when an existing MySQL database is
-  missing the current User/Profile columns.
+  These endpoints and the page require an authenticated `ADMIN` by default.
+  For a local bootstrap before an admin exists, `SEED_PUBLIC_ENABLED=true`
+  explicitly enables anonymous access while CSRF remains required; never set
+  that flag in a deployed environment. The legacy `POST /api/admin/seed`
+  endpoint remains destructive and always requires an authenticated `ADMIN`.
+  Existing legacy databases should be backed up and recreated from
+  `database/1.ddl.sql`; no legacy patch script is maintained.
 
 ## Required reading
 

@@ -35,6 +35,8 @@ public class DatabaseSeedService {
 
     private static final String LOCAL_PASSWORD_HASH =
             "$2a$10$VI1jWffo.Jg/04uyrX73TufViz1kOmzLTa9trum0bK61bf9gwh5cq";
+    private static final String ADMIN_PASSWORD_HASH =
+            "$2a$10$Tib/thYqs.dQRhB17iTfIO7qY0KKHBywglurPCoADhi9VRnjep79i";
 
     private static final List<String> TABLES = List.of(
             "evaluations",
@@ -164,6 +166,78 @@ public class DatabaseSeedService {
                 LocalDateTime.now());
     }
 
+    @Transactional
+    public SeedStepResult seedPermissionsStep() {
+        List<PermissionEntity> permissions = PERMISSIONS.stream()
+                .map(this::upsertPermission)
+                .toList();
+        permissionRepository.saveAllAndFlush(permissions);
+        return new SeedStepResult("permissions", permissions.size(), LocalDateTime.now());
+    }
+
+    @Transactional
+    public SeedStepResult seedRolesStep() {
+        List<RoleEntity> roles = ROLES.stream()
+                .map(this::upsertRole)
+                .toList();
+        roleRepository.saveAllAndFlush(roles);
+        return new SeedStepResult("roles", roles.size(), LocalDateTime.now());
+    }
+
+    @Transactional
+    public SeedStepResult seedRolePermissionsStep() {
+        Map<String, RoleEntity> roles = roleRepository.findAll().stream()
+                .collect(Collectors.toMap(RoleEntity::getCode, Function.identity()));
+        Map<String, PermissionEntity> permissions = permissionRepository.findAll().stream()
+                .collect(Collectors.toMap(PermissionEntity::getCode, Function.identity()));
+
+        if (!roles.keySet().containsAll(ROLE_PERMISSIONS.keySet())
+                || !permissions.keySet().containsAll(ROLE_PERMISSIONS.values().stream()
+                        .flatMap(List::stream)
+                        .toList())) {
+            throw new IllegalStateException("Seed roles and permissions before role-permissions.");
+        }
+
+        rolePermissionRepository.deleteAllInBatch();
+        List<RolePermissionEntity> rolePermissions = ROLE_PERMISSIONS.entrySet().stream()
+                .flatMap(entry -> entry.getValue().stream()
+                        .map(permissionCode -> new RolePermissionEntity(
+                                roles.get(entry.getKey()), permissions.get(permissionCode))))
+                .toList();
+        rolePermissionRepository.saveAllAndFlush(rolePermissions);
+        return new SeedStepResult("role-permissions", rolePermissions.size(), LocalDateTime.now());
+    }
+
+    @Transactional
+    public SeedStepResult seedUsersStep() {
+        Map<String, RoleEntity> roles = roleRepository.findAll().stream()
+                .collect(Collectors.toMap(RoleEntity::getCode, Function.identity()));
+        if (!roles.keySet().containsAll(USERS.stream().map(UserSeed::roleCode).toList())) {
+            throw new IllegalStateException("Seed roles before users.");
+        }
+
+        List<UserEntity> users = USERS.stream()
+                .map(user -> upsertUser(user, roles.get(user.roleCode())))
+                .toList();
+        userRepository.saveAllAndFlush(users);
+        return new SeedStepResult("users", users.size(), LocalDateTime.now());
+    }
+
+    @Transactional
+    public SeedStepResult seedStudentProfilesStep() {
+        UserEntity student = userRepository.findByLoginIdentifier("student.test")
+                .orElseThrow(() -> new IllegalStateException("Seed users before student-profiles."));
+        StudentProfileEntity profile = studentProfileRepository.findByUser_Id(student.getId())
+                .orElseGet(() -> new StudentProfileEntity(
+                        student, "24110000", "2024-2025", "Information Technology", "22110CL1"));
+        profile.setStudentCode("24110000");
+        profile.setAcademicYear("2024-2025");
+        profile.setMajor("Information Technology");
+        profile.setClassName("22110CL1");
+        studentProfileRepository.saveAndFlush(profile);
+        return new SeedStepResult("student-profiles", 1, LocalDateTime.now());
+    }
+
     private void truncateAllTables() {
         boolean h2 = databaseProductName().contains("h2");
         entityManager.clear();
@@ -196,6 +270,16 @@ public class DatabaseSeedService {
         return savedRoles.stream().collect(Collectors.toMap(RoleEntity::getCode, Function.identity()));
     }
 
+    private RoleEntity upsertRole(RoleSeed role) {
+        RoleEntity entity = roleRepository.findByCode(role.code())
+                .orElseGet(() -> new RoleEntity(role.code(), role.name(), role.description()));
+        entity.setCode(role.code());
+        entity.setName(role.name());
+        entity.setDescription(role.description());
+        entity.setActive(true);
+        return entity;
+    }
+
     private Map<String, PermissionEntity> seedPermissions() {
         List<PermissionEntity> savedPermissions = permissionRepository.saveAllAndFlush(PERMISSIONS.stream()
                 .map(permission -> {
@@ -206,6 +290,18 @@ public class DatabaseSeedService {
                 })
                 .toList());
         return savedPermissions.stream().collect(Collectors.toMap(PermissionEntity::getCode, Function.identity()));
+    }
+
+    private PermissionEntity upsertPermission(PermissionSeed permission) {
+        PermissionEntity entity = permissionRepository.findByCode(permission.code())
+                .orElseGet(() -> new PermissionEntity(
+                        permission.code(), permission.name(), permission.permissionGroup()));
+        entity.setCode(permission.code());
+        entity.setName(permission.name());
+        entity.setPermissionGroup(permission.permissionGroup());
+        entity.setDescription(permission.description());
+        entity.setActive(true);
+        return entity;
     }
 
     private void seedRolePermissions(
@@ -222,7 +318,8 @@ public class DatabaseSeedService {
     private Map<String, UserEntity> seedUsers(Map<String, RoleEntity> roles) {
         List<UserEntity> savedUsers = userRepository.saveAllAndFlush(USERS.stream()
                 .map(user -> {
-                    UserEntity entity = new UserEntity(user.loginIdentifier(), user.fullName(), LOCAL_PASSWORD_HASH);
+                    UserEntity entity = new UserEntity(
+                            user.loginIdentifier(), user.fullName(), passwordHashFor(user));
                     entity.setEmailOrCode(user.emailOrCode());
                     return entity;
                 })
@@ -237,6 +334,30 @@ public class DatabaseSeedService {
                 .toList();
         userRoleRepository.saveAllAndFlush(userRoles);
         return savedUsers.stream().collect(Collectors.toMap(UserEntity::getLoginIdentifier, Function.identity()));
+    }
+
+    private UserEntity upsertUser(UserSeed user, RoleEntity role) {
+        UserEntity entity = userRepository.findByLoginIdentifier(user.loginIdentifier())
+                .orElseGet(() -> new UserEntity(
+                        user.loginIdentifier(), user.fullName(), passwordHashFor(user)));
+        entity.setLoginIdentifier(user.loginIdentifier());
+        entity.setFullName(user.fullName());
+        entity.setEmailOrCode(user.emailOrCode());
+        entity.setPasswordHash(passwordHashFor(user));
+        entity.setActive(true);
+
+        userRepository.saveAndFlush(entity);
+        UserRoleEntity userRole = userRoleRepository.findByUser_Id(entity.getId()).stream()
+                .filter(existing -> existing.getRole().getId().equals(role.getId()))
+                .findFirst()
+                .orElseGet(() -> new UserRoleEntity(entity, role));
+        userRole.setActive(true);
+        userRoleRepository.saveAndFlush(userRole);
+        return entity;
+    }
+
+    private String passwordHashFor(UserSeed user) {
+        return "admin".equals(user.loginIdentifier()) ? ADMIN_PASSWORD_HASH : LOCAL_PASSWORD_HASH;
     }
 
     private void seedStudentProfile(UserEntity student) {

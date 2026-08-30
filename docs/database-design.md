@@ -11,7 +11,7 @@ workflow:
 
 | Table | Main columns/relationships |
 |---|---|
-| `users` | id, login identifier, full name, email/code, nullable password_hash, active |
+| `users` | id, internal login identifier, full name, login email, nullable password_hash, active |
 | `departments` | id, code/name, active |
 | `registration_periods` | id, name, type, lecturer_start/end, student_start/end |
 | `topics` | id, period_id, department_id, title, description, status, supervisor_id or a small supervisor relation |
@@ -57,13 +57,14 @@ Add these only when the rubric or a selected task requires a full review flow:
 
 ## Required uniqueness and integrity candidates
 
-- `users.login_identifier` and `users.email/code` as appropriate for the chosen
-  login contract.
-- Student `login_identifier` equals the unique MSSV; Student creation may leave
+- `users.login_identifier` is an immutable internal identifier and
+  `users.email_or_code` is the email used for password login.
+- Student `login_identifier` equals the unique MSSV; Student creation generates
+  `email_or_code` as `<MSSV>@student.hcmute.edu.vn` and may leave
   `password_hash` null until an administrator performs a password set/reset
   action. Authentication must reject accounts without a configured password.
-- Lecturer creation also leaves `password_hash` null; its email is the
-  `login_identifier` and an administrator must set/reset the password before
+- Lecturer creation also leaves `password_hash` null; its manually entered email
+  is used for login and an administrator must set/reset the password before
   login.
 - A topic must have at least one assigned supervisor; a maximum of two is a
   Service rule when the small supervisor relation is used.

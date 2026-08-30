@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.hcmute.topicmanagement.model.DepartmentEntity;
@@ -35,6 +36,9 @@ class DatabaseSeedControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private DepartmentRepository departmentRepository;
@@ -62,10 +66,46 @@ class DatabaseSeedControllerTest {
         mockMvc.perform(get("/seed").with(user(adminPrincipal())))
                 .andExpect(status().isOk())
                 .andExpect(view().name("seed"))
-                .andExpect(content().string(containsString("POST /api/admin/seed")))
+                .andExpect(content().string(containsString("POST /api/seed/ddl")))
+                .andExpect(content().string(containsString("POST /api/seed/permissions")))
+                .andExpect(content().string(containsString("POST /api/seed/roles")))
+                .andExpect(content().string(containsString("POST /api/seed/users")))
                 .andExpect(content().string(containsString("data-seed-action")))
                 .andExpect(content().string(containsString("Available seed APIs")))
                 .andExpect(content().string(containsString("Seed data")));
+    }
+
+    @Test
+    void seedPipelineApisAreAdminOnlyAndRunInOrder() throws Exception {
+        List<String> endpoints = List.of(
+                "/api/seed/ddl",
+                "/api/seed/permissions",
+                "/api/seed/roles",
+                "/api/seed/role-permissions",
+                "/api/seed/users",
+                "/api/seed/student-profiles");
+
+        for (String endpoint : endpoints) {
+            mockMvc.perform(post(endpoint)
+                            .with(user("student").roles("STUDENT"))
+                            .with(csrf()))
+                    .andExpect(status().isForbidden());
+        }
+
+        for (String endpoint : endpoints) {
+            mockMvc.perform(post(endpoint)
+                            .with(user(adminPrincipal()))
+                            .with(csrf()))
+                    .andExpect(status().isOk());
+        }
+
+        org.assertj.core.api.Assertions.assertThat(roleRepository.count()).isEqualTo(4);
+        org.assertj.core.api.Assertions.assertThat(permissionRepository.count()).isEqualTo(20);
+        org.assertj.core.api.Assertions.assertThat(userRepository.count()).isEqualTo(4);
+        org.assertj.core.api.Assertions.assertThat(studentProfileRepository.count()).isEqualTo(1);
+        org.assertj.core.api.Assertions.assertThat(passwordEncoder.matches(
+                "admin123", userRepository.findByLoginIdentifier("admin").orElseThrow().getPasswordHash()))
+                .isTrue();
     }
 
     @Test
