@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="toast(type, title, message, toastId, duration)"
+     th:if="${message != null and !#strings.isEmpty(message)}"
+     th:id="${toastId}"
+     th:classappend="${type == 'success' ? 'border-green-200 bg-green-50 text-green-800' : type == 'warning' ? 'border-yellow-200 bg-yellow-50 text-yellow-800' : 'border-red-200 bg-red-50 text-red-800'}"
+     class="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg border p-4 shadow-lg transition duration-200 ease-out"
+     role="alert"
+     th:attr="data-toast-duration=${duration}"
+     data-toast>
+    <svg th:if="${type == 'success'}" class="mt-0.5 h-5 w-5 shrink-0 text-green-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM8.5 14.5 5 11l1.5-1.5 2 2 4-4L14 9l-5.5 5.5Z"/></svg>
+    <svg th:if="${type == 'warning'}" class="mt-0.5 h-5 w-5 shrink-0 text-yellow-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M10 1a9 9 0 1 0 9 9 9.01 9.01 0 0 0-9-9Zm0 13.5a1 1 0 1 1 1-1 1 1 0 0 1-1 1ZM11 11H9V5h2Z"/></svg>
+    <svg th:if="${type == 'error'}" class="mt-0.5 h-5 w-5 shrink-0 text-red-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9 5h2v6H9V5Zm0 8h2v2H9v-2Z"/></svg>
+    <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2"><p class="text-sm font-semibold" th:text="${title}">Success</p><span class="text-xs opacity-70" aria-label="Time remaining"><span data-toast-countdown th:text="${duration}">5</span>s</span></div>
+        <p class="mt-1 text-sm" th:text="${message}">The operation completed successfully.</p>
+    </div>
+    <button type="button" class="-m-1.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg p-1.5 hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-current" aria-label="Dismiss notification" data-toast-dismiss>
+        <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 12 12M13 1 1 13"/></svg>
+    </button>
+</div>
+</body>
+</html>

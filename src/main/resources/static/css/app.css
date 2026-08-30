@@ -8,3 +8,92 @@
 
     button { font: inherit; }
 }
+
+@layer components {
+    main.max-w-7xl {
+        max-width: none;
+        width: 100%;
+    }
+
+    .ui-info-tooltip {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        color: #64748b;
+        cursor: help;
+    }
+
+    .ui-info-tooltip:hover,
+    .ui-info-tooltip:focus-visible {
+        color: #1d4ed8;
+    }
+
+    .ui-info-tooltip-content {
+        position: absolute;
+        z-index: 30;
+        bottom: calc(100% + 0.5rem);
+        left: 50%;
+        width: max-content;
+        max-width: 18rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        background: #1e293b;
+        color: #fff;
+        font-size: 0.75rem;
+        line-height: 1rem;
+        text-align: left;
+        pointer-events: none;
+        opacity: 0;
+        transform: translate(-50%, 0.25rem);
+        transition: opacity 150ms ease, transform 150ms ease;
+    }
+
+    .ui-info-tooltip-content::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        border: 0.3rem solid transparent;
+        border-top-color: #1e293b;
+        transform: translateX(-50%);
+    }
+
+    .ui-info-tooltip:hover .ui-info-tooltip-content,
+    .ui-info-tooltip:focus .ui-info-tooltip-content,
+    .ui-info-tooltip:focus-visible .ui-info-tooltip-content {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+
+    @media (max-width: 639px) {
+        body.app-layout,
+        body.app-layout [data-app-shell],
+        body.app-layout main,
+        body.app-layout main > div {
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        body.app-layout {
+            overflow-x: hidden;
+        }
+
+        [data-user-directory] section,
+        [data-user-directory] .grid {
+            min-width: 0;
+        }
+
+        [data-user-directory] table {
+            min-width: 0;
+        }
+
+        [data-user-directory] .directory-table-scroll {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+    }
+
+}

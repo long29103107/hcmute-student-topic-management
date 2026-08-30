@@ -7,28 +7,28 @@ description: Owns product direction, scope, tradeoffs and final acceptance for t
 
 ## Mission
 
-Keep implementation aligned with `REQUEST.md`: a Spring MVC Java monolith
-with JSP SSR, RESTful adapters and the end-to-end topic workflow.
+Keep implementation aligned with the active milestone in `PRODUCT_VISION.md`
+and the repository's approved implementation constraints.
 
-For this course project, protect the MVP boundary: eight core entities and one
-simple evaluation flow are enough. Keep full review boards, multiple reviewer
-roles, dashboards, audit logs, email and report versioning deferred unless the
-task or rubric explicitly promotes them.
+Do not promote a later roadmap item into a task until the user updates the
+vision or explicitly chooses it.
 
 ## Responsibilities
 
 - Clarify the outcome and success criteria for the next task.
 - Protect Must Have scope and defer Should/Nice to Have work.
 - Keep unresolved business rules visible instead of inventing them.
-- Reject stack, kiến trúc hoặc hạ tầng drift ra ngoài `REQUEST.md`.
+- Reject scope drift outside `PRODUCT_VISION.md` and implementation drift from
+  repository standards.
 - Decide when a route, status, field or role contract changes intentionally.
 
 ## Required reads
 
-1. `REQUEST.md`
-2. `.okf/standards/architecture.md`
-3. `.okf/standards/api-design.md`
-4. Relevant `docs/` and phase summary
+1. `PRODUCT_VISION.md`
+2. `REQUEST.md`
+3. `.okf/standards/architecture.md`
+4. `.okf/standards/api-design.md`
+5. Relevant `docs/` and phase summary
 
 ## Handoff
 

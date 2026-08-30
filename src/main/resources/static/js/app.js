@@ -1,4 +1,103 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const toastElements = [...document.querySelectorAll('[data-toast]')];
+    const maxToasts = 3;
+    toastElements.slice(0, Math.max(0, toastElements.length - maxToasts)).forEach((toast) => toast.remove());
+
+    toastElements.slice(-maxToasts).forEach((toast) => {
+        const dismissButton = toast.querySelector('[data-toast-dismiss]');
+        const countdown = toast.querySelector('[data-toast-countdown]');
+        const duration = Math.max(1, Number.parseInt(toast.dataset.toastDuration || '5', 10));
+        let remaining = duration;
+        let dismissTimer;
+        let countdownTimer;
+
+        const dismissToast = () => {
+            window.clearTimeout(dismissTimer);
+            window.clearInterval(countdownTimer);
+            toast.classList.add('translate-x-4', 'opacity-0');
+            window.setTimeout(() => toast.remove(), 200);
+        };
+
+        dismissButton?.addEventListener('click', dismissToast);
+        countdownTimer = window.setInterval(() => {
+            remaining -= 1;
+            if (countdown) {
+                countdown.textContent = String(Math.max(0, remaining));
+            }
+        }, 1000);
+        dismissTimer = window.setTimeout(dismissToast, duration * 1000);
+    });
+
+    document.querySelectorAll('[data-user-status]').forEach((status) => {
+        const active = status.textContent.trim() === 'Active';
+        status.classList.add('inline-flex', 'items-center', 'rounded-full', 'px-2.5', 'py-1', 'text-xs', 'font-medium');
+        status.classList.toggle('bg-green-100', active);
+        status.classList.toggle('text-green-800', active);
+        status.classList.toggle('bg-yellow-100', !active);
+        status.classList.toggle('text-yellow-800', !active);
+    });
+
+    const sidebar = document.querySelector('[data-sidebar]');
+    const appShell = document.querySelector('[data-app-shell]');
+    const sidebarToggle = document.querySelector('[data-sidebar-toggle]');
+    const sidebarToggleIcon = document.querySelector('[data-sidebar-toggle-icon]');
+    const sidebarToggleLabel = document.querySelector('[data-sidebar-toggle-label]');
+    const sidebarLabels = [...document.querySelectorAll('[data-sidebar-label]')];
+    const sidebarLinks = [...document.querySelectorAll('[data-sidebar-link]')];
+    const sidebarBrand = document.querySelector('[data-sidebar-brand]');
+    const sidebarStorageKey = 'hcmute-topic-manager.sidebar-collapsed';
+
+    const readSidebarPreference = () => {
+        try {
+            return window.localStorage.getItem(sidebarStorageKey) === 'true';
+        } catch (error) {
+            return false;
+        }
+    };
+
+    const writeSidebarPreference = (collapsed) => {
+        try {
+            window.localStorage.setItem(sidebarStorageKey, String(collapsed));
+        } catch (error) {
+            // Ignore storage restrictions; the toggle still works for this page.
+        }
+    };
+
+    const applySidebarState = (collapsed) => {
+        if (!sidebar || !appShell) {
+            return;
+        }
+
+        sidebar.classList.toggle('md:w-20', collapsed);
+        sidebar.classList.toggle('md:w-64', !collapsed);
+        appShell.classList.toggle('md:ml-20', collapsed);
+        appShell.classList.toggle('md:ml-64', !collapsed);
+        sidebarLabels.forEach((label) => label.classList.toggle('md:hidden', collapsed));
+        sidebarLinks.forEach((link) => link.classList.toggle('md:justify-center', collapsed));
+        if (sidebarBrand) {
+            sidebarBrand.classList.toggle('md:justify-center', collapsed);
+            sidebarBrand.classList.toggle('md:gap-0', collapsed);
+        }
+        if (sidebarToggle) {
+            sidebarToggle.setAttribute('aria-expanded', String(!collapsed));
+            sidebarToggle.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+            sidebarToggle.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+        }
+        if (sidebarToggleLabel) {
+            sidebarToggleLabel.textContent = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+        }
+        if (sidebarToggleIcon) {
+            sidebarToggleIcon.classList.toggle('rotate-180', collapsed);
+        }
+    };
+
+    applySidebarState(readSidebarPreference());
+    sidebarToggle?.addEventListener('click', () => {
+        const collapsed = !sidebar.classList.contains('md:w-20');
+        applySidebarState(collapsed);
+        writeSidebarPreference(collapsed);
+    });
+
     document.querySelectorAll('[data-action="reload"]').forEach((button) => {
         button.addEventListener('click', () => window.location.reload());
     });
@@ -115,33 +214,180 @@ document.addEventListener('DOMContentLoaded', () => {
     syncSelectedCount();
 
     const userSearch = document.querySelector('[data-user-search]');
-    const userRows = [...document.querySelectorAll('[data-user-row]')];
-    const userFilterEmpty = document.querySelector('[data-user-filter-empty]');
-
-    if (userSearch) {
-        userSearch.addEventListener('input', () => {
-            const query = userSearch.value.trim().toLowerCase();
-            let visibleCount = 0;
-
-            userRows.forEach((row) => {
-                const matches = !query || (row.dataset.userSearchValue || '').toLowerCase().includes(query);
-                row.hidden = !matches;
-                if (matches) {
-                    visibleCount += 1;
-                }
-            });
-
-            if (userFilterEmpty) {
-                userFilterEmpty.hidden = userRows.length === 0 || visibleCount > 0;
+    const userSearchForm = document.querySelector('[data-user-search-form]');
+    if (userSearch && userSearchForm) {
+        let searchTimer;
+        const submitSearch = () => {
+            window.clearTimeout(searchTimer);
+            searchTimer = window.setTimeout(() => userSearchForm.requestSubmit(), 350);
+        };
+        userSearch.addEventListener('input', submitSearch);
+        userSearchForm.addEventListener('submit', () => {
+            const page = userSearchForm.querySelector('input[name="page"]');
+            if (page) {
+                page.value = '0';
             }
         });
     }
+
+    document.querySelectorAll('[data-user-form]').forEach((form) => {
+        const roleChoices = [...form.querySelectorAll('[data-user-role-choice]')];
+        const accountType = (form.dataset.accountType || '').toUpperCase();
+        const studentFields = form.querySelector('[data-student-fields]');
+        const studentCode = form.querySelector('[data-student-code]');
+        const loginIdentifier = form.querySelector('[data-user-login]');
+        const email = form.querySelector('[data-user-email]');
+        const emailLabel = form.querySelector('[data-user-email-label]');
+        const emailHelp = form.querySelector('[data-user-email-help]');
+        const emailTooltip = form.querySelector('[data-user-email-tooltip]');
+
+        const syncUserType = () => {
+            const isStudent = accountType === 'STUDENT' || roleChoices
+                .filter((choice) => choice.checked)
+                .some((choice) => (choice.dataset.roleCode || '').toUpperCase() === 'STUDENT');
+
+            if (studentFields) {
+                studentFields.hidden = !isStudent;
+            }
+            if (email) {
+                email.readOnly = isStudent;
+                email.required = !isStudent;
+                if (isStudent && studentCode) {
+                    const code = studentCode.value.trim();
+                    email.value = code ? code + (email.dataset.studentEmailDomain || '') : '';
+                }
+            }
+            if (loginIdentifier && isStudent && studentCode) {
+                loginIdentifier.value = studentCode.value.trim();
+            }
+            if (emailLabel) {
+                emailLabel.textContent = isStudent ? 'Email (generated)' : 'Email';
+            }
+            if (emailHelp) {
+                const helpText = isStudent
+                    ? 'Generated from the student code and cannot be edited.'
+                    : 'Enter the lecturer email address.';
+                if (emailTooltip) {
+                    emailTooltip.textContent = helpText;
+                }
+            }
+        };
+
+        roleChoices.forEach((choice) => choice.addEventListener('change', syncUserType));
+        studentCode?.addEventListener('input', syncUserType);
+        syncUserType();
+    });
+
+    document.querySelectorAll('[data-password-form]').forEach((form) => {
+        const password = form.querySelector('[data-password-input]');
+        const confirmation = form.querySelector('[data-password-confirm]');
+        const mismatch = form.querySelector('[data-password-mismatch]');
+
+        if (!password || !confirmation) {
+            return;
+        }
+
+        const syncPasswordConfirmation = () => {
+            const isMismatch = confirmation.value.length > 0 && password.value !== confirmation.value;
+            confirmation.setCustomValidity(isMismatch ? 'Passwords do not match.' : '');
+            mismatch?.classList.toggle('hidden', !isMismatch);
+        };
+
+        password.addEventListener('input', syncPasswordConfirmation);
+        confirmation.addEventListener('input', syncPasswordConfirmation);
+        form.addEventListener('submit', syncPasswordConfirmation);
+    });
 
     document.querySelectorAll('[data-confirm]').forEach((form) => {
         form.addEventListener('submit', (event) => {
             if (!window.confirm(form.dataset.confirm)) {
                 event.preventDefault();
             }
+        });
+    });
+
+    document.querySelectorAll('[data-seed-page]').forEach((page) => {
+        const csrfInput = page.querySelector('[data-seed-csrf]');
+        const actions = [...page.querySelectorAll('[data-seed-action]')];
+        const status = page.querySelector('[data-seed-status]');
+        const feedback = page.querySelector('[data-seed-feedback]');
+        const output = page.querySelector('[data-seed-output]');
+
+        const setFeedback = (message, successful) => {
+            if (!feedback) {
+                return;
+            }
+            feedback.hidden = false;
+            feedback.classList.remove('hidden');
+            feedback.textContent = message;
+            feedback.classList.toggle('bg-green-50', successful);
+            feedback.classList.toggle('text-green-800', successful);
+            feedback.classList.toggle('bg-red-50', !successful);
+            feedback.classList.toggle('text-red-800', !successful);
+        };
+
+        actions.forEach((button) => {
+            button.addEventListener('click', async () => {
+                if (!window.confirm(button.dataset.seedConfirm || 'Run this seed action?')) {
+                    return;
+                }
+
+                actions.forEach((action) => {
+                    action.disabled = true;
+                });
+                if (status) {
+                    status.textContent = 'Seeding database…';
+                }
+                if (feedback) {
+                    feedback.hidden = true;
+                    feedback.classList.add('hidden');
+                }
+                if (output) {
+                    output.hidden = true;
+                    output.classList.add('hidden');
+                    output.textContent = '';
+                }
+
+                try {
+                    const response = await fetch(button.dataset.seedEndpoint, {
+                        method: 'POST',
+                        headers: {
+                            Accept: 'application/json',
+                            'X-CSRF-TOKEN': csrfInput?.value || ''
+                        }
+                    });
+                    const rawResponse = await response.text();
+                    let payload;
+                    try {
+                        payload = rawResponse ? JSON.parse(rawResponse) : null;
+                    } catch (error) {
+                        payload = null;
+                    }
+
+                    if (!response.ok) {
+                        throw new Error(payload?.message || `Seed request failed (${response.status}).`);
+                    }
+
+                    if (status) {
+                        status.textContent = 'Seed completed';
+                    }
+                    setFeedback('Seed data was recreated successfully.', true);
+                    if (output) {
+                        output.hidden = false;
+                        output.classList.remove('hidden');
+                        output.textContent = JSON.stringify(payload, null, 2);
+                    }
+                } catch (error) {
+                    if (status) {
+                        status.textContent = 'Seed failed';
+                    }
+                    setFeedback(error.message || 'The seed request failed.', false);
+                } finally {
+                    actions.forEach((action) => {
+                        action.disabled = false;
+                    });
+                }
+            });
         });
     });
 });

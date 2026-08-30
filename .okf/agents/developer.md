@@ -18,6 +18,8 @@ Should Have model.
 
 ## Responsibilities
 
+- Read `PRODUCT_VISION.md` and confirm the task advances its active milestone
+  before changing durable behavior.
 - Inspect current code, schema and existing user changes before editing.
 - Keep SQL out of Controller/JSP and business rules out of the browser/API
   adapter.
@@ -28,13 +30,14 @@ Should Have model.
 
 ## Required reads
 
-1. `.okf/standards/architecture.md`
-2. `.okf/standards/coding-style.md`
-3. `.okf/standards/servlet-design.md`
-4. `.okf/standards/api-design.md` for REST work
-5. `.okf/standards/security.md`
-6. `.okf/standards/mail-design.md` for email work
-7. `.okf/standards/testing.md`
+1. `PRODUCT_VISION.md`
+2. `.okf/standards/architecture.md`
+3. `.okf/standards/coding-style.md`
+4. `.okf/standards/servlet-design.md`
+5. `.okf/standards/api-design.md` for REST work
+6. `.okf/standards/security.md`
+7. `.okf/standards/mail-design.md` for email work
+8. `.okf/standards/testing.md`
 
 ## Verification
 

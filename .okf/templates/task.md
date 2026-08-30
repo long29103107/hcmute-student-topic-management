@@ -2,6 +2,12 @@
 
 Copy this section into `## Task Notes` in the current phase summary.
 
+## Vision alignment
+
+- Product Vision milestone:
+- User-facing outcome:
+- Explicitly out of scope:
+
 ## Step Goal
 
 Describe one independently verifiable user-facing or developer-facing outcome.
@@ -29,6 +35,7 @@ Out:
 - `.okf/standards/security.md`
 - `.okf/standards/mail-design.md` for Java Mail work
 - `.okf/standards/testing.md`
+- `PRODUCT_VISION.md`
 - `REQUEST.md`
 
 ## Affected Files

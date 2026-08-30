@@ -12,11 +12,17 @@
     <script th:src="@{/js/vendor/flowbite.min.js}" defer></script>
     <script th:src="@{/js/app.js}" defer></script>
 </head>
-<body class="bg-gray-50 text-gray-900 antialiased">
+<body class="app-layout bg-gray-50 text-gray-900 antialiased">
 <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
 
-<div class="md:ml-64">
+<div class="transition-[margin-left] duration-300 md:ml-64" data-app-shell>
     <header th:replace="~{fragments/header :: header}"></header>
+
+    <div class="pointer-events-none fixed end-4 top-20 z-[60] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-3 sm:end-6" aria-live="polite" aria-atomic="true" data-toast-region>
+        <div th:replace="~{fragments/toast :: toast(type='success', title='Success', message=${successMessage}, toastId='success-toast', duration=5)}"></div>
+        <div th:replace="~{fragments/toast :: toast(type='warning', title='Warning', message=${warningMessage}, toastId='warning-toast', duration=6)}"></div>
+        <div th:replace="~{fragments/toast :: toast(type='error', title='Error', message=${errorMessage}, toastId='error-toast', duration=8)}"></div>
+    </div>
 
     <main layout:fragment="content"></main>
 

@@ -5,4 +5,5 @@
 @import "./app.css";
 
 @source "../../templates";
+@source "../js";
 @source "../../../../../node_modules/flowbite";

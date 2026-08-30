@@ -1,26 +1,26 @@
 # Hệ thống quản lý đề tài sinh viên
 
-Đây là ứng dụng MVC monolith cho Khoa Công nghệ Thông tin, được đặc tả trong
-[`REQUEST.md`](REQUEST.md).
+Đây là ứng dụng MVC monolith cho Khoa Công nghệ Thông tin. Product scope và
+milestone hiện tại được xác định trong [`PRODUCT_VISION.md`](PRODUCT_VISION.md).
 
-Đây là đồ án môn học nên mục tiêu hiện tại là MVP có thể demo end-to-end:
-đăng nhập → đợt đăng ký → đề tài → nhóm → đăng ký → báo cáo → đánh giá/kết
-quả. Không tự mở rộng thành hệ thống production hoặc triển khai hội đồng nhiều
-tầng, dashboard, audit log, email và nhiều phiên bản báo cáo nếu chưa được
-chọn rõ trong Must/Should/Nice to Have.
+Milestone hiện tại chỉ hoàn thành Identity and Access: Login, User, Role và
+Permission CRUD/authorization. Các module học vụ được ghi nhận trong Later
+product roadmap và chỉ được mở sau khi user chọn scope tiếp theo.
 
 ## Tài liệu nguồn cho code generation
 
-- `REQUEST.md` là nguồn sự thật cho mục tiêu, chức năng, quy tắc nghiệp vụ và
-  các điểm chưa được xác nhận.
+- `PRODUCT_VISION.md` là nguồn ưu tiên để agent tạo task, plan hoặc quyết định
+  product scope.
+- `REQUEST.md` là tài liệu tham chiếu về yêu cầu và business rules khi không
+  mâu thuẫn với Product Vision.
 - `.okf/` chứa quy trình spec-driven: standards, agents, workflows, phase và
   task notes.
 - `docs/` chứa đặc tả miền, workflow, phân quyền, dữ liệu, màn hình và các
   quyết định cần giữ ổn định khi sinh code; `docs/course-alignment.md` phân
   biệt nội dung môn học với yêu cầu project.
 
-Đọc theo thứ tự: `REQUEST.md` → `.okf/README.md` → phase hiện tại → tài liệu
-liên quan trong `docs/`.
+Đọc theo thứ tự: `PRODUCT_VISION.md` → `REQUEST.md` → `.okf/README.md` → phase
+`001` → tài liệu liên quan trong `docs/`.
 
 ## Stack dùng trong project
 
@@ -73,8 +73,11 @@ Không cấu hình biến môi trường thì app dùng H2 in-memory để debug
 
 ### Cấu hình MySQL
 
-Chạy lần lượt [`database/1.ddl.sql`](database/1.ddl.sql) và
-[`database/2.seed.sql`](database/2.seed.sql) trên MySQL trước khi chạy app.
+Chạy [`database/1.ddl.sql`](database/1.ddl.sql) trên database mới. Với database
+đã tồn tại, chạy [`database/4.update-ddl.sql`](database/4.update-ddl.sql) để
+patch các cột User/Profile hiện tại (đặc biệt `users.date_of_birth`). File
+[`database/3.student-profile.sql`](database/3.student-profile.sql) là script
+upgrade cũ, chỉ dùng khi cần giữ quy trình cũ.
 Sau đó override các biến runtime:
 
 ```powershell
@@ -84,6 +87,30 @@ $env:DB_PASSWORD = '<local-secret>'
 $env:DB_DRIVER = 'com.mysql.cj.jdbc.Driver'
 mvn spring-boot:run
 ```
+
+### Seed dữ liệu local qua API
+
+Seed không còn chạy bằng SQL thủ công. Sau khi có một tài khoản `ADMIN` đang
+đăng nhập, gọi endpoint từ browser session và gửi kèm CSRF token:
+
+```javascript
+const csrfToken = document.querySelector('input[name="_csrf"]').value;
+fetch('/api/admin/seed', {
+  method: 'POST',
+  headers: { 'X-CSRF-TOKEN': csrfToken }
+});
+```
+
+API sẽ truncate toàn bộ bảng ứng dụng rồi tạo lại roles, permissions, các tài
+khoản test và Student Profile mẫu. Đây là thao tác destructive dành cho local;
+không gọi trên database có dữ liệu cần giữ. Vì endpoint cần tài khoản ADMIN
+hiện có, database mới cần một bước bootstrap admin riêng trước khi gọi API.
+Tài khoản fixture dùng mật khẩu local cũ đã được hash trong source; hãy đổi
+trước khi chia sẻ hoặc deploy.
+
+Khi tạo Student từ `Manage students`, MSSV đồng thời là login identifier,
+`STUDENT` được gán tự động, email được sinh theo MSSV và password để trống.
+Admin cần mở Edit để thiết lập password trước khi Student có thể đăng nhập.
 
 ### Cấu hình security khi chạy thật
 
@@ -103,5 +130,5 @@ Các route hiện có:
 - `/dashboard` — dashboard sau khi đăng nhập.
 - `/profile` — thông tin tài khoản và role hiện tại.
 
-Tài khoản local và quyền mẫu được tạo bởi `database/2.seed.sql`; không commit
+Tài khoản local và quyền mẫu được tạo bởi `POST /api/admin/seed`; không commit
 mật khẩu mới hoặc mật khẩu plaintext vào source.

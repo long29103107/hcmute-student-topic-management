@@ -15,6 +15,7 @@ depends_on: []
 ## Phase Goal
 
 Describe the meaningful user-facing capability this phase must deliver.
+It must match an explicitly selected milestone in `PRODUCT_VISION.md`.
 
 ## Phase Done Criteria
 
@@ -86,6 +87,7 @@ Out:
 - `.okf/standards/security.md`
 - `.okf/standards/mail-design.md` for Java Mail work
 - `.okf/standards/testing.md`
+- `PRODUCT_VISION.md`
 - `REQUEST.md`
 
 #### Affected Files
@@ -106,5 +108,6 @@ Not started.
 
 ## Scan Rule
 
-Read this file before working on any task note in the phase. Keep creating
-steps inside the phase until all phase done criteria are verified.
+Read `PRODUCT_VISION.md` before working on any task note in the phase. Keep
+creating steps inside the phase until all phase done criteria are verified; do
+not create a new phase without an explicit user decision.

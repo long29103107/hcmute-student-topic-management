@@ -1,5 +1,11 @@
 # Plan
 
+## Vision alignment
+
+- Active milestone from `PRODUCT_VISION.md`:
+- User outcome:
+- Explicitly out of scope:
+
 ## Objective
 
 -

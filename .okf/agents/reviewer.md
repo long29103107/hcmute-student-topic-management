@@ -11,8 +11,7 @@ Check whether a change satisfies the task without moving business logic into
 Controller/JSP/REST adapters or weakening authorization and data integrity.
 
 Also flag scope inflation: new aggregates, routes or infrastructure must be
-justified by the selected Must/Should/Nice priority. A simple assigned-lecturer
-evaluation is the default MVP; a full board model is not required by default.
+justified by the active milestone in `PRODUCT_VISION.md`.
 
 ## Responsibilities
 
@@ -25,7 +24,8 @@ evaluation is the default MVP; a full board model is not required by default.
 
 ## Required reads
 
-1. Current phase task note
-2. `.okf/standards/architecture.md`
-3. `.okf/standards/security.md`
-4. `.okf/standards/testing.md`
+1. `PRODUCT_VISION.md`
+2. Current phase task note
+3. `.okf/standards/architecture.md`
+4. `.okf/standards/security.md`
+5. `.okf/standards/testing.md`

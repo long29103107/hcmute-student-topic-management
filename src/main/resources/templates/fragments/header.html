@@ -12,13 +12,14 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
             </button>
-            <nav class="min-w-0" aria-label="Breadcrumb">
-                <ol class="flex items-center gap-2 text-sm text-gray-500">
-                    <li class="hidden truncate sm:block">HCMUTE Topic Management</li>
-                    <li class="hidden sm:block" aria-hidden="true">/</li>
-                    <li class="truncate font-semibold text-gray-900" th:text="${pageTitle ?: 'Dashboard'}">Dashboard</li>
-                </ol>
-            </nav>
+            <button id="sidebar-collapse-toggle" type="button"
+                    class="hidden items-center rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 md:inline-flex"
+                    data-sidebar-toggle aria-controls="default-sidebar" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar">
+                <span class="sr-only" data-sidebar-toggle-label>Collapse sidebar</span>
+                <svg class="h-6 w-6 transition-transform duration-300" data-sidebar-toggle-icon aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 19-7-7 7-7"/>
+                </svg>
+            </button>
         </div>
 
         <div class="flex items-center gap-2" sec:authorize="isAuthenticated()">

@@ -11,8 +11,10 @@ monolith, JDBC/MySQL, Maven/Tomcat, HTML/CSS/JS, Tailwind CSS, jQuery và Java
 Mail tùy chọn. Dùng Spring Framework Core/Spring MVC trực tiếp; không dùng
 Spring Boot.
 
-`REQUEST.md` là nguồn sự thật. Những điểm chưa rõ trong mục 13 không được tự
-biến thành quy tắc nghiệp vụ bắt buộc.
+`PRODUCT_VISION.md` là nguồn sự thật ưu tiên cho product scope, milestone và
+việc tạo task. `REQUEST.md` và `docs/` là tài liệu tham chiếu cho implementation
+và business rules khi không mâu thuẫn với Product Vision. Những điểm chưa rõ
+không được tự biến thành quy tắc nghiệp vụ bắt buộc.
 
 ## Course-project MVP boundary
 
@@ -31,16 +33,54 @@ MVC chạy được end-to-end với các thực thể lõi:
   nhưng chọn mô hình dữ liệu và giao diện tối giản; hỏi lại chỉ khi ảnh hưởng
   tiêu chí nghiệm thu.
 
+## Current identity rules
+
+- Student creation requires a unique 8-digit MSSV; the server uses MSSV as the
+  login identifier, assigns `STUDENT`, generates the Student email as
+  `<MSSV>@student.hcmute.edu.vn` and leaves `password_hash` unset. The UI does
+  not allow editing the generated login/email or setting a password in the
+  create flow. An account without a password is blocked from login until an
+  administrator sets one through edit/reset. Lecturer creation auto-assigns
+  `LECTURER` and uses the manually entered, server-validated email as both
+  the email and login identifier; a separate login identifier is not accepted.
+  Lecturer creation also leaves `password_hash` unset; an administrator must
+  set a password through edit/reset before the account can log in.
+  The admin directory exposes separate Manage students, Manage lecturers and
+  Manage faculty heads views, while the reusable account modal is shared where
+  the action is allowed.
+- Keep `FACULTY_HEAD` and `LECTURER` as shared access roles assigned through
+  `user_roles`; never split authentication into role-specific user tables.
+  The default `FACULTY_HEAD` permission bundle includes all Lecturer
+  permissions plus department, registration-period, topic-review and
+  topic-registration-review permissions. This is an explicit role-permission
+  bundle rather than runtime role inheritance. Add Lecturer creates only
+  `LECTURER`; `FACULTY_HEAD` is granted separately.
+- Student Profile is separate from User and references the user by `user_id`.
+  MSSV is a unique business identifier, never a primary key.
+- Normal User edit never changes MSSV. Student edits may update profile metadata
+  and common account fields; a future MSSV change must be a separately
+  authorized action/API.
+- `database/2.seed.sql` is only a pointer to `POST /api/admin/seed`. The seed
+  endpoint is destructive: it requires an authenticated `ADMIN`, truncates
+  the fixed application table list before reseeding roles, permissions, local
+  test accounts and the sample Student Profile. Never expose or call it as a
+  public/anonymous endpoint; keep the normal session CSRF protection in place.
+  The admin-only `/seed` page is the UI entry point and invokes the API with
+  `fetch` plus the session CSRF token; keep a confirmation before running it.
+  Run `database/4.update-ddl.sql` first when an existing MySQL database is
+  missing the current User/Profile columns.
+
 ## Required reading
 
-Trước khi thay đổi code hoặc tài liệu lâu dài, đọc:
+Trước khi tạo task/plan hoặc thay đổi code, đọc:
 
-1. `REQUEST.md`
-2. `.okf/standards/architecture.md`
-3. `.okf/standards/coding-style.md`
-4. `.okf/standards/testing.md`
-5. Workflow tương ứng trong `.okf/workflows/`
-6. Phase summary và các tài liệu `docs/` liên quan
+1. `PRODUCT_VISION.md`
+2. `REQUEST.md`
+3. `.okf/standards/architecture.md`
+4. `.okf/standards/coding-style.md`
+5. `.okf/standards/testing.md`
+6. Workflow tương ứng trong `.okf/workflows/`
+7. Phase summary và các tài liệu `docs/` liên quan
 
 ## Working rules
 
@@ -54,8 +94,47 @@ Trước khi thay đổi code hoặc tài liệu lâu dài, đọc:
   file `.env`.
 - Không đưa SPA, microservices, Docker hoặc hạ tầng ngoài phạm vi vào code nếu
   task không được cập nhật rõ trong `REQUEST.md`.
+- Không tạo task mới ngoài active milestone trong `PRODUCT_VISION.md`. Mỗi task
+  hoặc plan mới phải ghi rõ `Vision alignment`, outcome và out-of-scope boundary.
 - Không sửa/khôi phục thay đổi không liên quan của người dùng.
 - Khi hoàn thành task, cập nhật phase summary sau khi đã verification.
+- Feedback sau các thao tác quản trị dùng fragment toast tái sử dụng tại
+  `src/main/resources/templates/fragments/toast.html`; layout đọc các flash
+  attribute `successMessage`, `warningMessage`, `errorMessage`. Logic đóng và
+  tự ẩn/countdown phải nằm trong `static/js/app.js` vì CSP không cho inline
+  script. Toast hiển thị tối đa 3 item và fragment nhận `duration` theo giây.
+- User directory canonical routes are `/admin/students` and `/admin/lecturers`,
+  backed by separate controllers and form models. Keep `/admin/users` only as
+  a legacy compatibility route; new navigation and flows must use the typed
+  resource path.
+- Student directory tables must omit the Roles column entirely because the
+  `/admin/students` route already scopes every account to the Student role;
+  lecturer/legacy directories may continue rendering role badges.
+- Student edit modals must show the immutable MSSV/profile fields only; do not
+  render password-reset or system-role controls in the normal edit flow. The
+  shared form fragment must gate those sections by `studentAccount`, not only
+  by the generic `editing` flag.
+- Dashboard and canonical student/lecturer directory content must use the full
+  available content width with internal responsive padding, matching Roles &
+  permissions; do not add `max-w-7xl` wrappers to those pages.
+- Treat Roles & permissions as the visual reference for all administration
+  pages going forward: full-width content, responsive inner padding, compact
+  Flowbite-style panels, and consistent headings/actions/forms/tables/modals/
+  toasts. Only use a constrained `max-w-*` layout when the page genuinely
+  needs it and the task explicitly justifies the exception.
+- Inline explanatory helper text for immutable/generated fields should use the
+  shared info-icon tooltip pattern in the user form, with hover and keyboard
+  focus support instead of always-visible paragraphs.
+- Canonical Student and Lecturer directories use shared server-side pagination,
+  search filtering, and sortable visible columns. Keep `search`, `sort`,
+  `direction`, `page`, and `size` in pagination/sort links; the search input
+  also has a visible Search button and a short debounce on typing.
+- Mobile administration layouts must constrain wrappers with `min-width: 0`
+  and contain wide data tables inside their panel scroll area; never allow a
+  table to create horizontal overflow on the whole page.
+- Passwords are not collected during Student/Lecturer creation or normal edit;
+  credential setup uses the separate reusable Set password modal and the
+  dedicated `/{id}/password` action protected by `USER_UPDATE`.
 
 ## Verification
 

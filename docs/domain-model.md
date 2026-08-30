@@ -10,11 +10,16 @@
   có thể dùng lại cho nhiều role.
 - Các role hệ thống mặc định vẫn là:
   - `ADMIN`: quản lý tài khoản và thông báo.
-  - `FACULTY_HEAD`: quản lý đợt, duyệt/công bố, phân công, hội đồng và kết quả.
+  - `FACULTY_HEAD`: có toàn bộ permission của `LECTURER`, đồng thời quản lý
+    bộ môn, đợt đăng ký, duyệt đề tài và duyệt đăng ký của sinh viên.
   - `LECTURER`: đề xuất đề tài, hướng dẫn, phản biện và chấm theo phân công.
   - `STUDENT`: tạo/tham gia nhóm, đăng ký và xem kết quả của nhóm mình.
 - `GROUP_LEADER`: một sinh viên giữ vai trò đại diện trong đúng một nhóm; đây
   là thuộc tính thành viên, không nhất thiết là system role riêng.
+
+`FACULTY_HEAD` vẫn là một role riêng trong `user_roles`, nhưng role-permission
+assignment mặc định cấp thêm các permission của giảng viên. Không cần gán thêm
+role `LECTURER` cho cùng một tài khoản chỉ để dùng các capability giảng viên.
 
 ## Core aggregates
 
@@ -36,7 +41,7 @@ rubric explicitly requires them.
 ### User and Department
 
 `User` có tài khoản đăng nhập, họ tên, email/mã số, role, trạng thái active và
-password hash. `User` tham chiếu một `RoleEntity`; role chứa các
+password hash có thể chưa thiết lập trong lúc tạo Student. `User` tham chiếu một `RoleEntity`; role chứa các
 `PermissionEntity` được phép thực hiện. Quan hệ gán role và permission được
 lưu qua `UserRoleEntity` và `RolePermissionEntity`. `Department` là bộ môn;
 mỗi `Topic` tham chiếu đúng một bộ môn.

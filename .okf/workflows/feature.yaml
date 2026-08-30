@@ -9,10 +9,10 @@ agents:
 steps:
   - id: clarify
     owner: leader
-    action: Define the outcome, affected role, Must/Should/Nice priority, MVP boundary, acceptance criteria and REQUEST alignment.
+    action: Read PRODUCT_VISION.md, then define an outcome inside its active milestone, affected role, explicit scope boundary and acceptance criteria.
   - id: plan
     owner: planner
-    action: Identify the smallest phase task, domain rules, SSR/REST routes, Service/DAO/JDBC boundaries, JSP views and verification; do not add optional aggregates by default.
+    action: Add a Vision alignment section and identify the smallest active-phase task, domain rules, routes, service/persistence boundaries, views and verification.
   - id: implement
     owner: developer
     action: Add the smallest complete slice using Spring MVC, JSP/JSTL, REST DTOs, JDBC/MySQL and server-side validation.

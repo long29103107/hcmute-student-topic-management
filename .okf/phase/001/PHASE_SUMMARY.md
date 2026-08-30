@@ -1,9 +1,9 @@
 ---
 phase: 001
-title: Maven Spring MVC Foundation, Identity and Accounts
+title: Identity and Access — Users, Roles, Permissions and Login
 status: in_progress
 created_at: 2026-08-20
-updated_at: 2026-08-20
+updated_at: 2026-08-29
 current_task: 001_001
 task_count: 6
 done_count: 0
@@ -12,313 +12,84 @@ depends_on: []
 
 # Phase 001 Summary
 
+## Vision alignment
+
+This phase delivers the active `Identity and access` milestone in
+[`PRODUCT_VISION.md`](../../../PRODUCT_VISION.md). No task from later product
+areas may be added here without an explicit user decision.
+
 ## Phase Goal
 
-Tạo WAR Maven chạy trên Tomcat với Spring MVC/Jakarta Servlet, JSP/JSTL SSR,
-REST health/auth adapters, cấu trúc Controller → Service → DAO/JDBC, MySQL
-schema nền tảng, đăng nhập/session/phân quyền và quản lý users/departments.
+Complete Login, User, Role and Permission modules, including CRUD and
+server-side authorization, as one usable identity-and-access foundation.
 
 ## Phase Done Criteria
 
-- `mvn test` và `mvn package` chạy thành công, tạo WAR.
-- Kết nối MySQL lấy từ runtime config; schema users/departments có thể tạo lặp.
-- Password không lưu plaintext; login/logout/session và route protection hoạt động.
-- Admin quản lý tài khoản, role, active/locked.
-- Faculty Head quản lý departments.
-- JSP nằm dưới `WEB-INF/views`, không có SQL/business logic trong view.
+- Login/logout/session and protected-route behavior are verified.
+- Users can be safely created, viewed, edited, activated/deactivated or deleted
+  according to the data policy; credentials are securely reset.
+- Student creation requires a unique MSSV, uses it as the login identifier,
+  auto-assigns `STUDENT`, generates a readonly
+  `<MSSV>@student.hcmute.edu.vn` email and leaves the password unset until an
+  administrator sets it. Lecturer creation auto-assigns `LECTURER` and accepts
+  a manually entered email/password. The directory separates student,
+  lecturer and faculty-head views and reuses the same account modal template.
+- Student Profile uses a separate `user_id` relation and normal User edit never
+  changes MSSV.
+- Users without a configured password cannot authenticate; setting a password
+  is an explicit edit/reset action.
+- `FACULTY_HEAD` and `LECTURER` remain shared access roles in `roles` and
+  `user_roles`; the default Faculty Head permission bundle includes all
+  Lecturer permissions plus faculty/registration workflow permissions. The
+  bundle is explicit in `role_permissions`, and Faculty Head assignment is
+  separate from Add Lecturer.
+- Roles and permissions support CRUD and role-permission assignment.
+- Role/permission changes are enforced by server-side checks, not hidden UI.
+- All mutations have server validation, authorization and meaningful feedback.
+- Local identity fixtures can be reset reproducibly through the authenticated
+  admin seed API; the API truncates the fixed application table set before
+  reseeding.
+- Relevant tests and `mvn test` pass; skipped environment checks are recorded.
 
 ## Scope
 
-In:
+In: User, Role, Permission and Login CRUD/authorization only.
 
-- Maven/Tomcat/Spring MVC/Jakarta Servlet scaffold.
-- Spring MVC SSR view resolver và REST controller baseline.
-- MySQL datasource, schema nền tảng và seed tối thiểu nếu cần.
-- Authentication, session, role authorization.
-- User/account và department CRUD.
-
-Out:
-
-- Registration periods, topics, groups, reports, boards, scores and
-  notifications.
-- Any stack or infrastructure outside `REQUEST.md`.
+Out: departments, periods, topics, groups, registrations, reports, evaluations,
+results, announcements, dashboards, email and audit logging.
 
 ## Task Index
 
 | Task | Title | Status | Done At |
 |---|---|---|---|
-| 001_001 | Maven WAR và Spring MVC skeleton | in_progress | |
-| 001_002 | DataSource, schema và DAO nền tảng | planned | |
-| 001_003 | Login, logout, session và role filter | planned | |
-| 001_004 | Admin quản lý users | planned | |
-| 001_005 | Faculty Head quản lý departments | planned | |
-| 001_006 | Foundation verification và phase closure | planned | |
+| 001_001 | Reconcile identity baseline and persistence contracts | in_progress | |
+| 001_002 | Login, logout, session and protected-route behavior | planned | |
+| 001_003 | Role-aware User CRUD, Student Profile/MSSV handling, status and credential reset | planned | |
+| 001_004 | Role and permission CRUD with assignment management | planned | |
+| 001_005 | Permission enforcement and cross-route authorization audit | planned | |
+| 001_006 | Identity-and-access verification and phase closure | planned | |
 
 ## Current Task
 
-Current task: `001_001`. Build/package đã đạt; còn chờ smoke trên Tomcat 10.1.
+`001_001` — compare the existing implementation with the active product vision,
+then create the smallest gap-closing task. Do not start academic-workflow work.
 
-## Completed Notes
-
-No phase tasks are complete yet.
+The identity seed source of truth is now `DatabaseSeedService`; the legacy
+`database/2.seed.sql` file is retained only as a pointer to its API endpoint.
+Existing MySQL databases must run `database/4.update-ddl.sql` before starting
+the application when they predate the current User and Student Profile schema.
+Shared admin feedback now uses the reusable layout toast fragment for success,
+warning and error flash messages; form validation feedback remains inline.
+Student and lecturer directories now have typed canonical routes and separate
+controller/form models; the combined `/admin/users` route remains only for
+legacy compatibility.
 
 ## Next Task Proposal
 
-Complete the Tomcat 10.1 runtime smoke for `001_001`; after that, start
-`001_002` for MySQL schema/DAO implementation.
+After the baseline is reconciled, complete the first missing identity behavior
+from `001_002` through `001_005`; prioritize the smallest user-facing gap.
 
 ## Task Notes
 
-### 001_001 - Maven WAR và Spring MVC skeleton
-
-#### Step Goal
-
-Tạo `pom.xml`, WAR packaging, Spring MVC application context, DispatcherServlet
-mapping, component scan, common filters/interceptors, error pages, asset folders
-và một SSR home route cùng REST health route.
-
-#### Dependency
-
-- `REQUEST.md` and `.okf/standards/architecture.md`.
-
-#### Scope
-
-In: Spring MVC/Jakarta Servlet/JSTL dependencies, Maven compiler, Tomcat
-deployable WAR, layer folders, `WEB-INF/views`, Tailwind/jQuery assets,
-`@Controller`/`@RestController` placeholders.
-
-Out: business tables, authentication behavior, real pages beyond scaffold.
-
-#### Acceptance Criteria
-
-- WAR packages and deploys to the selected Tomcat version.
-- An SSR request flows through encoding filter → Spring MVC Controller → JSP.
-- A REST request flows through filter → `@RestController` → JSON response.
-- Spring MVC is used without ORM; no SPA dependency is introduced.
-
-#### Affected Files
-
-- `pom.xml`, `src/main/java`, `src/main/resources`, `src/main/webapp`,
-  `README.md`.
-
-#### Verification
-
-- `mvn package`; deploy minimal WAR to Tomcat if available; smoke SSR home and
-  REST health route.
-
-#### Foundation for Next Step
-
-All later code has stable Java package, resource and view locations.
-
-#### Done Notes
-
-Implementation completed for the current code-base scaffold. Runtime smoke is
-pending because the machine only has Tomcat 9, while this project uses Jakarta
-Servlet 6/Tomcat 10.1.
-
-### 001_002 - DataSource, schema và DAO nền tảng
-
-#### Step Goal
-
-Thiết lập MySQL configuration/DataSource, transaction helper và schema cho
-`users`, `departments`; tạo DAO interfaces/implementations với PreparedStatement.
-
-#### Dependency
-
-- `001_001`.
-
-#### Scope
-
-In: runtime properties/env mapping, schema script, connection lifecycle,
-`UserDao`, `DepartmentDao`, safe exception mapping.
-
-Out: topic/period schema, ORM, hard-coded credentials.
-
-#### Acceptance Criteria
-
-- Schema creates from repository resources.
-- DAO closes JDBC resources and never concatenates user input into SQL.
-- Connection values are absent from Java source and versioned secrets.
-
-#### Affected Files
-
-- `config/`, `dao/`, `model/`, `src/main/resources/db/`, tests and Maven config.
-
-#### Verification
-
-- Unit tests for mapping/validation; MySQL integration test when DB is available;
-  `mvn test`, `mvn package`.
-
-#### Foundation for Next Step
-
-Authentication and account screens can use one configured data access boundary.
-
-#### Done Notes
-
-Not started.
-
-### 001_003 - Login, logout, session và role filter
-
-#### Step Goal
-
-Implement password-hash verification, login/logout, session lifecycle and
-coarse role route protection.
-
-#### Dependency
-
-- `001_002`.
-
-#### Scope
-
-In: `AuthController`, auth filter/interceptor, safe session user DTO,
-BCrypt (or approved configured hash), invalid-login messages and access-denied.
-
-Out: enhanced authentication beyond the session-based login required by
-`REQUEST.md`.
-
-#### Acceptance Criteria
-
-- Correct credentials create a session without storing plaintext password.
-- Logout invalidates session.
-- Unauthenticated and wrong-role direct URL requests are blocked.
-- Service remains the authority for resource-level permission.
-
-#### Affected Files
-
-- `service/auth`, `controller/auth`, optional `rest/auth`, `filter`, auth JSPs
-  and user tests.
-
-#### Verification
-
-- Authentication unit tests plus Spring MVC/REST tests for
-  success/failure/logout/403; `mvn test`.
-
-#### Foundation for Next Step
-
-Every later flow can depend on a consistent `CurrentUser` and role check.
-
-#### Done Notes
-
-Not started.
-
-### 001_004 - Admin quản lý users
-
-#### Step Goal
-
-Cho Admin xem, tạo, cập nhật, khóa/mở khóa tài khoản và gán bốn system roles
-được phép trong `REQUEST.md`.
-
-#### Dependency
-
-- `001_003`.
-
-#### Scope
-
-In: list/form/actions, server validation, password reset/change hash path,
-role/active update, PRG and audit-safe messages.
-
-Out: advanced audit log, email invitations, additional approver roles.
-
-#### Acceptance Criteria
-
-- Chỉ Admin thực hiện mutation qua cả UI và direct URL.
-- Locked user cannot authenticate.
-- Role values are allowlisted; duplicate login identifier is rejected.
-
-#### Affected Files
-
-- `UserService`, `UserDao`, `AdminUserController`, optional REST adapter,
-  admin JSPs and tests.
-
-#### Verification
-
-- Service authorization/validation tests; Spring MVC/REST smoke;
-  `mvn test/package`.
-
-#### Foundation for Next Step
-
-User and lecturer/student identities exist for academic workflows.
-
-#### Done Notes
-
-Not started.
-
-### 001_005 - Faculty Head quản lý departments
-
-#### Step Goal
-
-Implement CRUD/active management for departments and make the service expose a
-safe list for future topic forms.
-
-#### Dependency
-
-- `001_004`.
-
-#### Scope
-
-In: Faculty Head route, department validation, unique code/name policy,
-active/inactive handling.
-
-Out: department-scoped analytics or additional hierarchy.
-
-#### Acceptance Criteria
-
-- Faculty Head can manage departments; other roles cannot mutate them.
-- Inactive department cannot be selected for a new topic.
-- Existing references are handled without deleting data blindly.
-
-#### Affected Files
-
-- `DepartmentService`, `DepartmentDao`, `DepartmentController`, optional REST
-  adapter, JSP and tests.
-
-#### Verification
-
-- DAO/service tests and direct SSR/REST authorization smoke;
-  `mvn test/package`.
-
-#### Foundation for Next Step
-
-Topics can require exactly one valid department.
-
-#### Done Notes
-
-Not started.
-
-### 001_006 - Foundation verification và phase closure
-
-#### Step Goal
-
-Verify deployable foundation across layers and record evidence before opening
-Phase 002.
-
-#### Dependency
-
-- `001_001` through `001_005` complete.
-
-#### Scope
-
-In: full Maven suite, schema bootstrap, login/admin/department smoke and docs.
-
-Out: new features.
-
-#### Acceptance Criteria
-
-- All phase done criteria have evidence in Done Notes.
-- Skipped MySQL/Tomcat checks are listed with reason, not silently omitted.
-
-#### Affected Files
-
-- tests, `README.md`, this phase summary, `docs/verification.md` if needed.
-
-#### Verification
-
-- `mvn test`, `mvn package`, MySQL/Tomcat smoke when available.
-
-#### Foundation for Next Step
-
-Phase 002 may add period/topic workflow on stable identity and department data.
-
-#### Done Notes
-
-Not started.
+Each task note must use `.okf/templates/task.md`, begin with `Vision alignment`,
+and reference the specific row in `PRODUCT_VISION.md` it advances.

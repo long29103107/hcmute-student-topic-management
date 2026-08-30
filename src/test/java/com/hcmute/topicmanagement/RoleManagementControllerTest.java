@@ -46,6 +46,21 @@ class RoleManagementControllerTest {
     }
 
     @Test
+    void layoutRendersDismissibleFlashToasts() throws Exception {
+        mockMvc.perform(get("/admin/roles")
+                        .with(user(admin("ROLE_READ")))
+                        .flashAttr("successMessage", "Role saved.")
+                        .flashAttr("warningMessage", "Review the assignment.")
+                        .flashAttr("errorMessage", "Permission update failed."))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-toast-region")))
+                .andExpect(content().string(containsString("Role saved.")))
+                .andExpect(content().string(containsString("Review the assignment.")))
+                .andExpect(content().string(containsString("Permission update failed.")))
+                .andExpect(content().string(containsString("data-toast-dismiss")));
+    }
+
+    @Test
     void adminCanOpenPermissionAssignmentForm() throws Exception {
         RoleEntity role = roleRepository.save(new RoleEntity(
                 "FACULTY_HEAD", "Faculty Head", "Manages faculty workflows."));

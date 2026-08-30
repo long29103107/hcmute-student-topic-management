@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.hcmute.topicmanagement.model.PermissionEntity;
 import com.hcmute.topicmanagement.model.RoleEntity;
@@ -50,6 +51,9 @@ public class DatabaseUserDetailsService implements UserDetailsService {
 
         if (!user.isActive()) {
             throw new DisabledException("User is inactive: " + attemptedIdentifier);
+        }
+        if (!StringUtils.hasText(user.getPasswordHash())) {
+            throw new DisabledException("User has no password configured: " + attemptedIdentifier);
         }
 
         Set<SimpleGrantedAuthority> authorities = new LinkedHashSet<>();

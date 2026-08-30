@@ -15,6 +15,15 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     boolean existsByLoginIdentifierIgnoreCase(String loginIdentifier);
 
+    @Query("select count(u) > 0 from UserEntity u "
+            + "where lower(u.emailOrCode) = lower(:emailOrCode)")
+    boolean existsByEmailOrCodeIgnoreCase(@Param("emailOrCode") String emailOrCode);
+
+    @Query("select count(u) > 0 from UserEntity u "
+            + "where lower(u.emailOrCode) = lower(:emailOrCode) and u.id <> :id")
+    boolean existsByEmailOrCodeIgnoreCaseAndIdNot(
+            @Param("emailOrCode") String emailOrCode, @Param("id") Long id);
+
     @Query("select distinct u from UserEntity u "
             + "left join fetch u.userRoles ur "
             + "left join fetch ur.role "

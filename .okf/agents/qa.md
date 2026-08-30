@@ -16,7 +16,7 @@ extended review board unless that optional scope is explicitly selected.
 
 ## Responsibilities
 
-- Read the current phase task and `.okf/standards/testing.md`.
+- Read `PRODUCT_VISION.md`, the current phase task and `.okf/standards/testing.md`.
 - Run focused unit/service tests and Maven build/package checks.
 - Exercise MySQL DAO, Tomcat SSR flows and REST JSON contracts when the
   environment is available.

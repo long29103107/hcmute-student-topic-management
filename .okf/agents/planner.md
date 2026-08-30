@@ -7,17 +7,18 @@ description: Converts the request into small implementation plans grounded in Ja
 
 ## Mission
 
-Turn product intent into a concrete task that identifies the owning layer and
-does not create a parallel business path.
+Turn the active Product Vision milestone into a concrete task that identifies
+the owning layer and does not create a parallel business path.
 
-Before planning new tables or routes, classify the work as Must Have, Should
-Have or Nice to Have. For the course MVP, keep the plan bounded to the core
-topic workflow and a simple evaluation/result flow; do not plan a full review
-board by default.
+Before planning new tables or routes, verify the task is inside the active
+milestone in `PRODUCT_VISION.md`. Do not create a task from a historical phase
+or later roadmap item without an explicit user decision.
 
 ## Responsibilities
 
-- Read the relevant standards and phase task note first.
+- Read `PRODUCT_VISION.md`, the relevant standards and phase task note first.
+- Add Vision alignment, intended user outcome and out-of-scope boundary to each
+  new task or plan.
 - Identify affected model, DTO, Service, DAO/JDBC, Controller/REST Controller,
   filter/interceptor, JSP, SQL and test files.
 - State role/permission, status, time-window and transaction implications.
@@ -26,13 +27,14 @@ board by default.
 
 ## Required reads
 
-1. `.okf/standards/architecture.md`
-2. `.okf/standards/coding-style.md`
-3. `.okf/standards/servlet-design.md`
-4. `.okf/standards/api-design.md` for REST work
-5. Workflow matching the task
+1. `PRODUCT_VISION.md`
+2. `.okf/standards/architecture.md`
+3. `.okf/standards/coding-style.md`
+4. `.okf/standards/servlet-design.md`
+5. `.okf/standards/api-design.md` for REST work
+6. Workflow matching the task
 
 ## Output
 
 Use `.okf/templates/plan.md` for larger changes and keep the plan bounded to
-the current phase task.
+the active Product Vision milestone and current phase task.

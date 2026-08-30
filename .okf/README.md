@@ -5,36 +5,39 @@ Thư mục này theo dõi các phase và implementation task của hệ thống 
 
 ## How to work
 
-1. Đọc `REQUEST.md`.
-2. Đọc `.okf/standards/` và tài liệu liên quan trong `docs/`, đặc biệt
+1. Đọc `PRODUCT_VISION.md` để xác định milestone và scope được phép tạo task.
+2. Đọc `REQUEST.md`.
+3. Đọc `.okf/standards/` và tài liệu liên quan trong `docs/`, đặc biệt
    `docs/course-alignment.md` khi chọn framework/UI.
-3. Đọc `.okf/phase/<phase>/PHASE_SUMMARY.md` của phase đang làm.
-4. Chọn task nhỏ nhất trong `Task Index`/`Task Notes`.
-5. Implement một lát cắt hoàn chỉnh theo task note.
-6. Chạy verification rồi mới cập nhật trạng thái task/phase.
+4. Đọc `.okf/phase/001/PHASE_SUMMARY.md`.
+5. Chọn task nhỏ nhất phù hợp với active milestone.
+6. Implement một lát cắt hoàn chỉnh theo task note.
+7. Chạy verification rồi mới cập nhật trạng thái task/phase.
 
 ## Source of truth
 
-- `REQUEST.md`: phạm vi, stack, chức năng, business rules và open questions.
-- `PHASE_SUMMARY.md`: trạng thái phase, task hiện tại và tiêu chí đóng phase.
+- `PRODUCT_VISION.md`: nguồn ưu tiên về product scope, milestone, task order và
+  điều kiện để tạo task mới.
+- `PHASE_SUMMARY.md`: trạng thái thực thi của milestone hiện tại và task hiện tại.
+- `REQUEST.md`: tài liệu tham chiếu về stack, chức năng, business rules và open
+  questions khi không mâu thuẫn với Product Vision.
 - `.okf/standards/`: quy tắc Spring MVC/REST, coding, Servlet/JSP, security,
   Java Mail và test.
 - `docs/`: đặc tả miền và hợp đồng dùng chung để sinh code.
 
-## Current course-project scope
+## Current scope
 
-Mục tiêu hiện tại là một MVP vừa sức đồ án môn học: hoàn thành luồng đăng nhập,
-đợt đăng ký, đề tài, nhóm, đăng ký đề tài, báo cáo và đánh giá/kết quả. Dùng
-`REQUEST.md` để giữ capability, nhưng không tự triển khai mô hình hội đồng đầy
-đủ, nhiều reviewer, dashboard, audit log, email hoặc nhiều phiên bản báo cáo.
-Các phần này chỉ làm khi được chọn rõ trong Should/Nice to Have hoặc rubric yêu
-cầu.
+Chỉ có phase `001` đang hoạt động. Mục tiêu là hoàn thành User, Role,
+Permission và Login CRUD/authorization. Các module học vụ nằm trong Later
+product roadmap của `PRODUCT_VISION.md` và không được biến thành task khi chưa
+có quyết định mới từ user.
 
 Không sao chép các tài liệu hoặc phase từ dự án khác nếu chúng đưa vào stack,
 kiến trúc hoặc hạ tầng ngoài phạm vi `REQUEST.md`.
 
 ## Phase discipline
 
-Phase sau chỉ chuyển khỏi `planned` khi phase trước đã đạt toàn bộ done
-criteria. Các điểm chưa được xác nhận trong `docs/open-questions.md` phải giữ
-dạng cấu hình/placeholder hoặc được ghi rõ là chờ xác nhận, không tự suy diễn.
+Không tự tạo phase mới. Task mới phải nằm trong active milestone của
+`PRODUCT_VISION.md`, có `Vision alignment` rõ ràng và được thêm vào phase 001.
+Các điểm chưa được xác nhận trong `docs/open-questions.md` phải giữ dạng cấu
+hình/placeholder hoặc được ghi rõ là chờ xác nhận, không tự suy diễn.

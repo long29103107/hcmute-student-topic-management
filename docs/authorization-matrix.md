@@ -13,7 +13,7 @@ do not create extra authorization paths for it unless selected.
 | Manage users, roles, lock/unlock | yes | no | no | no | no |
 | Manage departments | no | yes | view as needed | no | no |
 | Create/manage registration periods | no | yes | no | no | no |
-| Propose topics | no | no | yes | no | no |
+| Propose topics | no | yes, via Lecturer permissions | yes | no | no |
 | Approve/reject/publish topics | no | yes | no | no | no |
 | View published topics | yes | yes | yes | yes | yes |
 | Create/join group | no | no | no | yes | yes |
@@ -28,6 +28,11 @@ do not create extra authorization paths for it unless selected.
 | View own group result after publication | no | no | no | own group only | own group only |
 | Manage announcements | yes | yes if granted | no | no | no |
 | View published announcements | yes | yes | yes | yes | yes |
+
+Faculty Head receives the Lecturer permission bundle explicitly through
+`role_permissions`, then receives additional faculty workflow permissions such
+as `PERIOD_MANAGE`, `TOPIC_REVIEW` and `REGISTRATION_REVIEW`. This does not
+require assigning the `LECTURER` role as a second role.
 
 ## Enforcement notes
 

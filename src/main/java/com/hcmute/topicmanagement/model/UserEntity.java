@@ -1,12 +1,14 @@
 package com.hcmute.topicmanagement.model;
 
 import java.util.LinkedHashSet;
+import java.time.LocalDate;
 import java.util.Set;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
@@ -24,11 +26,20 @@ public class UserEntity extends BaseEntity {
     @Column(name = "email_or_code", length = 100)
     private String emailOrCode;
 
-    @Column(name = "password_hash", nullable = false, length = 255)
+    @Column(length = 30)
+    private String phone;
+
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
+    @Column(name = "password_hash", length = 255)
     private String passwordHash;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private Set<UserRoleEntity> userRoles = new LinkedHashSet<>();
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private StudentProfileEntity studentProfile;
 
     @Column(nullable = false)
     private boolean active = true;
@@ -66,6 +77,22 @@ public class UserEntity extends BaseEntity {
         this.emailOrCode = emailOrCode;
     }
 
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
     public String getPasswordHash() {
         return passwordHash;
     }
@@ -76,6 +103,10 @@ public class UserEntity extends BaseEntity {
 
     public Set<UserRoleEntity> getUserRoles() {
         return userRoles;
+    }
+
+    public StudentProfileEntity getStudentProfile() {
+        return studentProfile;
     }
 
     public void addRole(RoleEntity role) {

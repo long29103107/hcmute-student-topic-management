@@ -32,10 +32,15 @@ Have unless explicitly selected.
 
 | Method | Route | Purpose |
 |---|---|---|
-| GET | `/admin/users` | `UserManagementController` → account directory, search, status summary |
+| GET | `/admin/students` | `StudentManagementController` → student directory, search, status summary |
+| GET | `/admin/lecturers` | `LecturerManagementController` → lecturer directory, search, status summary |
+| POST | `/admin/students`, `/admin/students/{id}/edit`, `/admin/students/{id}/status` | `StudentManagementController` → student create, update and lock/unlock |
+| POST | `/admin/lecturers`, `/admin/lecturers/{id}/edit`, `/admin/lecturers/{id}/status` | `LecturerManagementController` → lecturer create, update and lock/unlock |
+| GET | `/admin/users` | `UserManagementController` → legacy combined account directory |
 | GET/POST | `/admin/users/new` | `UserManagementController` → create account and assign system roles |
 | GET/POST | `/admin/users/{id}/edit` | `UserManagementController` → update account details and role assignments |
 | POST | `/admin/users/{id}/status` | `UserManagementController` → lock/unlock account with self/last-admin safeguards |
+| GET | `/seed` | `DatabaseSeedPageController` → admin page for invoking the seed API |
 | GET | `/admin/roles?roleId=...` | `RoleManagementController` → combined system-role directory and permission editor (ADMIN hidden) |
 | GET/POST | `/admin/roles/{id}/permissions` | `RoleManagementController` → select/toggle permissions for a system role only; GET redirects to the combined editor |
 | GET/POST | `/faculty/departments` | `DepartmentController` → management |
@@ -74,6 +79,7 @@ not replace the JSP flow or duplicate Service rules.
 |---|---|---|---|
 | POST | `/api/auth/login` | authenticate and create session | anonymous |
 | POST | `/api/auth/logout` | invalidate session | authenticated |
+| POST | `/api/admin/seed` | truncate the fixed application table set and recreate local identity fixtures | ADMIN only + CSRF; local destructive operation |
 | GET | `/api/announcements` | published announcements | authenticated |
 | GET | `/api/topics` | published topics with period/department/status filters | authenticated |
 | GET/POST | `/api/faculty/periods` | list/create periods | Faculty Head |

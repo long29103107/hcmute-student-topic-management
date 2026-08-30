@@ -52,13 +52,32 @@ CREATE TABLE IF NOT EXISTS users (
     login_identifier VARCHAR(100) NOT NULL,
     full_name VARCHAR(150) NOT NULL,
     email_or_code VARCHAR(100) NULL,
-    password_hash VARCHAR(255) NOT NULL,
+    phone VARCHAR(30) NULL,
+    date_of_birth DATE NULL,
+    password_hash VARCHAR(255) NULL,
     active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
         ON UPDATE CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_users PRIMARY KEY (id),
     CONSTRAINT uk_users_login_identifier UNIQUE (login_identifier)
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS student_profiles (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    student_code VARCHAR(30) NOT NULL,
+    academic_year VARCHAR(20) NOT NULL,
+    major VARCHAR(100) NULL,
+    class_name VARCHAR(100) NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
+        ON UPDATE CURRENT_TIMESTAMP(6),
+    CONSTRAINT pk_student_profiles PRIMARY KEY (id),
+    CONSTRAINT uk_student_profiles_user UNIQUE (user_id),
+    CONSTRAINT uk_student_profiles_student_code UNIQUE (student_code),
+    CONSTRAINT fk_student_profiles_user FOREIGN KEY (user_id) REFERENCES users (id),
+    INDEX idx_student_profiles_student_code (student_code)
 ) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS user_roles (

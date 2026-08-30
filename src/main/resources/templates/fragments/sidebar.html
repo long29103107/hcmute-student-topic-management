@@ -2,61 +2,89 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 <aside id="default-sidebar"
-       class="fixed left-0 top-0 z-40 h-screen w-64 -translate-x-full border-r border-gray-200 bg-white transition-transform md:translate-x-0"
+       class="fixed left-0 top-0 z-40 h-screen w-64 -translate-x-full border-r border-gray-200 bg-white transition-[transform,width] duration-300 md:translate-x-0 md:w-64"
+       data-sidebar
        aria-label="Main navigation" th:fragment="sidebar">
     <div class="flex h-full flex-col overflow-y-auto px-3 py-5">
-        <a class="mb-7 flex items-center gap-3 px-2" th:href="@{/dashboard}" aria-label="Go to dashboard">
+        <a class="mb-7 flex items-center gap-3 px-2" data-sidebar-brand th:href="@{/dashboard}" aria-label="Go to dashboard">
             <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-700 text-sm font-extrabold text-white shadow-lg shadow-blue-200">TM</span>
-            <span class="min-w-0">
+            <span class="min-w-0" data-sidebar-label>
                 <span class="block truncate text-base font-bold text-blue-800">Topic Manager</span>
                 <span class="mt-1 block truncate text-xs text-gray-500">HCMUTE Student Portal</span>
             </span>
         </a>
 
-        <nav class="flex-1 space-y-6 font-medium">
+        <nav class="flex-1 space-y-5 font-medium">
             <div>
-                <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Workspace</p>
+                <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400" data-sidebar-label>Workspace</p>
                 <a th:href="@{/dashboard#overview}"
                    th:aria-current="${pageTitle == 'Dashboard' ? 'page' : null}"
-                   class="group flex items-center rounded-lg p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                   class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                   data-sidebar-link
                    th:classappend="${pageTitle == 'Dashboard' ? 'bg-blue-50 text-blue-700' : ''}">
                     <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Dashboard' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 21">
                         <path d="M16.975 11H10V4.025a1 1 0 0 0-2 0V11H1.025a1 1 0 0 0 0 2H8v6.975a1 1 0 0 0 2 0V13h6.975a1 1 0 0 0 0-2Z"/>
                     </svg>
-                    <span class="ms-3">Dashboard</span>
+                    <span class="ms-3" data-sidebar-label>Dashboard</span>
                 </a>
             </div>
 
             <div sec:authorize="hasRole('ADMIN')">
-                <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Administration</p>
-                <ul class="space-y-2">
+                <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400" data-sidebar-label>Administration</p>
+                <ul class="space-y-1.5">
                     <li sec:authorize="hasAuthority('USER_READ')">
-                        <a th:href="@{/admin/users}"
-                           th:aria-current="${pageTitle == 'User management' or pageTitle == 'Create user' or pageTitle == 'Edit user' ? 'page' : null}"
-                           class="group flex items-center rounded-lg p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
-                           th:classappend="${pageTitle == 'User management' or pageTitle == 'Create user' or pageTitle == 'Edit user' ? 'bg-blue-50 text-blue-700' : ''}">
-                            <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'User management' or pageTitle == 'Create user' or pageTitle == 'Edit user' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                        <a th:href="@{/admin/students}"
+                           th:aria-current="${pageTitle == 'Manage students' or pageTitle == 'Create user' or pageTitle == 'Edit user' ? 'page' : null}"
+                           class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                           data-sidebar-link
+                           th:classappend="${pageTitle == 'Manage students' or pageTitle == 'Create user' or pageTitle == 'Edit user' ? 'bg-blue-50 text-blue-700' : ''}">
+                            <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Manage students' or pageTitle == 'Create user' or pageTitle == 'Edit user' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 9a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 9a7 7 0 1 1 14 0H3Z"/>
                             </svg>
-                            <span class="ms-3">Users</span>
+                            <span class="ms-3" data-sidebar-label>Manage students</span>
+                        </a>
+                    </li>
+                    <li sec:authorize="hasAuthority('USER_READ')">
+                        <a th:href="@{/admin/lecturers}"
+                           th:aria-current="${pageTitle == 'Manage lecturers' ? 'page' : null}"
+                           class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                           data-sidebar-link
+                           th:classappend="${pageTitle == 'Manage lecturers' ? 'bg-blue-50 text-blue-700' : ''}">
+                            <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Manage lecturers' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19.5a7.5 7.5 0 0 0-15 0m7.5-7.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm7.5-6v6m3-3h-6"/>
+                            </svg>
+                            <span class="ms-3" data-sidebar-label>Manage lecturers</span>
                         </a>
                     </li>
                     <li sec:authorize="hasAuthority('ROLE_READ')">
                         <a th:href="@{/admin/roles}"
                            th:aria-current="${pageTitle == 'Roles & access controls' or pageTitle == 'Role permissions' or pageTitle == 'Manage permissions' ? 'page' : null}"
-                           class="group flex items-center rounded-lg p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                           class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                           data-sidebar-link
                            th:classappend="${pageTitle == 'Roles & access controls' or pageTitle == 'Role permissions' or pageTitle == 'Manage permissions' ? 'bg-blue-50 text-blue-700' : ''}">
                             <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Roles & access controls' or pageTitle == 'Role permissions' or pageTitle == 'Manage permissions' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2Zm10-9V7a4 4 0 0 0-8 0v3h8Z"/>
                             </svg>
-                            <span class="ms-3">Roles &amp; permissions</span>
+                            <span class="ms-3" data-sidebar-label>Roles &amp; permissions</span>
+                        </a>
+                    </li>
+                    <li sec:authorize="hasRole('ADMIN')">
+                        <a th:href="@{/seed}"
+                           th:aria-current="${pageTitle == 'Seed data' ? 'page' : null}"
+                           class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                           data-sidebar-link
+                           th:classappend="${pageTitle == 'Seed data' ? 'bg-blue-50 text-blue-700' : ''}">
+                            <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Seed data' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6.5C4 4.57 7.58 3 12 3s8 1.57 8 3.5S16.42 10 12 10 4 8.43 4 6.5Zm0 0v5c0 1.93 3.58 3.5 8 3.5s8-1.57 8-3.5v-5m-16 5v5c0 1.93 3.58 3.5 8 3.5s8-1.57 8-3.5v-5"/>
+                            </svg>
+                            <span class="ms-3" data-sidebar-label>Seed data</span>
                         </a>
                     </li>
                 </ul>
             </div>
         </nav>
 
-        <div class="mt-6 rounded-lg bg-blue-50 p-3 text-xs text-blue-800">
+        <div class="mt-6 rounded-lg bg-blue-50 p-3 text-xs text-blue-800" data-sidebar-label>
             <p class="font-semibold">HCMUTE Student Portal</p>
             <p class="mt-1 text-blue-700">Topic management workspace</p>
         </div>
