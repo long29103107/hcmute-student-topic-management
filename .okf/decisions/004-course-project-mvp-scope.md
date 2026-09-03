@@ -26,10 +26,10 @@ The core conceptual entities are:
 - `Report`
 - `Evaluation`
 
-`Evaluation` may contain the assigned lecturer, score, comment, average and
-publication status. It is not necessary to introduce separate review-board,
-board-member, reviewer-assignment, score-component and final-result aggregates
-for the MVP.
+`Evaluation` stores one lecturer's score/comment. The revised schema maps
+`ReviewBoard`, `ReviewBoardMember` and `RegistrationResult` as persistence
+extension points; their full UI/workflow remains scope-gated by the MVP
+decision.
 
 ## Priority boundary
 

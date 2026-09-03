@@ -8,18 +8,19 @@ Hệ thống hỗ trợ quy trình từ khi tạo đợt đăng ký, giảng vi�
 
 ## 2. Stack kỹ thuật
 
-1. **Backend:** Java + Spring Framework/Spring MVC trên nền Jakarta Servlet.
-2. **View:** JSP + JSTL, render theo Server-Side Rendering (SSR) bằng Spring MVC.
-3. **REST:** Spring MVC RESTful API trong cùng một ứng dụng monolith; không tách thành service riêng.
-4. **Database:** JDBC + MySQL; DAO dùng `PreparedStatement`.
-5. **Build và server:** Maven + Apache Tomcat.
+1. **Backend:** Java 21 + Spring Boot 4.1.1/Spring MVC trên nền Jakarta Servlet.
+2. **View:** Thymeleaf + Thymeleaf Layout Dialect, render theo Server-Side Rendering (SSR).
+3. **REST:** Spring MVC RESTful API trong cùng executable JAR monolith; không tách thành service riêng.
+4. **Database:** MySQL + Spring Data JPA/Hibernate; schema được quản lý explicit bằng `database/1.ddl.sql`.
+5. **Build và server:** Maven + executable JAR với embedded Tomcat.
 6. **Frontend:** HTML + CSS + JavaScript.
 7. **UI:** Tailwind CSS + jQuery.
 8. **Email tùy chọn:** Java Mail chỉ dùng cho chức năng thông báo email nếu được chọn ở Nice to Have.
-9. **Kiến trúc:** MVC monolith, gồm SSR pages và REST endpoints dùng chung Service/DAO.
+9. **Kiến trúc:** MVC monolith, gồm SSR pages và REST endpoints dùng chung Service/repository.
 
-Project dùng Spring Framework Core/Spring MVC trực tiếp với Java config và
-`DispatcherServlet`; không dùng Spring Boot.
+Project dùng Spring Boot để bootstrap Spring MVC và `DispatcherServlet`; không
+dùng JSP/JSTL hoặc JDBC DAO trực tiếp. Spring Data repositories là lớp truy cập
+dữ liệu dùng chung cho SSR và REST.
 
 Không sử dụng SPA frontend, microservices, Docker/Kubernetes hoặc hạ tầng phức tạp
 ngoài phạm vi môn học. Spring MVC, RESTful API và Java Mail là công nghệ môn học
@@ -252,10 +253,14 @@ cần thiết.
 - `StudentGroup`: nhóm sinh viên, danh sách thành viên và nhóm trưởng.
 - `TopicRegistration`: yêu cầu nhóm đăng ký một đề tài và trạng thái duyệt.
 - `Report`: báo cáo của nhóm, thông tin file, người nộp và thời gian nộp.
-- `ReviewBoard`: cấu trúc hội đồng mở rộng cho Should Have; MVP chỉ cần giữ
-  thông tin giảng viên được phân công trong `Evaluation`.
-- `Evaluation`: phiên đánh giá tối giản, người chấm, điểm, nhận xét, điểm tổng
-  hợp và trạng thái công bố kết quả.
+- `ReviewBoard`: một hội đồng gắn với một `TopicRegistration`, có lịch, trạng
+  thái và người tạo; thành viên được lưu qua `ReviewBoardMember`.
+- `ReviewBoardMember`: giảng viên trong hội đồng với vai trò `MEMBER`, `CHAIR`
+  hoặc `SECRETARY`.
+- `Evaluation`: một bản chấm của một giảng viên cho một registration; một
+  registration có thể có nhiều evaluation.
+- `RegistrationResult`: điểm trung bình, nhận xét cuối, trạng thái và metadata
+  tổng hợp/công bố cho một registration.
 - `Announcement`: thông báo, phạm vi hiển thị, người đăng và trạng thái công
   bố.
 
@@ -268,24 +273,25 @@ cần thiết.
 | `Topic` - `User` (giảng viên hướng dẫn) | N - N | Mỗi đề tài có từ 1 đến 2 GVHD. |
 | `User` (sinh viên) - `StudentGroup` | N - N | Nhóm tối đa 3 SV, đúng 1 nhóm trưởng; một SV không tham gia trùng nhóm. |
 | `StudentGroup` - `TopicRegistration` | 1 - N theo lịch sử | Mỗi nhóm chỉ có một đăng ký hiện hành trong cùng ngữ cảnh. |
+| `RegistrationPeriod` - `StudentGroup` | 1 - N | Mỗi nhóm thuộc đúng một đợt đăng ký qua `period_id`. |
 | `Topic` - `TopicRegistration` | 1 - N | Chỉ đề tài đã công bố và đúng đợt mới được đăng ký. |
 | `TopicRegistration` - `Report` | 1 - N theo phiên bản | Chỉ nhóm trưởng của đăng ký đã được chấp thuận được nộp. |
-| `ReviewBoard` - `User` (giảng viên) | N - N, Should | Chỉ cần khi triển khai hội đồng đầy đủ; board có 3–5 GV, đúng 1 chủ tịch và 1 thư ký. |
-| `ReviewBoard` - `Topic` | N - N, Should | Chỉ cần khi triển khai phân công topic vào hội đồng; MVP dùng `Evaluation` trực tiếp. |
-| `TopicRegistration` - `Evaluation` | 1 - 0..1 | Kết quả được tổng hợp sau khi chấm và chỉ hiển thị sau khi công bố. |
+| `ReviewBoard` - `User` (giảng viên) | N - N | Board member lưu qua `review_board_members`; Service kiểm tra 3–5 GV, đúng 1 chủ tịch và 1 thư ký khi bật workflow đầy đủ. |
+| `ReviewBoard` - `TopicRegistration` | 1 - 1 | Mỗi registration có tối đa một board trong schema revised. |
+| `TopicRegistration` - `Evaluation` | 1 - N | Mỗi lecturer có tối đa một evaluation cho cùng registration; kết quả tổng hợp nằm ở `RegistrationResult`. |
+| `TopicRegistration` - `RegistrationResult` | 1 - 0..1 | Result dùng `registration_id` làm shared primary key và chỉ hiển thị sau khi công bố. |
 | `User` - `Announcement` | 1 - N | Người có quyền tạo, sửa, ẩn và công bố thông báo. |
 
 Các quan hệ nhiều-nhiều có thể được triển khai bằng bảng liên kết như
-`topic_supervisors`, `group_members`, `review_board_members` và
-`board_topic_assignments`; đây là chi tiết database, không phải thực thể lõi
-độc lập trong mô hình khái niệm rút gọn.
+`topic_supervisors`, `group_members` và `review_board_members`; schema revised
+không có `board_topic_assignments` vì board gắn trực tiếp với registration.
 
 ## 10. Yêu cầu kỹ thuật tối thiểu
 
-- Code theo MVC: Spring MVC Controller/REST Controller → Service → Repository/DAO → JDBC; JSP chỉ hiển thị dữ liệu.
-- JSP đặt trong `WEB-INF/views` và truy cập thông qua Spring MVC Controller.
+- Code theo MVC: Spring MVC Controller/REST Controller → Service → Spring Data Repository/JPA; Thymeleaf chỉ hiển thị dữ liệu.
+- Thymeleaf templates đặt trong `src/main/resources/templates` và truy cập thông qua Spring MVC Controller.
 - REST endpoints đặt dưới `/api`, chỉ bind DTO/JSON và gọi lại Service; không đặt nghiệp vụ trong Controller.
-- Dùng `PreparedStatement`; không nối input vào câu SQL.
+- Dùng binding parameters cho JPQL/native query; không nối input vào câu query.
 - Các thao tác nhiều bước quan trọng phải dùng transaction.
 - Dùng Spring dependency injection bằng constructor; không dùng field injection.
 - Kiểm tra quyền và validation ở server.
@@ -296,7 +302,7 @@ Các quan hệ nhiều-nhiều có thể được triển khai bằng bảng li�
 
 ## 11. Tiêu chí nghiệm thu Must Have
 
-1. Build thành công bằng Maven, chạy trên Tomcat và kết nối MySQL.
+1. Build thành công bằng Maven, chạy bằng executable JAR với embedded Tomcat và kết nối MySQL.
 2. Đăng nhập và phân quyền đúng.
 3. Trưởng khoa tạo được đợt với các mốc thời gian hợp lệ.
 4. Giảng viên tạo đề tài có 1–2 GVHD; đề tài được duyệt và công bố.
@@ -336,4 +342,4 @@ Không tự biến các điểm chưa rõ này thành quy tắc bắt buộc tr�
 ## 14. Nguồn yêu cầu
 
 - Đề bài **Hệ thống quản lý đề tài sinh viên** do người dùng cung cấp.
-- Stack đã thống nhất theo nội dung môn học: Java Spring MVC/Jakarta Servlet, JSP/JSTL, RESTful API trong cùng monolith, JDBC/MySQL, Maven/Tomcat, Tailwind CSS, jQuery và Java Mail tùy chọn.
+- Stack hiện tại của project: Java 21 + Spring Boot 4.1.1/Spring MVC/Jakarta Servlet, Thymeleaf SSR, RESTful API trong cùng executable JAR monolith, Spring Data JPA/Hibernate + MySQL, Maven/embedded Tomcat, Tailwind CSS/Flowbite và Java Mail tùy chọn.

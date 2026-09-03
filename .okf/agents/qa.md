@@ -18,7 +18,7 @@ extended review board unless that optional scope is explicitly selected.
 
 - Read `PRODUCT_VISION.md`, the current phase task and `.okf/standards/testing.md`.
 - Run focused unit/service tests and Maven build/package checks.
-- Exercise MySQL DAO, Tomcat SSR flows and REST JSON contracts when the
+- Exercise MySQL repository, embedded-Tomcat SSR flows and REST JSON contracts when the
   environment is available.
 - Check unauthorized access, time windows, duplicate constraints and invalid
   transitions for the touched feature.

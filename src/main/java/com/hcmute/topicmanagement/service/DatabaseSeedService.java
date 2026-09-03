@@ -20,13 +20,11 @@ import org.springframework.stereotype.Service;
 import com.hcmute.topicmanagement.model.PermissionEntity;
 import com.hcmute.topicmanagement.model.RoleEntity;
 import com.hcmute.topicmanagement.model.RolePermissionEntity;
-import com.hcmute.topicmanagement.model.StudentProfileEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
 import com.hcmute.topicmanagement.repository.PermissionRepository;
 import com.hcmute.topicmanagement.repository.RolePermissionRepository;
 import com.hcmute.topicmanagement.repository.RoleRepository;
-import com.hcmute.topicmanagement.repository.StudentProfileRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
 import com.hcmute.topicmanagement.repository.UserRoleRepository;
 
@@ -39,7 +37,10 @@ public class DatabaseSeedService {
             "$2a$10$Tib/thYqs.dQRhB17iTfIO7qY0KKHBywglurPCoADhi9VRnjep79i";
 
     private static final List<String> TABLES = List.of(
+            "registration_results",
             "evaluations",
+            "review_board_members",
+            "review_boards",
             "reports",
             "topic_registrations",
             "group_members",
@@ -48,7 +49,6 @@ public class DatabaseSeedService {
             "topics",
             "registration_periods",
             "departments",
-            "student_profiles",
             "user_roles",
             "role_permissions",
             "users",
@@ -112,7 +112,7 @@ public class DatabaseSeedService {
             new UserSeed("admin", "System Administrator", "admin@hcmute.local", "ADMIN"),
             new UserSeed("faculty.head.test", "Faculty Head Test", "faculty.head.test@hcmute.local", "FACULTY_HEAD"),
             new UserSeed("lecturer.test", "Lecturer Test", "lecturer.test@hcmute.local", "LECTURER"),
-            new UserSeed("student.test", "Student Test", "24110000@student.hcmute.edu.vn", "STUDENT"));
+            new UserSeed("24110000", "Student Test", "24110000@student.hcmute.edu.vn", "STUDENT"));
 
     private static List<String> withLecturerPermissions(String... additionalPermissions) {
         List<String> permissions = new ArrayList<>(LECTURER_PERMISSIONS);
@@ -126,8 +126,6 @@ public class DatabaseSeedService {
     private final RolePermissionRepository rolePermissionRepository;
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
-    private final StudentProfileRepository studentProfileRepository;
-
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -137,15 +135,13 @@ public class DatabaseSeedService {
             PermissionRepository permissionRepository,
             RolePermissionRepository rolePermissionRepository,
             UserRepository userRepository,
-            UserRoleRepository userRoleRepository,
-            StudentProfileRepository studentProfileRepository) {
+            UserRoleRepository userRoleRepository) {
         this.dataSource = dataSource;
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
         this.rolePermissionRepository = rolePermissionRepository;
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
-        this.studentProfileRepository = studentProfileRepository;
     }
 
     @Transactional
@@ -155,15 +151,14 @@ public class DatabaseSeedService {
         Map<String, RoleEntity> roles = seedRoles();
         Map<String, PermissionEntity> permissions = seedPermissions();
         seedRolePermissions(roles, permissions);
-        Map<String, UserEntity> users = seedUsers(roles);
-        seedStudentProfile(users.get("student.test"));
+        seedUsers(roles);
         entityManager.clear();
 
         return new SeedResult(
+                TABLES.size(),
                 ROLES.size(),
                 PERMISSIONS.size(),
                 USERS.size(),
-                1,
                 LocalDateTime.now());
     }
 
@@ -222,21 +217,6 @@ public class DatabaseSeedService {
                 .toList();
         userRepository.saveAllAndFlush(users);
         return new SeedStepResult("users", users.size(), LocalDateTime.now());
-    }
-
-    @Transactional
-    public SeedStepResult seedStudentProfilesStep() {
-        UserEntity student = userRepository.findByLoginIdentifier("student.test")
-                .orElseThrow(() -> new IllegalStateException("Seed users before student-profiles."));
-        StudentProfileEntity profile = studentProfileRepository.findByUser_Id(student.getId())
-                .orElseGet(() -> new StudentProfileEntity(
-                        student, "24110000", "2024-2025", "Information Technology", "22110CL1"));
-        profile.setStudentCode("24110000");
-        profile.setAcademicYear("2024-2025");
-        profile.setMajor("Information Technology");
-        profile.setClassName("22110CL1");
-        studentProfileRepository.saveAndFlush(profile);
-        return new SeedStepResult("student-profiles", 1, LocalDateTime.now());
     }
 
     private void truncateAllTables() {
@@ -361,13 +341,12 @@ public class DatabaseSeedService {
         return "admin".equals(user.loginIdentifier()) ? ADMIN_PASSWORD_HASH : LOCAL_PASSWORD_HASH;
     }
 
-    private void seedStudentProfile(UserEntity student) {
-        StudentProfileEntity profile = new StudentProfileEntity(
-                student, "24110000", "2024-2025", "Information Technology", "22110CL1");
-        studentProfileRepository.saveAndFlush(profile);
-    }
-
-    public record SeedResult(int roles, int permissions, int users, int studentProfiles, LocalDateTime completedAt) {
+    public record SeedResult(
+            int tablesReset,
+            int roles,
+            int permissions,
+            int users,
+            LocalDateTime completedAt) {
     }
 
     private record RoleSeed(String code, String name, String description) {

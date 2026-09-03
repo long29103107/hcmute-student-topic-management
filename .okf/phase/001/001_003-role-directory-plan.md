@@ -5,8 +5,8 @@
 - Active milestone: `001 — Identity and access`.
 - Product Vision capability: role-aware User CRUD, server-side authorization,
   separate role directories and safe account details.
-- Advances task: `001_003 — Complete role-aware User CRUD, Student
-  Profile/MSSV handling, status management and credential reset`.
+- Advances task: `001_003 — Complete role-aware User CRUD, MSSV handling,
+  status management and credential reset`.
 - User outcome: an authorized administrator can create the appropriate account,
   browse a role-specific list and open a safe detail view for Students,
   Lecturers and Faculty Heads.
@@ -17,14 +17,14 @@
 ## Objective
 
 Implement one shared User service contract and separate Student/Lecturer-
-capability directory surfaces. The role determines which profile fields and permissions are shown;
+capability directory surfaces. The role determines which identity fields and permissions are shown;
 it must not create a second User/credential persistence path.
 
 ### Role behavior
 
 | Role | Create account | List/detail data | Role rule |
 |---|---|---|---|
-| `STUDENT` | Enter unique 8-digit MSSV; server generates readonly `<MSSV>@student.hcmute.edu.vn`; create `student_profiles` | Account fields, status, roles, MSSV, academic year, major and class | MSSV is immutable in normal edit and unique in the database |
+| `STUDENT` | Enter unique 8-digit MSSV in `users.login_identifier`; server generates readonly `<MSSV>@student.hcmute.edu.vn` | Account fields, status, roles and MSSV | MSSV is immutable in normal edit and unique in the database |
 | `LECTURER` | Enter and server-validate email; no MSSV/profile fields | Account fields, status, roles and email | Add Lecturer assigns only `LECTURER` |
 | `FACULTY_HEAD` | Create/prepare a normal staff account, then explicitly assign `FACULTY_HEAD` through role assignment | Account fields, status, roles and email | Receives the explicit seeded Faculty Head permission bundle; no runtime role inheritance |
 
@@ -67,7 +67,7 @@ Prefer a single role-filtered resource over three duplicated business paths:
 1. Update `docs/ui-route-map.md` and define the SSR/REST response fields,
    role filter semantics and authorization matrix before implementation.
 2. Add repository queries for active role membership and detail loading. Keep
-   `users`, `roles`, `user_roles` and `student_profiles`; do not add
+   `users`, `roles` and `user_roles`; do not add
    `lecturer_users` or `faculty_head_users` tables.
 3. Split the service contract into safe list/detail view models and shared
    create commands. Exclude password hashes and enforce active role checks,
@@ -91,14 +91,14 @@ Prefer a single role-filtered resource over three duplicated business paths:
 - Spring MVC Controller/REST Controller: bind path/query/JSON, select view or
   response status, and pass safe view models; no role business rules.
 - Service: role authorization, role-specific validation, transaction boundaries,
-  Student Profile creation and shared list/detail use cases.
+  MSSV/email derivation and shared list/detail use cases.
 - DAO/JDBC: role-filtered and detail queries with prepared statements. In the
   current codebase, preserve the existing repository implementation rather
   than introducing a parallel persistence abstraction.
 - JSP/assets: SSR rendering, Flowbite modal/list/detail UI and responsive
   presentation only; no append-based dynamic business flow.
-- Database: shared authentication tables plus `student_profiles.user_id`
-  one-to-one and unique `student_code`; no role-specific credential tables.
+- Database: shared authentication tables with unique `users.login_identifier`
+  storing the MSSV for Student accounts; no role-specific credential tables.
 
 ## Verification
 

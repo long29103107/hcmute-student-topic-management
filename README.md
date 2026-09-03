@@ -26,12 +26,12 @@ product roadmap và chỉ được mở sau khi user chọn scope tiếp theo.
 
 ## Stack dùng trong project
 
-- Java 21 + Spring Boot/Spring MVC
-- Thymeleaf + Layout Dialect cho server-side rendering
-- Spring Data JPA/Hibernate
+- Java 21 + Spring Boot 4.1.1 / Spring MVC
+- Thymeleaf + Thymeleaf Layout Dialect cho server-side rendering
+- Spring Data JPA/Hibernate, với schema MySQL quản lý bằng DDL explicit
 - Spring Security với BCrypt và RBAC
 - MySQL cho dữ liệu thật; H2 in-memory cho test/first-look
-- Maven + embedded Tomcat
+- Maven + executable JAR + embedded Tomcat
 - Tailwind CSS 4 + Flowbite 4 cho UI; JavaScript thuần cho các tương tác riêng
 
 Không đưa SPA, React/Vue/Angular, microservices, Docker/Kubernetes hoặc CI/CD
@@ -51,8 +51,8 @@ npm run build:assets
 ## Quy ước triển khai
 
 Mỗi task phải giữ validation và kiểm tra quyền ở server, dùng
-`PreparedStatement`, dùng transaction cho thao tác nhiều bước, escape dữ liệu
-trong JSP và không ghi mật khẩu dạng plaintext. Thông tin kết nối MySQL phải
+transaction cho thao tác nhiều bước, escape dữ liệu trong Thymeleaf và không
+ghi mật khẩu dạng plaintext. Thông tin kết nối MySQL phải
 được lấy từ cấu hình/runtime, không hard-code trong Java source.
 
 Các lệnh kiểm tra dự kiến sau khi scaffold Maven được tạo:
@@ -62,7 +62,7 @@ mvn test
 mvn package
 ```
 
-Việc chạy đầy đủ còn cần MySQL và Apache Tomcat theo cấu hình môi trường.
+Việc chạy đầy đủ cần MySQL; Tomcat được đóng gói sẵn trong executable JAR.
 
 ## Chạy backend
 
@@ -108,16 +108,17 @@ POST /api/seed/permissions
 POST /api/seed/roles
 POST /api/seed/role-permissions
 POST /api/seed/users
-POST /api/seed/student-profiles
 ```
 
 Các API seed fixture có thể chạy lại; chúng tạo/cập nhật roles, permissions, tài
-khoản test và Student Profile mẫu. API cũ `POST /api/admin/seed` vẫn được giữ
-cho việc reset toàn bộ bảng ứng dụng trong một transaction và vẫn là thao tác
-destructive dành cho local. Không gọi API reset trên database có dữ liệu cần
-giữ. Khi không bật anonymous migration, database mới cần một bước bootstrap
-admin riêng trước khi gọi API. Tài khoản fixture dùng mật khẩu local đã được
-hash trong source. Tài khoản quản trị mặc định là email `admin@hcmute.local` /
+khoản test và Student account fixture. `POST /api/admin/seed` là API reset/reseed
+đầy đủ: truncate 17 bảng của schema revised trong một transaction, sau đó tạo lại
+4 roles, 21 permissions và 4 tài khoản fixture. Đây là thao tác destructive dành
+cho local; không gọi trên database có dữ liệu cần giữ. Khi xoá hẳn database,
+hãy chạy `POST /api/seed/ddl` trước rồi mới chạy các bước seed fixture. Khi không
+bật anonymous migration, database mới cần một bước bootstrap admin riêng trước
+khi gọi API. Tài khoản fixture dùng mật khẩu local đã được hash trong source.
+Tài khoản quản trị mặc định là email `admin@hcmute.local` /
 `admin123`; chỉ dùng thông tin này cho môi trường local và đổi trước khi chia
 sẻ hoặc deploy.
 
@@ -134,8 +135,10 @@ password trước khi Student có thể đăng nhập bằng email.
   `GOOGLE_OAUTH_ALLOWED_DOMAINS`, và email Google phải khớp một tài khoản đang
   được cấp trong hệ thống.
 
-Schema MVP được quản lý explicit bằng hai file SQL nên Hibernate để
+Schema revised được quản lý explicit bằng `database/1.ddl.sql`; Hibernate để
 `ddl-auto=none` và Flyway được tắt cho đến khi project có migration riêng.
+Schema hiện có 17 bảng, bao gồm `review_boards`, `review_board_members`,
+`evaluations` theo lecturer và `registration_results`.
 
 Các route hiện có:
 

@@ -21,7 +21,7 @@ Thư mục này theo dõi các phase và implementation task của hệ thống 
 - `PHASE_SUMMARY.md`: trạng thái thực thi của milestone hiện tại và task hiện tại.
 - `REQUEST.md`: tài liệu tham chiếu về stack, chức năng, business rules và open
   questions khi không mâu thuẫn với Product Vision.
-- `.okf/standards/`: quy tắc Spring MVC/REST, coding, Servlet/JSP, security,
+- `.okf/standards/`: quy tắc Spring MVC/REST, coding, Servlet/Thymeleaf, security,
   Java Mail và test.
 - `docs/`: đặc tả miền và hợp đồng dùng chung để sinh code.
 

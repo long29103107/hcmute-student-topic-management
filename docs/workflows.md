@@ -71,14 +71,15 @@ avoid two concurrent submissions passing the same uniqueness check.
 
 For the MVP:
 
-- An approved registration must have one evaluation record and at least one
-  assigned lecturer before scoring.
+- An approved registration must have at least one assigned lecturer and an
+  evaluation row per assigned lecturer before the result can be finalized.
 - The assigned lecturer cannot be a supervisor of the topic.
 - The lecturer submits a score/comment before the configured deadline when the
   deadline applies.
-- Faculty Head publishes only after the score is present.
-- The final score is the average of the configured score values; keep the
-  grading scale and rounding configurable.
+- Faculty Head finalizes and publishes a separate `RegistrationResult` only
+  after the required scores are present.
+- The final score is the average of the configured evaluation score values;
+  keep the grading scale and rounding configurable.
 
 ## Extended board and score gates
 
@@ -87,8 +88,8 @@ For the MVP:
 - Topic must be assigned to board before scores are accepted.
 - A lecturer cannot submit a score if they are a supervisor of the topic.
 - Score deadline, if applicable, is checked server-side.
-- Chair aggregates the component scores using the confirmed grading policy;
-  until then, keep scale/rounding configurable.
+- Chair or the configured academic role aggregates evaluation scores using the
+  confirmed grading policy; until then, keep scale/rounding configurable.
 - Faculty Head publishes only after required scoring/review completion is
   satisfied by the confirmed policy.
 

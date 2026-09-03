@@ -1,99 +1,84 @@
-# Database design proposal
+# Database design
 
-This is a code-generation starting point derived from section 9 of
-`REQUEST.md`. Names may change during implementation, but relationships and
-invariants must remain equivalent.
+`database/1.ddl.sql` is the repository copy of the revised DrawSQL export
+`drawSQL-mysql-export-2026-09-03-revised.sql`. The application uses Spring Data
+JPA/Hibernate to map this MySQL schema; Hibernate does not create or alter the
+schema (`spring.jpa.hibernate.ddl-auto=none`). Existing databases should be
+backed up and recreated from the DDL before starting the application.
 
-## MVP tables
+## Schema groups
 
-Start with the smallest schema that can demonstrate the complete course-project
-workflow:
+The revised schema contains 17 tables:
 
-| Table | Main columns/relationships |
-|---|---|
-| `users` | id, internal login identifier, full name, login email, nullable password_hash, active |
-| `departments` | id, code/name, active |
-| `registration_periods` | id, name, type, lecturer_start/end, student_start/end |
-| `topics` | id, period_id, department_id, title, description, status, supervisor_id or a small supervisor relation |
-| `student_groups` | id, name, created_by, leader_id, member ids, status |
-| `topic_registrations` | id, group_id, topic_id, submitted_by, submitted_at, status |
-| `reports` | id, registration_id, stored_name, original_name, content_type, size, uploader_id, submitted_at |
-| `evaluations` | id, registration_id/topic_id, lecturer_id, score, comment, average_score, status, published_at |
+| Group | Tables | Purpose |
+|---|---|---|
+| Identity | `users`, `roles`, `permissions`, `user_roles`, `role_permissions` | Accounts and RBAC |
+| Academic setup | `departments`, `registration_periods`, `topics`, `topic_supervisors` | Periods, topics and supervisors |
+| Student workflow | `student_groups`, `group_members`, `topic_registrations`, `reports` | Group execution, registration and report metadata |
+| Evaluation | `review_boards`, `review_board_members`, `evaluations`, `registration_results` | Board assignment, lecturer scores and final result publication |
 
-## Authentication and authorization tables
+## Important revised contracts
 
-These tables support the login and role-management UI without expanding the
-course-project business workflow:
+- `users` contains `login_identifier`, `full_name`, `email_or_code`,
+  `password_hash` and `active`; `phone` and `date_of_birth` are no longer
+  persisted. `password_hash` is `NOT NULL`; an empty value represents a new
+  account whose password has not been configured and is rejected by login.
+- `student_groups.period_id` is required, so group membership is scoped to a
+  registration period.
+- `topic_registrations` intentionally has no database unique constraint on
+  `(group_id, period_id)`. Rejected/cancelled rows remain history; Service code
+  must prevent more than one active registration for a group and period.
+- `evaluations` are lecturer-level rows. The unique key is
+  `(registration_id, lecturer_id)`, `board_id` is nullable, and aggregate data
+  belongs in `registration_results`.
+- `review_boards.registration_id` is unique: the current schema allows one
+  board per topic registration. `review_board_members` prevents duplicate
+  lecturer assignment per board.
+- `registration_results` uses `registration_id` as both primary key and
+  foreign key, with optional finalization/publication metadata.
 
-| Table | Main columns/relationships |
-|---|---|
-| `roles` | id, code, name, description, system_role, active |
-| `permissions` | id, code, name, permission_group, description, active |
-| `user_roles` | user_id, role_id, assigned_at, active; unique per pair |
-| `role_permissions` | role_id, permission_id, assigned_at, active; unique per pair |
+## JPA mapping
 
-`user_roles` references `users` and `roles`. `role_permissions` references
-`roles` and `permissions`. The four default role codes are `ADMIN`,
-`FACULTY_HEAD`, `LECTURER` and `STUDENT`; `GROUP_LEADER` remains a
-group-membership attribute.
+Entities use `snake_case` column names explicitly where Java naming differs:
 
-`announcements` can be a small optional table or seeded static data for the
-MVP. Do not create separate review-board, board-member, reviewer-assignment,
-score-component and final-result tables until the extended Should Have model is
-selected.
+| Entity | Table | Key relationship |
+|---|---|---|
+| `UserEntity` | `users` | Immutable login identifier; for students it is the unique MSSV |
+| `RegistrationPeriodEntity` | `registration_periods` | Owns period windows and references creator |
+| `TopicEntity` | `topics` | References period, department and proposer; many-to-many supervisors |
+| `StudentGroupEntity` | `student_groups` | References period, creator and leader; many-to-many members |
+| `TopicRegistrationEntity` | `topic_registrations` | References group, topic, period and submitter; owns histories |
+| `ReportEntity` | `reports` | Many reports per registration, newest submitted report first |
+| `ReviewBoardEntity` / `ReviewBoardMemberEntity` | `review_boards` / `review_board_members` | One board per registration and many lecturer members |
+| `EvaluationEntity` | `evaluations` | Many lecturer evaluations per registration |
+| `RegistrationResultEntity` | `registration_results` | Shared primary key one-to-one result per registration |
 
-## Optional Should Have tables
+`RoleEntity`, `PermissionEntity`, `UserRoleEntity` and
+`RolePermissionEntity` map the identity catalog and assignment tables.
 
-Add these only when the rubric or a selected task requires a full review flow:
+## Integrity and Service rules
 
-| Table | Purpose |
-|---|---|
-| `topic_supervisors` | Multiple GVHD per topic. |
-| `group_members` | Normalized membership history and invitations. |
-| `reviewer_assignments` | Multiple reviewer roles and assignment history. |
-| `review_boards` / `review_board_members` | Board with 3–5 lecturers, chair and secretary. |
-| `board_topic_assignments` | Assign topics to a board. |
-| `scores` / `final_results` | Multiple component scores and separate aggregation/publication. |
+Database foreign keys and unique keys protect relationships and duplicate
+assignments. Service transactions must additionally enforce the business rules
+that are not expressible in this schema:
 
-## Required uniqueness and integrity candidates
+- one to two supervisors per topic;
+- at most three students and exactly one leader per active group;
+- a student belongs to at most one active group in a period;
+- at most one active topic registration per group and period;
+- a full review board has 3–5 lecturers, exactly one `CHAIR` and one
+  `SECRETARY`, when that workflow is enabled;
+- a supervisor cannot evaluate their own topic;
+- score deadlines, result aggregation and publication visibility are checked on
+  the server.
 
-- `users.login_identifier` is an immutable internal identifier and
-  `users.email_or_code` is the email used for password login.
-- Student `login_identifier` equals the unique MSSV; Student creation generates
-  `email_or_code` as `<MSSV>@student.hcmute.edu.vn` and may leave
-  `password_hash` null until an administrator performs a password set/reset
-  action. Authentication must reject accounts without a configured password.
-- Lecturer creation also leaves `password_hash` null; its manually entered email
-  is used for login and an administrator must set/reset the password before
-  login.
-- A topic must have at least one assigned supervisor; a maximum of two is a
-  Service rule when the small supervisor relation is used.
-- A student’s active group membership must be checked transactionally; the
-  exact historical/archival interpretation remains open.
-- `topic_registrations` unique for one group per registration context.
-- Exactly one group leader and no more than three members per group.
-- Prevent duplicate evaluation submission for the same registration and lecturer.
-- If optional board tables are selected, add their uniqueness and chair/secretary
-  constraints in that task rather than pre-building them.
+## Reproducible setup
 
-## Transaction boundaries
+Run the DDL on a new MySQL schema:
 
-Use a transaction for:
+```powershell
+mysql -u root -p < database/1.ddl.sql
+```
 
-- create group + first leader membership;
-- join/leave/leader changes;
-- topic + supervisor link;
-- topic registration submission and any status update with related data;
-- report metadata and file move coordination;
-- evaluation submission and result publication.
-
-Board/member/topic-assignment transactions belong to the optional extended
-model.
-
-The file move cannot be rolled back by MySQL. Use a temporary upload name and a
-cleanup strategy documented in the implementation task.
-
-## Deliberate omissions
-
-Do not add tables for email delivery, audit logs, dashboards, API tokens,
-analytics, tenants or external integrations in the first version.
+The local seed pipeline truncates the new tables in dependency order before
+recreating identity fixtures. It does not migrate arbitrary legacy data.

@@ -96,7 +96,6 @@ Trang `/seed` gọi các API theo đúng thứ tự sau:
 3. `POST /api/seed/roles` — tạo roles.
 4. `POST /api/seed/role-permissions` — gán permissions cho roles.
 5. `POST /api/seed/users` — tạo tài khoản mẫu và role assignment.
-6. `POST /api/seed/student-profiles` — tạo Student Profile mẫu.
 
 ### Seed không cần đăng nhập trên local
 
@@ -150,7 +149,7 @@ Seed cũng tạo các fixture role/user phục vụ test:
 mysql -u root -p -D hcmute_topic_management -e "SELECT code FROM roles ORDER BY id;"
 mysql -u root -p -D hcmute_topic_management -e "SELECT code FROM permissions ORDER BY id;"
 mysql -u root -p -D hcmute_topic_management -e "SELECT login_identifier, email_or_code AS email FROM users ORDER BY id;"
-mysql -u root -p -D hcmute_topic_management -e "SELECT student_code FROM student_profiles;"
+mysql -u root -p -D hcmute_topic_management -e "SELECT login_identifier, email_or_code FROM users WHERE email_or_code LIKE '%@student.hcmute.edu.vn';"
 ```
 
 Database local chuẩn thường có:
@@ -158,7 +157,13 @@ Database local chuẩn thường có:
 - 4 roles
 - 21 permissions
 - 4 users
-- 1 Student Profile mẫu
+- 1 Student account fixture with MSSV `24110000`
+
+DDL hiện tại là bản revised ngày 2026-09-03, gồm 17 bảng. So với schema cũ,
+`student_groups` được scope theo `period_id`, evaluation hỗ trợ nhiều lecturer
+cho một registration, và có thêm `review_boards`, `review_board_members` cùng
+`registration_results`. Hãy backup rồi tạo lại database cũ; project không duy
+trì patch migration cho dữ liệu legacy.
 
 ## 8. Chạy lại seed và lưu ý dữ liệu
 
@@ -166,14 +171,17 @@ Các endpoint trên trang `/seed` có thể chạy lại để tạo/cập nhậ
 bước `role-permissions` sẽ tạo lại các mapping role-permission theo bundle mặc
 định.
 
-Endpoint cũ sau đây có tính destructive vì reset các bảng ứng dụng trước khi
-seed lại:
+Endpoint reset/reseed đầy đủ sau đây có tính destructive: endpoint truncate 17
+bảng của schema revised trước khi seed lại roles, permissions và users:
 
 ```text
 POST /api/admin/seed
 ```
 
-> Không gọi endpoint này trên database có dữ liệu cần giữ.
+Response trả về `tablesReset: 17`, `roles: 4`, `permissions: 21` và `users: 4`.
+Không gọi endpoint này trên database có dữ liệu cần giữ. Nếu đã xoá hẳn
+database, chạy `POST /api/seed/ddl` trước; endpoint reset/reseed chỉ hoạt động
+khi 17 bảng đã tồn tại.
 
 ## 9. Một số lỗi thường gặp
 

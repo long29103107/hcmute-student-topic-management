@@ -11,6 +11,9 @@ public interface StudentGroupRepository extends JpaRepository<StudentGroupEntity
 
     List<StudentGroupEntity> findByStatusOrderByCreatedAtDesc(GroupStatus status);
 
+    List<StudentGroupEntity> findByRegistrationPeriod_IdAndStatusOrderByCreatedAtDesc(
+            Long periodId, GroupStatus status);
+
     List<StudentGroupEntity> findByLeader_Id(Long leaderId);
 
     List<StudentGroupEntity> findByMembers_Id(Long studentId);

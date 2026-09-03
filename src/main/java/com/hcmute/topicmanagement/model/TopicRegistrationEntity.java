@@ -1,6 +1,8 @@
 package com.hcmute.topicmanagement.model;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import com.hcmute.topicmanagement.model.enums.TopicRegistrationStatus;
 import jakarta.persistence.Column;
@@ -10,13 +12,12 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "topic_registrations", uniqueConstraints = @UniqueConstraint(
-        name = "uk_registration_group_period", columnNames = {"group_id", "period_id"}))
+@Table(name = "topic_registrations")
 public class TopicRegistrationEntity extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -45,8 +46,14 @@ public class TopicRegistrationEntity extends BaseEntity {
     @Column(name = "rejection_reason", length = 500)
     private String rejectionReason;
 
+    @OneToMany(mappedBy = "topicRegistration")
+    private Set<EvaluationEntity> evaluations = new LinkedHashSet<>();
+
     @OneToOne(mappedBy = "topicRegistration")
-    private EvaluationEntity evaluation;
+    private ReviewBoardEntity reviewBoard;
+
+    @OneToOne(mappedBy = "topicRegistration")
+    private RegistrationResultEntity result;
 
     protected TopicRegistrationEntity() {
     }
@@ -116,11 +123,23 @@ public class TopicRegistrationEntity extends BaseEntity {
         this.rejectionReason = rejectionReason;
     }
 
-    public EvaluationEntity getEvaluation() {
-        return evaluation;
+    public Set<EvaluationEntity> getEvaluations() {
+        return evaluations;
     }
 
-    public void setEvaluation(EvaluationEntity evaluation) {
-        this.evaluation = evaluation;
+    public ReviewBoardEntity getReviewBoard() {
+        return reviewBoard;
+    }
+
+    public void setReviewBoard(ReviewBoardEntity reviewBoard) {
+        this.reviewBoard = reviewBoard;
+    }
+
+    public RegistrationResultEntity getResult() {
+        return result;
+    }
+
+    public void setResult(RegistrationResultEntity result) {
+        this.result = result;
     }
 }

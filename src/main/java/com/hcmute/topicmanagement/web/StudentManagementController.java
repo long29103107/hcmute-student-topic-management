@@ -69,8 +69,7 @@ public class StudentManagementController {
             return "admin/students";
         }
         try {
-            service.createStudent(form.getFullName(), form.getStudentCode(), form.getPhone(), form.getDateOfBirth(),
-                    form.getAcademicYear(), form.getMajor(), form.getClassName());
+            service.createStudent(form.getFullName(), form.getStudentCode());
             redirectAttributes.addFlashAttribute("successMessage", "Student account created successfully.");
         } catch (UserManagementService.UserValidationException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
@@ -130,8 +129,8 @@ public class StudentManagementController {
             return "redirect:/admin/students";
         }
         try {
-            service.updateUser(id, form.getFullName(), form.getEmailOrCode(), form.getPassword(), form.getPhone(),
-                    form.getDateOfBirth(), form.getRoleIds(), form.getAcademicYear(), form.getMajor(), form.getClassName());
+            service.updateUser(id, form.getFullName(), form.getEmailOrCode(), form.getPassword(),
+                    form.getRoleIds());
             redirectAttributes.addFlashAttribute("successMessage", "Student account updated successfully.");
         } catch (UserManagementService.UserValidationException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
@@ -164,13 +163,8 @@ public class StudentManagementController {
         form.setLoginIdentifier(user.getLoginIdentifier());
         form.setFullName(user.getFullName());
         form.setEmailOrCode(user.getEmailOrCode());
-        form.setPhone(user.getPhone());
-        form.setDateOfBirth(user.getDateOfBirth());
         form.setRoleIds(user.getRoleIds());
         form.setStudentCode(user.getStudentCode());
-        form.setAcademicYear(user.getAcademicYear());
-        form.setMajor(user.getMajor());
-        form.setClassName(user.getClassName());
         return form;
     }
 }

@@ -291,7 +291,7 @@ Cho phép Student tạo nhóm, chọn leader và đăng ký một topic đã pub
 #### Chỉ được đọc
 
 - `users`
-- `student_profiles`
+- `users` (MSSV is stored in `login_identifier`)
 - `topics`
 - `registration_periods`
 
@@ -561,7 +561,7 @@ Các dependency runtime vẫn tồn tại; mục tiêu của cách chia này là
 **Table:**
 
 - Được insert/update: `student_groups`, `group_members`.
-- Chỉ đọc: `users`, `student_profiles`.
+- Chỉ đọc: `users` (MSSV is stored in `login_identifier`).
 
 **Acceptance criteria:**
 
@@ -581,7 +581,7 @@ Các dependency runtime vẫn tồn tại; mục tiêu của cách chia này là
 **Table:**
 
 - Được insert/update: `student_groups`, `group_members`.
-- Chỉ đọc: `users`, `student_profiles`.
+- Chỉ đọc: `users` (MSSV is stored in `login_identifier`).
 
 **Acceptance criteria:**
 

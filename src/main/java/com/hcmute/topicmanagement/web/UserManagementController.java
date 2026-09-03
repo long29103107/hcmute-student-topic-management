@@ -95,31 +95,19 @@ public class UserManagementController {
             if ("STUDENT".equals(accountType)) {
                 userManagementService.createStudent(
                         form.getFullName(),
-                        form.getStudentCode(),
-                        form.getPhone(),
-                        form.getDateOfBirth(),
-                        form.getAcademicYear(),
-                        form.getMajor(),
-                        form.getClassName());
+                        form.getStudentCode());
             } else if ("LECTURER".equals(accountType)) {
                 userManagementService.createLecturer(
                         form.getFullName(),
-                        form.getEmailOrCode(),
-                        form.getPhone(),
-                        form.getDateOfBirth());
+                        form.getEmailOrCode());
             } else {
                 userManagementService.createUser(
                         form.getLoginIdentifier(),
                         form.getFullName(),
                         form.getEmailOrCode(),
                         form.getPassword(),
-                        form.getPhone(),
-                        form.getDateOfBirth(),
                         form.getRoleIds(),
-                        form.getStudentCode(),
-                        form.getAcademicYear(),
-                        form.getMajor(),
-                        form.getClassName());
+                        form.getStudentCode());
             }
             redirectAttributes.addFlashAttribute("successMessage", "User account created successfully.");
             return "redirect:/admin/users";
@@ -157,12 +145,7 @@ public class UserManagementController {
                     form.getFullName(),
                     form.getEmailOrCode(),
                     form.getPassword(),
-                    form.getPhone(),
-                    form.getDateOfBirth(),
-                    form.getRoleIds(),
-                    form.getAcademicYear(),
-                    form.getMajor(),
-                    form.getClassName());
+                    form.getRoleIds());
             redirectAttributes.addFlashAttribute("successMessage", "User account updated successfully.");
             return "redirect:/admin/users";
         } catch (UserManagementService.UserValidationException exception) {
@@ -235,13 +218,8 @@ public class UserManagementController {
         form.setAccountType(user.isStudent() ? "STUDENT" : "LECTURER");
         form.setFullName(user.getFullName());
         form.setEmailOrCode(user.getEmailOrCode());
-        form.setPhone(user.getPhone());
-        form.setDateOfBirth(user.getDateOfBirth());
         form.setRoleIds(user.getRoleIds());
         form.setStudentCode(user.getStudentCode());
-        form.setAcademicYear(user.getAcademicYear());
-        form.setMajor(user.getMajor());
-        form.setClassName(user.getClassName());
         return form;
     }
 

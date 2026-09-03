@@ -1,5 +1,6 @@
 package com.hcmute.topicmanagement.repository;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,5 +16,9 @@ public interface TopicRegistrationRepository extends JpaRepository<TopicRegistra
 
     List<TopicRegistrationEntity> findByTopic_IdOrderBySubmittedAtDesc(Long topicId);
 
-    boolean existsByStudentGroup_IdAndRegistrationPeriod_Id(Long groupId, Long periodId);
+    boolean existsByStudentGroup_IdAndRegistrationPeriod_IdAndStatusIn(
+            Long groupId, Long periodId, Collection<TopicRegistrationStatus> statuses);
+
+    List<TopicRegistrationEntity> findByStudentGroup_IdAndRegistrationPeriod_IdOrderBySubmittedAtDesc(
+            Long groupId, Long periodId);
 }

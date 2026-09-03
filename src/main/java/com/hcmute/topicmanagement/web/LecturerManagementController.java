@@ -68,7 +68,7 @@ public class LecturerManagementController {
             return "admin/lecturers";
         }
         try {
-            service.createLecturer(form.getFullName(), form.getEmailOrCode(), form.getPhone(), form.getDateOfBirth());
+            service.createLecturer(form.getFullName(), form.getEmailOrCode());
             redirectAttributes.addFlashAttribute("successMessage", "Lecturer account created successfully.");
         } catch (UserManagementService.UserValidationException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
@@ -129,8 +129,7 @@ public class LecturerManagementController {
         }
         try {
             form.setRoleIds(service.getUser(id).getRoleIds());
-            service.updateUser(id, form.getFullName(), form.getEmailOrCode(), form.getPassword(), form.getPhone(),
-                    form.getDateOfBirth(), form.getRoleIds(), form.getAcademicYear(), form.getMajor(), form.getClassName());
+            service.updateUser(id, form.getFullName(), form.getEmailOrCode(), form.getPassword(), form.getRoleIds());
             redirectAttributes.addFlashAttribute("successMessage", "Lecturer account updated successfully.");
         } catch (UserManagementService.UserValidationException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
@@ -163,8 +162,6 @@ public class LecturerManagementController {
         form.setLoginIdentifier(user.getLoginIdentifier());
         form.setFullName(user.getFullName());
         form.setEmailOrCode(user.getEmailOrCode());
-        form.setPhone(user.getPhone());
-        form.setDateOfBirth(user.getDateOfBirth());
         form.setRoleIds(user.getRoleIds());
         return form;
     }

@@ -5,11 +5,11 @@ này đồng bộ với `REQUEST.md`, `README.md` và `.okf/`.
 
 ## Mission
 
-Xây dựng hệ thống quản lý đề tài sinh viên cho Khoa CNTT theo đúng stack môn
-học: Java + Spring MVC/Jakarta Servlet, JSP/JSTL SSR, RESTful API trong cùng
-monolith, JDBC/MySQL, Maven/Tomcat, HTML/CSS/JS, Tailwind CSS, jQuery và Java
-Mail tùy chọn. Dùng Spring Framework Core/Spring MVC trực tiếp; không dùng
-Spring Boot.
+Xây dựng hệ thống quản lý đề tài sinh viên cho Khoa CNTT theo stack hiện tại:
+Java 21 + Spring Boot/Spring MVC trên Jakarta Servlet, Thymeleaf SSR,
+RESTful API trong cùng monolith, Spring Data JPA/Hibernate + MySQL,
+Maven/executable JAR với embedded Tomcat, HTML/CSS/JS, Tailwind CSS, Flowbite
+và Java Mail tùy chọn.
 
 `PRODUCT_VISION.md` là nguồn sự thật ưu tiên cho product scope, milestone và
 việc tạo task. `REQUEST.md` và `docs/` là tài liệu tham chiếu cho implementation
@@ -57,13 +57,13 @@ MVC chạy được end-to-end với các thực thể lõi:
   topic-registration-review permissions. This is an explicit role-permission
   bundle rather than runtime role inheritance. Add Lecturer creates only
   `LECTURER`; `FACULTY_HEAD` is granted separately.
-- Student Profile is separate from User and references the user by `user_id`.
-  MSSV is a unique business identifier, never a primary key.
-- Normal User edit never changes MSSV. Student edits may update profile metadata
-  and common account fields; a future MSSV change must be a separately
-  authorized action/API.
+- The revised schema has no separate Student Profile table. For Student
+  accounts, the immutable `users.login_identifier` is the unique 8-digit MSSV;
+  the generated student email is stored in `users.email_or_code`.
+- Normal User edit never changes the MSSV/login identifier. A future MSSV change
+  must be a separately authorized action/API.
 - The admin-only `/seed` page invokes `POST /api/seed/ddl`, then the permissions,
-  roles, role-permissions, users and student-profiles endpoints in that order with
+  roles, role-permissions and users endpoints in that order with
   `fetch` plus the session CSRF token; keep a confirmation before running it.
   These endpoints and the page require an authenticated `ADMIN` by default.
   For a local bootstrap before an admin exists, `SEED_PUBLIC_ENABLED=true`
@@ -88,8 +88,9 @@ Trước khi tạo task/plan hoặc thay đổi code, đọc:
 ## Working rules
 
 - Giữ Spring MVC Controller/REST Controller mỏng; nghiệp vụ nằm trong Service,
-  truy cập dữ liệu nằm trong DAO/JDBC, JSP chỉ render dữ liệu.
-- Mọi truy vấn nhận input phải dùng `PreparedStatement`.
+  truy cập dữ liệu nằm trong Spring Data repository, Thymeleaf chỉ render dữ liệu.
+- Mọi truy vấn tùy biến phải dùng tham số binding của JPA/JPQL; không nối chuỗi
+  input vào query.
 - Kiểm tra quyền, session, trạng thái và thời gian ở server.
 - Dùng transaction cho các thao tác nhiều bước như tạo nhóm, đăng ký đề tài,
   chấm điểm và công bố kết quả.
@@ -100,7 +101,7 @@ Trước khi tạo task/plan hoặc thay đổi code, đọc:
 - Không tạo task mới ngoài active milestone trong `PRODUCT_VISION.md`. Mỗi task
   hoặc plan mới phải ghi rõ `Vision alignment`, outcome và out-of-scope boundary.
 - Không sửa/khôi phục thay đổi không liên quan của người dùng.
-- Khi hoàn thành task, cập nhật phase summary sau khi đã verification.
+- Khi hoàn thành task, cập nhật tài liệu/phase summary phù hợp sau khi đã verification.
 - Feedback sau các thao tác quản trị dùng fragment toast tái sử dụng tại
   `src/main/resources/templates/fragments/toast.html`; layout đọc các flash
   attribute `successMessage`, `warningMessage`, `errorMessage`. Logic đóng và
@@ -113,7 +114,7 @@ Trước khi tạo task/plan hoặc thay đổi code, đọc:
 - Student directory tables must omit the Roles column entirely because the
   `/admin/students` route already scopes every account to the Student role;
   lecturer/legacy directories may continue rendering role badges.
-- Student edit modals must show the immutable MSSV/profile fields only; do not
+- Student edit modals must show the immutable MSSV field only; do not
   render password-reset or system-role controls in the normal edit flow. The
   shared form fragment must gate those sections by `studentAccount`, not only
   by the generic `editing` flag.

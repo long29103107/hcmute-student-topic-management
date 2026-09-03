@@ -10,7 +10,7 @@
 - Layer boundary:
 - Authorization/security:
 - Database/transaction:
-- JSP escaping/upload handling:
+- Thymeleaf escaping/upload handling:
 
 ## Verification
 

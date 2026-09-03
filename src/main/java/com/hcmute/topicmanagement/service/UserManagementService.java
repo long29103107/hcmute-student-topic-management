@@ -1,6 +1,5 @@
 package com.hcmute.topicmanagement.service;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -21,11 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.hcmute.topicmanagement.model.RoleEntity;
-import com.hcmute.topicmanagement.model.StudentProfileEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
 import com.hcmute.topicmanagement.repository.RoleRepository;
-import com.hcmute.topicmanagement.repository.StudentProfileRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
 import com.hcmute.topicmanagement.repository.UserRoleRepository;
 
@@ -40,19 +37,16 @@ public class UserManagementService {
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     private final RoleRepository roleRepository;
-    private final StudentProfileRepository studentProfileRepository;
     private final PasswordEncoder passwordEncoder;
 
     public UserManagementService(
             UserRepository userRepository,
             UserRoleRepository userRoleRepository,
             RoleRepository roleRepository,
-            StudentProfileRepository studentProfileRepository,
             PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
         this.roleRepository = roleRepository;
-        this.studentProfileRepository = studentProfileRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -150,33 +144,22 @@ public class UserManagementService {
                 user.getLoginIdentifier(),
                 user.getFullName(),
                 user.getEmailOrCode(),
-                user.getPhone(),
-                user.getDateOfBirth(),
                 user.isActive(),
                 roleIds,
                 hasActiveRole(user, DEFAULT_ACCOUNT_ROLE_CODE),
-                user.getStudentProfile() == null ? null : user.getStudentProfile().getStudentCode(),
-                user.getStudentProfile() == null ? null : user.getStudentProfile().getAcademicYear(),
-                user.getStudentProfile() == null ? null : user.getStudentProfile().getMajor(),
-                user.getStudentProfile() == null ? null : user.getStudentProfile().getClassName());
+                hasActiveRole(user, DEFAULT_ACCOUNT_ROLE_CODE) ? user.getLoginIdentifier() : null);
     }
 
     @Transactional
     public void createStudent(
             String fullName,
-            String studentCode,
-            String phone,
-            LocalDate dateOfBirth,
-            String academicYear,
-            String major,
-            String className) {
+            String studentCode) {
         String normalizedStudentCode = validateStudentCode(studentCode);
         String normalizedLogin = normalizedStudentCode;
         validateIdentity(normalizedLogin, fullName);
         if (userRepository.existsByLoginIdentifierIgnoreCase(normalizedLogin)) {
             throw new UserValidationException("Student code is already in use as a login identifier.");
         }
-        validateStudentDetails(academicYear, major, className);
         String normalizedEmail = studentEmail(normalizedStudentCode);
         if (userRepository.existsByEmailOrCodeIgnoreCase(normalizedEmail)) {
             throw new UserValidationException("Email address is already in use.");
@@ -184,24 +167,14 @@ public class UserManagementService {
 
         UserEntity user = new UserEntity(normalizedLogin, fullName.trim(), null);
         user.setEmailOrCode(normalizedEmail);
-        user.setPhone(normalizeOptional(phone));
-        user.setDateOfBirth(dateOfBirth);
         UserEntity savedUser = userRepository.saveAndFlush(user);
         saveRoleAssignments(savedUser, List.of(loadCreationRole(DEFAULT_ACCOUNT_ROLE_CODE)));
-        studentProfileRepository.save(new StudentProfileEntity(
-                savedUser,
-                normalizedStudentCode,
-                normalizeRequired(academicYear),
-                normalizeOptional(major),
-                normalizeOptional(className)));
     }
 
     @Transactional
     public void createLecturer(
             String fullName,
-            String email,
-            String phone,
-            LocalDate dateOfBirth) {
+            String email) {
         String normalizedEmail = validateEmail(email);
         String normalizedLogin = normalizedEmail;
         validateIdentity(normalizedLogin, fullName);
@@ -217,8 +190,6 @@ public class UserManagementService {
                 fullName.trim(),
                 null);
         user.setEmailOrCode(normalizedEmail);
-        user.setPhone(normalizeOptional(phone));
-        user.setDateOfBirth(dateOfBirth);
         UserEntity savedUser = userRepository.saveAndFlush(user);
         saveRoleAssignments(savedUser, List.of(loadCreationRole("LECTURER")));
     }
@@ -229,23 +200,20 @@ public class UserManagementService {
             String fullName,
             String emailOrCode,
             String password,
-            String phone,
-            LocalDate dateOfBirth,
             Set<Long> roleIds,
-            String studentCode,
-            String academicYear,
-            String major,
-            String className) {
-        String normalizedLogin = normalizeLoginIdentifier(loginIdentifier);
-        validateIdentity(normalizedLogin, fullName);
+            String studentCode) {
         validatePassword(password, true);
-        if (userRepository.existsByLoginIdentifierIgnoreCase(normalizedLogin)) {
-            throw new UserValidationException("Login identifier is already in use.");
-        }
 
         List<RoleEntity> roles = validateAndLoadRoles(roleIds, false);
         boolean student = containsRole(roles, DEFAULT_ACCOUNT_ROLE_CODE);
         String normalizedStudentCode = student ? validateStudentCode(studentCode) : null;
+        String normalizedLogin = student ? normalizedStudentCode : normalizeLoginIdentifier(loginIdentifier);
+        validateIdentity(normalizedLogin, fullName);
+        if (userRepository.existsByLoginIdentifierIgnoreCase(normalizedLogin)) {
+            throw new UserValidationException(student
+                    ? "Student code is already in use as a login identifier."
+                    : "Login identifier is already in use.");
+        }
         String normalizedEmail = student ? studentEmail(normalizedStudentCode) : validateEmail(emailOrCode);
         if (userRepository.existsByEmailOrCodeIgnoreCase(normalizedEmail)) {
             throw new UserValidationException("Email address is already in use.");
@@ -255,19 +223,8 @@ public class UserManagementService {
                 fullName.trim(),
                 passwordEncoder.encode(password));
         user.setEmailOrCode(normalizedEmail);
-        user.setPhone(normalizeOptional(phone));
-        user.setDateOfBirth(dateOfBirth);
         UserEntity savedUser = userRepository.saveAndFlush(user);
         saveRoleAssignments(savedUser, roles);
-        if (student) {
-            validateStudentDetails(academicYear, major, className);
-            studentProfileRepository.save(new StudentProfileEntity(
-                    savedUser,
-                    normalizedStudentCode,
-                    normalizeRequired(academicYear),
-                    normalizeOptional(major),
-                    normalizeOptional(className)));
-        }
     }
 
     @Transactional
@@ -276,28 +233,14 @@ public class UserManagementService {
             String fullName,
             String emailOrCode,
             String newPassword,
-            String phone,
-            LocalDate dateOfBirth,
-            Set<Long> roleIds,
-            String academicYear,
-            String major,
-            String className) {
+            Set<Long> roleIds) {
         UserEntity user = findUserWithRoles(id);
         validateIdentity(user.getLoginIdentifier(), fullName);
         List<RoleEntity> roles = validateAndLoadRoles(roleIds, true);
         boolean student = containsRole(roles, DEFAULT_ACCOUNT_ROLE_CODE);
         String normalizedEmail;
         if (student) {
-            StudentProfileEntity profile = user.getStudentProfile();
-            if (profile == null) {
-                throw new UserValidationException("This Student account has no profile. Create its Student profile before editing.");
-            }
-            validateStudentDetails(academicYear, major, className);
-            normalizedEmail = studentEmail(profile.getStudentCode());
-            profile.setAcademicYear(normalizeRequired(academicYear));
-            profile.setMajor(normalizeOptional(major));
-            profile.setClassName(normalizeOptional(className));
-            studentProfileRepository.save(profile);
+            normalizedEmail = studentEmail(validateStudentCode(user.getLoginIdentifier()));
         } else {
             normalizedEmail = validateEmail(emailOrCode);
         }
@@ -307,8 +250,6 @@ public class UserManagementService {
 
         user.setFullName(fullName.trim());
         user.setEmailOrCode(normalizedEmail);
-        user.setPhone(normalizeOptional(phone));
-        user.setDateOfBirth(dateOfBirth);
         if (StringUtils.hasText(newPassword)) {
             validatePassword(newPassword, false);
             user.setPasswordHash(passwordEncoder.encode(newPassword));
@@ -361,11 +302,6 @@ public class UserManagementService {
         }
 
         try {
-            StudentProfileEntity profile = studentProfileRepository.findByUser_Id(id).orElse(null);
-            if (profile != null) {
-                user.clearStudentProfile();
-                studentProfileRepository.delete(profile);
-            }
             userRoleRepository.deleteAllByUser_Id(id);
             userRepository.delete(user);
             userRepository.flush();
@@ -440,7 +376,7 @@ public class UserManagementService {
                 user.getLoginIdentifier(),
                 user.getFullName(),
                 user.getEmailOrCode(),
-                user.getStudentProfile() == null ? null : user.getStudentProfile().getStudentCode(),
+                hasActiveRole(user, "STUDENT") ? user.getLoginIdentifier() : null,
                 hasActiveRole(user, "STUDENT"),
                 user.isActive(),
                 initials(user.getFullName(), user.getLoginIdentifier()),
@@ -486,30 +422,11 @@ public class UserManagementService {
         if (!StringUtils.hasText(normalized)) {
             throw new UserValidationException("Student code is required for Student accounts.");
         }
-        if (studentProfileRepository.existsByStudentCodeIgnoreCase(normalized)) {
-            throw new UserValidationException("Student code is already in use.");
-        }
         return normalized;
     }
 
     private static String studentEmail(String studentCode) {
         return studentCode + STUDENT_EMAIL_DOMAIN;
-    }
-
-    private static void validateStudentDetails(String academicYear, String major, String className) {
-        if (!StringUtils.hasText(academicYear)) {
-            throw new UserValidationException("Academic year is required for Student accounts.");
-        }
-        if (!StringUtils.hasText(major)) {
-            throw new UserValidationException("Major is required for Student accounts.");
-        }
-        if (!StringUtils.hasText(className)) {
-            throw new UserValidationException("Class is required for Student accounts.");
-        }
-    }
-
-    private static String normalizeRequired(String value) {
-        return value == null ? null : value.trim();
     }
 
     private static boolean containsRole(List<RoleEntity> roles, String roleCode) {
@@ -661,47 +578,32 @@ public class UserManagementService {
         private final String loginIdentifier;
         private final String fullName;
         private final String emailOrCode;
-        private final String phone;
-        private final LocalDate dateOfBirth;
         private final boolean active;
         private final Set<Long> roleIds;
         private final boolean student;
         private final String studentCode;
-        private final String academicYear;
-        private final String major;
-        private final String className;
 
         public UserEditorData(Long id, String loginIdentifier, String fullName, String emailOrCode,
-                String phone, LocalDate dateOfBirth, boolean active, Set<Long> roleIds,
-                boolean student, String studentCode, String academicYear, String major, String className) {
+                boolean active, Set<Long> roleIds,
+                boolean student, String studentCode) {
             this.id = id;
             this.loginIdentifier = loginIdentifier;
             this.fullName = fullName;
             this.emailOrCode = emailOrCode;
-            this.phone = phone;
-            this.dateOfBirth = dateOfBirth;
             this.active = active;
             this.roleIds = new LinkedHashSet<>(roleIds);
             this.student = student;
             this.studentCode = studentCode;
-            this.academicYear = academicYear;
-            this.major = major;
-            this.className = className;
         }
 
         public Long getId() { return id; }
         public String getLoginIdentifier() { return loginIdentifier; }
         public String getFullName() { return fullName; }
         public String getEmailOrCode() { return emailOrCode; }
-        public String getPhone() { return phone; }
-        public LocalDate getDateOfBirth() { return dateOfBirth; }
         public boolean isActive() { return active; }
         public Set<Long> getRoleIds() { return roleIds; }
         public boolean isStudent() { return student; }
         public String getStudentCode() { return studentCode; }
-        public String getAcademicYear() { return academicYear; }
-        public String getMajor() { return major; }
-        public String getClassName() { return className; }
     }
 
     public static final class RoleOption {

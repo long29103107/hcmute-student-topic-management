@@ -19,16 +19,17 @@ business requirements in `REQUEST.md`.
 
 | Course topic | Project use |
 |---|---|
-| Servlet/JSP/JSTL | JSP/JSTL server-rendered pages under `WEB-INF/views`; Spring MVC runs on Jakarta Servlet/Tomcat. |
-| Spring/Spring MVC | Main MVC framework, dependency injection and controller layer. |
-| RESTful API | REST controllers under `/api` in the same executable Spring Boot application; they reuse Service/DAO and do not become a separate service or SPA backend. |
-| JDBC | DAO persistence with MySQL and `PreparedStatement`; no ORM is assumed. |
+| Servlet/SSR | Spring MVC server-rendered pages using Thymeleaf templates; embedded Tomcat is provided by Spring Boot. |
+| Spring/Spring MVC | Spring Boot 4.1.1 provides the executable application, dependency injection and MVC controller layer. |
+| RESTful API | REST controllers under `/api` in the same executable Spring Boot application; they reuse the Service/repository layer and do not become a separate service or SPA backend. |
+| JDBC/data access | Spring Data JPA/Hibernate maps the revised MySQL schema; repositories expose persistence contracts and Service owns transactions. |
 | Bootstrap + jQuery | Use Tailwind CSS 4 + Flowbite 4 for the UI layer; Bootstrap is not a project dependency. |
 | Java Mail | Optional Nice to Have notification adapter; it is not required for the core workflow. |
 
-The baseline uses Spring Framework Core/Spring MVC directly with Java
-configuration and `DispatcherServlet`; Spring Boot is not part of this code
-base.
+The implemented baseline is the Spring Boot executable JAR described in
+`pom.xml`. The revised schema is managed explicitly through
+`database/1.ddl.sql`, with Hibernate schema generation disabled and Flyway
+disabled until versioned migrations are introduced.
 
 ## Scope guardrails
 

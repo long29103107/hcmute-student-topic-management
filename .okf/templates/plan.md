@@ -24,8 +24,8 @@
 
 - Spring MVC Controller/REST Controller:
 - Service:
-- DAO/JDBC:
-- JSP/assets:
+- Spring Data repository/JPA:
+- Thymeleaf/assets:
 - Database:
 
 ## Verification

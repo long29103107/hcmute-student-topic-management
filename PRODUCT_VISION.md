@@ -76,8 +76,8 @@ fully usable, server-authorized identity and access-management foundation.
   faculty heads views. Manage lecturers means users with Lecturer capabilities
   (`LECTURER` or `FACULTY_HEAD`), while Manage faculty heads means users with
   `FACULTY_HEAD`.
-- Role-specific profile data belongs in profile tables keyed by `user_id` (for
-  example `student_profiles`), not in duplicate authentication tables.
+- The revised schema keeps the Student MSSV in the immutable
+  `users.login_identifier`; it does not add a separate Student Profile table.
 
 ### Out of scope
 
@@ -97,8 +97,8 @@ fully usable, server-authorized identity and access-management foundation.
   The system role/permission catalog is reproducibly restored by seed and has
   no runtime create/update/delete API.
 - Role and permission changes take effect in server-side authorization.
-- Student Profile is separate from User, uses `user_id`, and enforces unique
-  MSSV; normal User edits never change MSSV.
+- Student accounts use an immutable, unique 8-digit MSSV in
+  `users.login_identifier`; normal User edits never change MSSV.
 - A Student account without a configured password cannot log in; setting a new
   password is an explicit edit/reset action.
 - Passwords are never stored or rendered as plaintext; validation and duplicate
@@ -108,7 +108,7 @@ fully usable, server-authorized identity and access-management foundation.
   login when `SEED_PUBLIC_ENABLED=true`; shared/staging/production deployments
   must set it to `false`, requiring `ADMIN`. It truncates the fixed application
   table set before restoring roles, permissions, test accounts and the sample
-  Student Profile.
+  Student account fixture.
 - Relevant tests and `mvn test` pass; unavailable environment checks are
   recorded explicitly.
 
@@ -118,7 +118,7 @@ fully usable, server-authorized identity and access-management foundation.
 |---|---|---|
 | 001_001 | Reconcile the current identity schema, seed data and service contracts with this vision. | completed |
 | 001_002 | Complete login, logout, session and route authorization behavior. | completed |
-| 001_003 | Complete role-aware User CRUD, Student Profile/MSSV handling, status management and credential reset. | completed |
+| 001_003 | Complete role-aware User CRUD, MSSV handling, status management and credential reset. | completed |
 | 001_004 | Verify seed-managed role/permission catalog and role-permission assignment. | completed |
 | 001_005 | Apply permission checks consistently to UI routes and mutations. | completed |
 | 001_006 | Verify the full identity-and-access milestone and record evidence. | completed |
@@ -136,7 +136,7 @@ The Student and Lecturer directories use shared server-side list behavior:
 search filtering, sortable displayed columns, and pagination must preserve the
 current query state across navigation. Search inputs should submit through the
 shared UI with a Search button and a short client-side debounce.
-Credential setup is a separate action from account creation and normal profile
+Credential setup is a separate action from account creation and normal account
 editing: the directories expose a reusable Set password modal that validates
 and hashes a new password through a protected password action.
 

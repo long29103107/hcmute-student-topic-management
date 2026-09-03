@@ -5,26 +5,26 @@
 - Follow the Java version declared by `pom.xml`; do not silently upgrade it.
 - Use Spring constructor injection; avoid field injection.
 - Use descriptive classes such as `RegistrationPeriodService`,
-  `TopicRegistrationDao`, `TopicController` and `TopicRestController`.
+  `TopicRegistrationRepository`, `TopicController` and `TopicRestController`.
 - Prefer immutable DTOs/records where the selected Java version supports them;
-  use ordinary beans where JSP binding requires it.
+  use ordinary beans where Thymeleaf form binding requires it.
 - Keep methods small and make invalid states explicit with domain exceptions.
-- Do not place SQL strings in Servlet classes.
-- Use `try-with-resources` for JDBC resources and preserve the original cause
-  when wrapping exceptions.
+- Do not place queries in Controller classes; custom JPQL/native queries belong
+  in repositories and must use bound parameters.
 - Keep comments for non-obvious business constraints only.
 
-## Spring MVC/JSP
+## Spring MVC/Thymeleaf
 
 - Use one focused `@Controller`/`@RestController` per coherent resource or
   action, with explicit mappings and HTTP method handling.
 - Use POST/redirect/GET after successful mutations.
 - Store only minimal safe identity data in session; do not store passwords.
-- JSP pages use JSTL/EL and escaped output. Avoid scriptlets.
+- Thymeleaf templates use escaped expressions and fragments. Do not put
+  scriptlets, queries or business decisions in templates.
 - Keep form field names and validation messages stable; document them in the
   relevant task note when they become a contract.
 - REST endpoints use request/response DTOs and stable JSON error shapes; never
-  expose JDBC/domain entities directly.
+  expose JPA/domain entities directly.
 
 ## Database and security
 
@@ -34,7 +34,7 @@
   implementation choice unless the project selects another approved algorithm).
 - Validate upload extension, MIME/type signature where practical, size and
   generated storage name; never use the original filename as a storage path.
-- Escape/encode user-controlled values in JSP and JavaScript contexts.
+- Escape/encode user-controlled values in Thymeleaf and JavaScript contexts.
 
 ## Documentation
 

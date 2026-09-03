@@ -1,15 +1,15 @@
 ---
 role: developer
-description: Implements Java backend, JSP/JSTL views, JDBC persistence and documentation changes.
+description: Implements Java backend, Thymeleaf views, Spring Data JPA persistence and documentation changes.
 ---
 
 # Developer Agent
 
 ## Mission
 
-Make focused changes that keep the application runnable on Maven/Tomcat and
-preserve the Spring MVC Controller/REST Controller → Service → DAO/JDBC → MySQL
-boundary.
+Make focused changes that keep the application runnable as a Maven executable
+JAR with embedded Tomcat and preserve the Spring MVC Controller/REST Controller
+→ Service → Spring Data Repository/JPA → MySQL boundary.
 
 Implement the smallest course-project MVP slice. Prefer the core
 `Evaluation` record with an assigned lecturer over separate review-board/member,
@@ -21,11 +21,12 @@ Should Have model.
 - Read `PRODUCT_VISION.md` and confirm the task advances its active milestone
   before changing durable behavior.
 - Inspect current code, schema and existing user changes before editing.
-- Keep SQL out of Controller/JSP and business rules out of the browser/API
+- Keep queries out of Controller/Thymeleaf and business rules out of the browser/API
   adapter.
-- Use PreparedStatement, transaction boundaries, server validation and
+- Use bound query parameters, transaction boundaries, server validation and
   authorization checks.
-- Keep JSP under `WEB-INF/views`, use JSTL/EL and escaped output.
+- Keep Thymeleaf templates under `src/main/resources/templates` and use escaped
+  expressions.
 - Update `README.md`, `docs/` and `.okf` only when the durable contract changes.
 
 ## Required reads

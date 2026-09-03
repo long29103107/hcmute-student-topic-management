@@ -24,6 +24,10 @@ public class StudentGroupEntity extends BaseEntity {
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "period_id", nullable = false)
+    private RegistrationPeriodEntity registrationPeriod;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "created_by", nullable = false)
     private UserEntity createdBy;
 
@@ -47,11 +51,21 @@ public class StudentGroupEntity extends BaseEntity {
     protected StudentGroupEntity() {
     }
 
-    public StudentGroupEntity(String name, UserEntity createdBy, UserEntity leader) {
+    public StudentGroupEntity(String name, RegistrationPeriodEntity registrationPeriod,
+            UserEntity createdBy, UserEntity leader) {
         this.name = name;
+        this.registrationPeriod = registrationPeriod;
         this.createdBy = createdBy;
         this.leader = leader;
         this.members.add(leader);
+    }
+
+    public RegistrationPeriodEntity getRegistrationPeriod() {
+        return registrationPeriod;
+    }
+
+    public void setRegistrationPeriod(RegistrationPeriodEntity registrationPeriod) {
+        this.registrationPeriod = registrationPeriod;
     }
 
     public String getName() {

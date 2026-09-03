@@ -14,8 +14,8 @@ nhiều phiên bản báo cáo nếu chưa được chọn trong `REQUEST.md`.
 | [`course-alignment.md`](course-alignment.md) | Phân biệt đề cương môn học với quyết định kỹ thuật của project |
 | [`workflows.md`](workflows.md) | Implement trạng thái, time window và transaction |
 | [`authorization-matrix.md`](authorization-matrix.md) | Implement filter, Service authorization và menu |
-| [`database-design.md`](database-design.md) | Tạo schema, DAO và foreign key |
-| [`ui-route-map.md`](ui-route-map.md) | Tạo Spring MVC Controller, REST Controller, form action và JSP dưới `WEB-INF/views` |
+| [`database-design.md`](database-design.md) | Tạo revised schema, JPA entity/repository và foreign key |
+| [`ui-route-map.md`](ui-route-map.md) | Tạo Spring MVC Controller, REST Controller, form action và Thymeleaf templates |
 | [`open-questions.md`](open-questions.md) | Gặp điểm REQUEST yêu cầu giảng viên xác nhận |
 | [`verification.md`](verification.md) | Chọn test/build/smoke cho task |
 

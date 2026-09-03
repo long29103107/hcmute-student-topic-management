@@ -8,7 +8,7 @@
 - Enforce authorization in Service for every mutation and protected read. A
   hidden button is not authorization.
 - Use prepared SQL statements and validate sort/filter fields against allowlists.
-- Escape JSP output. Avoid putting untrusted values into raw HTML, JavaScript
+- Escape Thymeleaf output. Avoid putting untrusted values into raw HTML, JavaScript
   or URL attributes without context-aware encoding.
 - Validate uploads for size, extension, content type and generated path; store
   outside the public web root when possible.

@@ -24,11 +24,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.hcmute.topicmanagement.model.RoleEntity;
-import com.hcmute.topicmanagement.model.StudentProfileEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
 import com.hcmute.topicmanagement.repository.RoleRepository;
-import com.hcmute.topicmanagement.repository.StudentProfileRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
 import com.hcmute.topicmanagement.repository.UserRoleRepository;
 import com.hcmute.topicmanagement.security.DatabaseUserPrincipal;
@@ -48,9 +46,6 @@ class UserManagementControllerTest {
 
     @Autowired
     private RoleRepository roleRepository;
-
-    @Autowired
-    private StudentProfileRepository studentProfileRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -146,8 +141,6 @@ class UserManagementControllerTest {
     @Test
     void adminCanDeleteStudentAndLecturerAccountsThroughTheirDirectories() throws Exception {
         UserEntity student = saveUser("student-delete", "Student Delete", "STUDENT", "Password123");
-        studentProfileRepository.saveAndFlush(new StudentProfileEntity(
-                student, "24119991", "2024-2025", "Information Technology", "22110CL9"));
         UserEntity lecturer = saveUser("lecturer-delete", "Lecturer Delete", "LECTURER", "Password123");
 
         mockMvc.perform(post("/admin/students/" + student.getId() + "/delete")
@@ -158,7 +151,6 @@ class UserManagementControllerTest {
                 .andExpect(flash().attribute("successMessage", "Student account deleted successfully."));
 
         org.junit.jupiter.api.Assertions.assertTrue(userRepository.findById(student.getId()).isEmpty());
-        org.junit.jupiter.api.Assertions.assertTrue(studentProfileRepository.findByUser_Id(student.getId()).isEmpty());
         org.junit.jupiter.api.Assertions.assertTrue(userRoleRepository.findByUser_Id(student.getId()).isEmpty());
 
         mockMvc.perform(post("/admin/lecturers/" + lecturer.getId() + "/delete")
@@ -266,7 +258,7 @@ class UserManagementControllerTest {
                 .andExpect(content().string(containsString("Create account")))
                 .andExpect(content().string(containsString("Student role is assigned automatically")))
                 .andExpect(content().string(not(containsString("Account role"))))
-                .andExpect(content().string(containsString("Student profile")))
+                .andExpect(content().string(not(containsString("Student profile"))))
                 .andExpect(content().string(not(containsString("data-role-code=\"FACULTY_HEAD\""))));
 
         mockMvc.perform(get("/admin/users/" + existing.getId() + "/edit")
@@ -338,21 +330,15 @@ class UserManagementControllerTest {
                         .param("emailOrCode", "ignored-value-is-not-used")
                         .param("password", "StrongPass123")
                         .param("roleIds", student.getId().toString())
-                        .param("studentCode", "24110001")
-                        .param("academicYear", "2024-2025")
-                        .param("major", "Information Technology")
-                        .param("className", "22110CL1"))
+                        .param("studentCode", "24110001"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/users"));
 
-        UserEntity created = userRepository.findByLoginIdentifier("created-user").orElseThrow();
+        UserEntity created = userRepository.findByLoginIdentifier("24110001").orElseThrow();
         org.junit.jupiter.api.Assertions.assertTrue(passwordEncoder.matches("StrongPass123", created.getPasswordHash()));
         org.junit.jupiter.api.Assertions.assertEquals("24110001@student.hcmute.edu.vn", created.getEmailOrCode());
         org.junit.jupiter.api.Assertions.assertTrue(userRoleRepository.existsByUser_IdAndRole_IdAndActiveTrue(
                 created.getId(), student.getId()));
-        StudentProfileEntity profile = studentProfileRepository.findByUser_Id(created.getId()).orElseThrow();
-        org.junit.jupiter.api.Assertions.assertEquals("24110001", profile.getStudentCode());
-        org.junit.jupiter.api.Assertions.assertEquals("22110CL1", profile.getClassName());
     }
 
     @Test
@@ -365,19 +351,15 @@ class UserManagementControllerTest {
                         .param("accountType", "STUDENT")
                         .param("fullName", "Dedicated Student")
                         .param("studentCode", "24110004")
-                        .param("academicYear", "2024-2025")
-                        .param("major", "Information Technology")
-                        .param("className", "22110CL5")
                         .param("roleIds", role("LECTURER", "Lecturer").getId().toString()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/users"));
 
         UserEntity created = userRepository.findByLoginIdentifier("24110004").orElseThrow();
-        org.junit.jupiter.api.Assertions.assertNull(created.getPasswordHash());
+        org.junit.jupiter.api.Assertions.assertTrue(created.getPasswordHash().isBlank());
         org.junit.jupiter.api.Assertions.assertEquals("24110004@student.hcmute.edu.vn", created.getEmailOrCode());
         org.junit.jupiter.api.Assertions.assertTrue(userRoleRepository.existsByUser_IdAndRole_IdAndActiveTrue(
                 created.getId(), student.getId()));
-        org.junit.jupiter.api.Assertions.assertTrue(studentProfileRepository.findByUser_Id(created.getId()).isPresent());
     }
 
     @Test
@@ -394,7 +376,7 @@ class UserManagementControllerTest {
     }
 
     @Test
-    void adminCanCreateLecturerWithManualEmailWithoutStudentProfile() throws Exception {
+    void adminCanCreateLecturerWithManualEmail() throws Exception {
         RoleEntity lecturer = role("LECTURER", "Lecturer");
 
         mockMvc.perform(post("/admin/users")
@@ -412,7 +394,6 @@ class UserManagementControllerTest {
         org.junit.jupiter.api.Assertions.assertEquals("created.lecturer@hcmute.edu.vn", created.getEmailOrCode());
         org.junit.jupiter.api.Assertions.assertTrue(userRoleRepository.existsByUser_IdAndRole_IdAndActiveTrue(
                 created.getId(), lecturer.getId()));
-        org.junit.jupiter.api.Assertions.assertTrue(studentProfileRepository.findByUser_Id(created.getId()).isEmpty());
     }
 
     @Test
@@ -430,11 +411,10 @@ class UserManagementControllerTest {
                 .andExpect(redirectedUrl("/admin/users"));
 
         UserEntity created = userRepository.findByLoginIdentifier("dedicated.lecturer@hcmute.edu.vn").orElseThrow();
-        org.junit.jupiter.api.Assertions.assertNull(created.getPasswordHash());
+        org.junit.jupiter.api.Assertions.assertTrue(created.getPasswordHash().isBlank());
         org.junit.jupiter.api.Assertions.assertEquals("dedicated.lecturer@hcmute.edu.vn", created.getEmailOrCode());
         org.junit.jupiter.api.Assertions.assertTrue(userRoleRepository.existsByUser_IdAndRole_IdAndActiveTrue(
                 created.getId(), lecturer.getId()));
-        org.junit.jupiter.api.Assertions.assertTrue(studentProfileRepository.findByUser_Id(created.getId()).isEmpty());
     }
 
     @Test
@@ -457,31 +437,23 @@ class UserManagementControllerTest {
     @Test
     void editingStudentKeepsMssvAndGeneratedEmailEvenWhenPayloadTriesToChangeIt() throws Exception {
         RoleEntity student = role("STUDENT", "Student");
-        UserEntity existing = saveUser("editable-student", "Before Update", "STUDENT", "Password123");
-        studentProfileRepository.saveAndFlush(new StudentProfileEntity(
-                existing, "24110003", "2024-2025", "Information Technology", "22110CL4"));
+        UserEntity existing = saveUser("24110003", "Before Update", "STUDENT", "Password123");
 
         mockMvc.perform(post("/admin/users/" + existing.getId() + "/edit")
                         .with(user(admin("USER_UPDATE", "USER_ROLE_ASSIGN")))
                         .with(csrf())
-                        .param("loginIdentifier", "editable-student")
+                        .param("loginIdentifier", "24110003")
                         .param("fullName", "After Update")
                         .param("emailOrCode", "attacker@example.com")
                         .param("password", "")
                         .param("roleIds", student.getId().toString())
-                        .param("studentCode", "99999999")
-                        .param("academicYear", "2025-2026")
-                        .param("major", "Software Engineering")
-                        .param("className", "23110CL1"))
+                        .param("studentCode", "99999999"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/users"));
 
         UserEntity updated = userRepository.findById(existing.getId()).orElseThrow();
-        StudentProfileEntity profile = studentProfileRepository.findByUser_Id(existing.getId()).orElseThrow();
         org.junit.jupiter.api.Assertions.assertEquals("After Update", updated.getFullName());
-        org.junit.jupiter.api.Assertions.assertEquals("24110003", profile.getStudentCode());
         org.junit.jupiter.api.Assertions.assertEquals("24110003@student.hcmute.edu.vn", updated.getEmailOrCode());
-        org.junit.jupiter.api.Assertions.assertEquals("23110CL1", profile.getClassName());
     }
 
     @Test
@@ -577,9 +549,7 @@ class UserManagementControllerTest {
     @Test
     void createRejectsDuplicateStudentCode() throws Exception {
         RoleEntity student = role("STUDENT", "Student");
-        UserEntity existing = saveUser("existing-student", "Existing Student", "STUDENT", "Password123");
-        studentProfileRepository.saveAndFlush(new StudentProfileEntity(
-                existing, "24110002", "2024-2025", "Information Technology", "22110CL2"));
+        UserEntity existing = saveUser("24110002", "Existing Student", "STUDENT", "Password123");
 
         mockMvc.perform(post("/admin/users")
                         .with(user(admin("USER_CREATE", "USER_ROLE_ASSIGN")))
@@ -588,13 +558,10 @@ class UserManagementControllerTest {
                         .param("fullName", "Duplicate Student Code")
                         .param("password", "StrongPass123")
                         .param("roleIds", student.getId().toString())
-                        .param("studentCode", "24110002")
-                        .param("academicYear", "2024-2025")
-                        .param("major", "Information Technology")
-                        .param("className", "22110CL3"))
+                        .param("studentCode", "24110002"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/user-form"))
-                .andExpect(content().string(containsString("Student code is already in use.")));
+                .andExpect(content().string(containsString("Student code is already in use as a login identifier.")));
     }
 
     private UserEntity saveUser(String loginIdentifier, String fullName, String roleCode, String password) {

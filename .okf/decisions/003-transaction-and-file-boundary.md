@@ -4,9 +4,8 @@ Status: Accepted for implementation planning
 
 ## Decision
 
-Use Service-owned transactions for multi-step operations. DAO methods must be
-usable with the same connection/transaction context, or a single transaction
-helper must coordinate them.
+Use Service-owned transactions for multi-step operations. Spring Data
+repository calls must participate in the enclosing `@Transactional` context.
 
 For reports, persist metadata (`report_id`, group/topic relation, stored name,
 original display name, content type, size, uploader and submitted time) in

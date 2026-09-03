@@ -6,7 +6,7 @@
             <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
                 <div>
                     <h2 class="text-xl font-semibold text-gray-900" th:text="${title}">Create user</h2>
-                    <p class="mt-2 text-sm leading-5 text-gray-500" th:text="${editing ? 'Update account details, profile information and role assignments.' : (studentAccount == true ? 'Create a Student account. The Student role is assigned automatically.' : 'Create a Lecturer account. The Lecturer role is assigned automatically.')}">Create a local account and choose its system role.</p>
+                    <p class="mt-2 text-sm leading-5 text-gray-500" th:text="${editing ? 'Update account details and role assignments.' : (studentAccount == true ? 'Create a Student account. The Student role is assigned automatically.' : 'Create a Lecturer account. The Lecturer role is assigned automatically.')}">Create a local account and choose its system role.</p>
                 </div>
             </div>
         </div>
@@ -21,10 +21,10 @@
             </div>
 
             <div class="grid gap-5 sm:grid-cols-2" th:classappend="${#fields.hasGlobalErrors() ? 'mt-6' : ''}">
-                <div class="sm:col-span-2" th:if="${studentAccount == true and !editing}">
+                <div class="sm:col-span-2" th:if="${studentAccount == true}">
                     <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-studentCode'}">Student code (MSSV)</label>
-                    <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" th:id="${fieldPrefix + '-studentCode'}" type="text" th:field="*{studentCode}" inputmode="numeric" maxlength="8" autocomplete="off" data-student-code required>
-                    <p class="mt-2 text-xs text-gray-500">Enter the unique 8-digit MSSV. The login email will be generated from it.</p>
+                    <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 read-only:cursor-not-allowed read-only:bg-gray-100 read-only:text-gray-500 focus:border-blue-500 focus:ring-blue-500" th:id="${fieldPrefix + '-studentCode'}" type="text" th:field="*{studentCode}" inputmode="numeric" maxlength="8" autocomplete="off" data-student-code required th:readonly="${editing}">
+                    <p class="mt-2 text-xs text-gray-500" th:text="${editing ? 'MSSV is stored in the account login identifier and cannot be changed here.' : 'Enter the unique 8-digit MSSV. The login email will be generated from it.'}">Enter the unique 8-digit MSSV. The login email will be generated from it.</p>
                     <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('studentCode')}" th:errors="*{studentCode}">Student code is invalid.</p>
                 </div>
                 <div class="sm:col-span-2" th:if="${(editing and studentAccount != true and accountType != 'LECTURER') or (!editing and accountType == null and studentAccount != false)}">
@@ -55,16 +55,6 @@
                     <p class="mt-2 text-xs text-gray-500" th:text="${editing ? 'Leave blank to keep the current password.' : 'Use at least 8 characters.'}">Use at least 8 characters.</p>
                     <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password is invalid.</p>
                 </div>
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-phone'}">Phone</label>
-                    <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" th:id="${fieldPrefix + '-phone'}" type="tel" th:field="*{phone}" autocomplete="tel">
-                    <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">Phone is invalid.</p>
-                </div>
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-dateOfBirth'}">Date of birth</label>
-                    <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" th:id="${fieldPrefix + '-dateOfBirth'}" type="date" th:field="*{dateOfBirth}">
-                    <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('dateOfBirth')}" th:errors="*{dateOfBirth}">Date of birth is invalid.</p>
-                </div>
             </div>
 
             <fieldset class="mt-7 border-t border-gray-200 pt-6" th:if="${(editing and studentAccount != true and accountType != 'LECTURER') or (!editing and accountType == null and studentAccount != false)}">
@@ -77,41 +67,6 @@
                     </label>
                 </div>
             </fieldset>
-
-            <section class="mt-7 border-t border-gray-200 pt-6" data-student-fields th:if="${studentAccount == true}">
-                <div class="mb-4">
-                    <h3 class="text-sm font-semibold text-gray-900">Student profile</h3>
-                    <p class="mt-1 text-xs text-gray-500">MSSV is unique and becomes the account email automatically.</p>
-                </div>
-                <div class="grid gap-5 sm:grid-cols-2">
-                    <div th:if="${editing}">
-                        <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-studentCode'}">MSSV</label>
-                        <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 read-only:cursor-not-allowed read-only:bg-gray-100 read-only:text-gray-500 focus:border-blue-500 focus:ring-blue-500" th:id="${fieldPrefix + '-studentCode'}" type="text" th:field="*{studentCode}" inputmode="numeric" maxlength="8" autocomplete="off" data-student-code th:required="${studentAccount == true and !editing}" th:readonly="${editing}">
-                        <div class="mt-1">
-                            <span class="ui-info-tooltip" tabindex="0" role="img" aria-label="MSSV information">
-                                <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path stroke="currentColor" stroke-linecap="round" stroke-width="1.8" d="M12 10.5v5m0-8h.01"/></svg>
-                                <span class="ui-info-tooltip-content" role="tooltip" th:text="${editing ? 'MSSV cannot be changed in normal account editing.' : 'Enter exactly 8 digits.'}">Enter exactly 8 digits.</span>
-                            </span>
-                        </div>
-                        <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('studentCode')}" th:errors="*{studentCode}">MSSV is invalid.</p>
-                    </div>
-                    <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-academicYear'}">Academic year</label>
-                        <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" th:id="${fieldPrefix + '-academicYear'}" type="text" th:field="*{academicYear}" placeholder="2024-2025">
-                        <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('academicYear')}" th:errors="*{academicYear}">Academic year is invalid.</p>
-                    </div>
-                    <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-major'}">Major</label>
-                        <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" th:id="${fieldPrefix + '-major'}" type="text" th:field="*{major}">
-                        <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('major')}" th:errors="*{major}">Major is invalid.</p>
-                    </div>
-                    <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-className'}">Class</label>
-                        <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" th:id="${fieldPrefix + '-className'}" type="text" th:field="*{className}">
-                        <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('className')}" th:errors="*{className}">Class is invalid.</p>
-                    </div>
-                </div>
-            </section>
 
             <div class="mt-7 flex flex-wrap justify-end gap-3 border-t border-gray-200 pt-6">
                 <a class="order-1 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100" th:href="${cancelPath ?: '/admin/users'}">Cancel</a>

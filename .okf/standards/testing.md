@@ -10,14 +10,14 @@ mvn package
 ```
 
 - Model/validator changes: focused unit tests.
-- Service/business-rule changes: service tests with fake/in-memory DAO seams
+- Service/business-rule changes: service tests with fake/in-memory repository seams
   plus transaction/authorization cases.
 - Spring MVC/REST changes: controller tests with MockMvc or an equivalent
   Spring test setup, including JSON/view/error contracts.
-- DAO/schema changes: JDBC integration tests against a configured MySQL test
-  database, when available.
-- Servlet/JSP changes: servlet request/response tests where practical, then
-  `mvn package` and a Tomcat smoke pass for the touched flow.
+- Repository/schema changes: JPA integration tests against a configured MySQL
+  test database, when available.
+- Spring MVC/Thymeleaf changes: request/response tests where practical, then
+  `mvn package` and an embedded-Tomcat smoke pass for the touched flow.
 
 ## Required business-rule coverage
 

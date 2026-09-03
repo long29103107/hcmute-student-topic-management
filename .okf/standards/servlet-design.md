@@ -10,7 +10,7 @@ REST routes there before implementing a new screen/API.
 - `POST` creates a resource or executes an explicit action.
 - `GET` must not mutate state.
 - Mutations redirect back to a GET page after success.
-- Use a common error/validation model so JSP forms can redisplay safe input.
+- Use a common error/validation model so Thymeleaf forms can redisplay safe input.
 
 ## Controller and filter responsibilities
 
@@ -24,9 +24,9 @@ REST routes there before implementing a new screen/API.
 - Put only view data and flash messages into request/session scope.
 - Never build SQL, calculate final grades, or decide role access in a Controller.
 
-## JSP responsibilities
+## Thymeleaf responsibilities
 
-- Render model data with JSTL/EL and escaped output.
+- Render model data with escaped Thymeleaf expressions.
 - Reuse common header, navigation, flash and validation fragments.
 - Show actions only when the server-provided permission model allows them, but
   treat this as UX; the server remains the authority.

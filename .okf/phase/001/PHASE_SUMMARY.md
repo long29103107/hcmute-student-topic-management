@@ -35,8 +35,8 @@ server-side authorization, as one usable identity-and-access foundation.
   a manually entered email/password. The directory separates student,
   lecturer-capability view (including Faculty Head accounts) and reuses the
   same account modal template.
-- Student Profile uses a separate `user_id` relation and normal User edit never
-  changes MSSV.
+- Student MSSV is stored as the immutable unique `users.login_identifier`; the
+  revised schema has no separate Student Profile table.
 - Users without a configured password cannot authenticate; setting a password
   is an explicit edit/reset action.
 - `FACULTY_HEAD` and `LECTURER` remain shared access roles in `roles` and
@@ -69,7 +69,7 @@ results, announcements, dashboards, email and audit logging.
 |---|---|---|---|
 | 001_001 | Reconcile identity baseline and persistence contracts | completed | 2026-08-30 |
 | 001_002 | Login, logout, session and protected-route behavior | completed | 2026-08-30 |
-| 001_003 | Role-aware User CRUD, Student Profile/MSSV handling, status and credential reset | completed | 2026-08-30 |
+| 001_003 | Role-aware User CRUD, MSSV handling, status and credential reset | completed | 2026-08-30 |
 | 001_004 | Seed-managed role/permission catalog and assignment policy | completed | 2026-08-30 |
 | 001_005 | Permission enforcement and cross-route authorization audit | completed | 2026-08-30 |
 | 001_006 | Identity-and-access verification and phase closure | completed | 2026-08-30 |

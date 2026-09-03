@@ -11,16 +11,19 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "evaluations")
 public class EvaluationEntity extends BaseEntity {
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "registration_id", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "registration_id", nullable = false)
     private TopicRegistrationEntity topicRegistration;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id")
+    private ReviewBoardEntity board;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "lecturer_id", nullable = false)
@@ -29,9 +32,6 @@ public class EvaluationEntity extends BaseEntity {
     @Column(precision = 5, scale = 2)
     private BigDecimal score;
 
-    @Column(name = "average_score", precision = 5, scale = 2)
-    private BigDecimal averageScore;
-
     @Column(columnDefinition = "TEXT")
     private String comment;
 
@@ -39,8 +39,8 @@ public class EvaluationEntity extends BaseEntity {
     @Column(nullable = false, length = 20)
     private EvaluationStatus status = EvaluationStatus.DRAFT;
 
-    @Column(name = "published_at")
-    private LocalDateTime publishedAt;
+    @Column(name = "submitted_at")
+    private LocalDateTime submittedAt;
 
     protected EvaluationEntity() {
     }
@@ -74,12 +74,12 @@ public class EvaluationEntity extends BaseEntity {
         this.score = score;
     }
 
-    public BigDecimal getAverageScore() {
-        return averageScore;
+    public ReviewBoardEntity getBoard() {
+        return board;
     }
 
-    public void setAverageScore(BigDecimal averageScore) {
-        this.averageScore = averageScore;
+    public void setBoard(ReviewBoardEntity board) {
+        this.board = board;
     }
 
     public String getComment() {
@@ -98,11 +98,11 @@ public class EvaluationEntity extends BaseEntity {
         this.status = status;
     }
 
-    public LocalDateTime getPublishedAt() {
-        return publishedAt;
+    public LocalDateTime getSubmittedAt() {
+        return submittedAt;
     }
 
-    public void setPublishedAt(LocalDateTime publishedAt) {
-        this.publishedAt = publishedAt;
+    public void setSubmittedAt(LocalDateTime submittedAt) {
+        this.submittedAt = submittedAt;
     }
 }

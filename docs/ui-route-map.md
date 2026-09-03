@@ -1,7 +1,8 @@
 # Spring MVC SSR and REST route map
 
 These are proposed stable route names for code generation. SSR routes map to
-Spring MVC `@Controller` methods and JSPs under `WEB-INF/views`. REST routes map
+Spring MVC `@Controller` methods and Thymeleaf templates under
+`src/main/resources/templates`. REST routes map
 to `@RestController` methods in the same executable Spring Boot application
 and reuse the same Service layer.
 
@@ -14,7 +15,7 @@ Have unless explicitly selected.
 
 | Method | Route | Controller/view | Access |
 |---|---|---|---|
-| GET | `/login` | `AuthController` → `auth/login.jsp` | anonymous |
+| GET | `/login` | `LoginController` → `login.html` | anonymous |
 | POST | `/login` | `AuthController` | anonymous |
 | POST | `/logout` | `AuthController` | authenticated |
 | GET | `/access-denied` | `ErrorController` | any |
@@ -74,7 +75,7 @@ Have unless explicitly selected.
 ## RESTful API in the same monolith
 
 The REST surface is an adapter for AJAX, testing and future consumers. It does
-not replace the JSP flow or duplicate Service rules.
+not replace the Thymeleaf flow or duplicate Service rules.
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
@@ -85,8 +86,7 @@ not replace the JSP flow or duplicate Service rules.
 | POST | `/api/seed/roles` | create or update local role fixtures | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
 | POST | `/api/seed/role-permissions` | recreate role-permission fixture assignments | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
 | POST | `/api/seed/users` | create or update local test accounts and role assignments | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
-| POST | `/api/seed/student-profiles` | create or update the sample Student Profile | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
-| POST | `/api/admin/seed` | truncate the fixed application table set and recreate local identity fixtures | ADMIN only + CSRF; legacy local destructive operation |
+| POST | `/api/admin/seed` | truncate all 17 revised-schema tables and recreate local identity fixtures; response includes `tablesReset`, `roles`, `permissions`, and `users` | ADMIN only + CSRF; local destructive operation |
 | GET | `/api/announcements` | published announcements | authenticated |
 | GET | `/api/topics` | published topics with period/department/status filters | authenticated |
 | GET/POST | `/api/faculty/periods` | list/create periods | Faculty Head |
@@ -107,7 +107,7 @@ calculate final grades or bypass resource authorization.
 - Use POST/redirect/GET for all state changes.
 - `id` values are parsed and validated before Service call; Service rechecks
   ownership and role.
-- Do not expose direct JSP paths; all protected views remain under
-  `WEB-INF/views`.
+- Do not expose direct template paths; all protected views remain under
+  `src/main/resources/templates`.
 - Any SSR or REST route added for a Must Have feature must be added here and to
   the phase task acceptance criteria.

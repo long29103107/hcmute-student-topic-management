@@ -26,11 +26,9 @@ CREATE TABLE IF NOT EXISTS roles (
     system_role BOOLEAN NOT NULL DEFAULT TRUE,
     active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
-        ON UPDATE CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_roles PRIMARY KEY (id),
-    CONSTRAINT uk_roles_code UNIQUE (code),
-    CONSTRAINT chk_roles_system_role CHECK (system_role = TRUE)
+    CONSTRAINT uk_roles_code UNIQUE (code)
 ) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS permissions (
@@ -41,8 +39,7 @@ CREATE TABLE IF NOT EXISTS permissions (
     description VARCHAR(255) NULL,
     active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
-        ON UPDATE CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_permissions PRIMARY KEY (id),
     CONSTRAINT uk_permissions_code UNIQUE (code)
 ) ENGINE = InnoDB;
@@ -52,32 +49,12 @@ CREATE TABLE IF NOT EXISTS users (
     login_identifier VARCHAR(100) NOT NULL,
     full_name VARCHAR(150) NOT NULL,
     email_or_code VARCHAR(100) NULL,
-    phone VARCHAR(30) NULL,
-    date_of_birth DATE NULL,
-    password_hash VARCHAR(255) NULL,
+    password_hash VARCHAR(255) NOT NULL,
     active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
-        ON UPDATE CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_users PRIMARY KEY (id),
     CONSTRAINT uk_users_login_identifier UNIQUE (login_identifier)
-) ENGINE = InnoDB;
-
-CREATE TABLE IF NOT EXISTS student_profiles (
-    id BIGINT NOT NULL AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
-    student_code VARCHAR(30) NOT NULL,
-    academic_year VARCHAR(20) NOT NULL,
-    major VARCHAR(100) NULL,
-    class_name VARCHAR(100) NULL,
-    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
-        ON UPDATE CURRENT_TIMESTAMP(6),
-    CONSTRAINT pk_student_profiles PRIMARY KEY (id),
-    CONSTRAINT uk_student_profiles_user UNIQUE (user_id),
-    CONSTRAINT uk_student_profiles_student_code UNIQUE (student_code),
-    CONSTRAINT fk_student_profiles_user FOREIGN KEY (user_id) REFERENCES users (id),
-    INDEX idx_student_profiles_student_code (student_code)
 ) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS user_roles (
@@ -87,8 +64,7 @@ CREATE TABLE IF NOT EXISTS user_roles (
     assigned_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
-        ON UPDATE CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_user_roles PRIMARY KEY (id),
     CONSTRAINT uk_user_roles_user_role UNIQUE (user_id, role_id),
     CONSTRAINT fk_user_roles_user FOREIGN KEY (user_id) REFERENCES users (id),
@@ -104,8 +80,7 @@ CREATE TABLE IF NOT EXISTS role_permissions (
     assigned_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
-        ON UPDATE CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_role_permissions PRIMARY KEY (id),
     CONSTRAINT uk_role_permissions_role_permission UNIQUE (role_id, permission_id),
     CONSTRAINT fk_role_permissions_role FOREIGN KEY (role_id) REFERENCES roles (id),
@@ -124,8 +99,7 @@ CREATE TABLE IF NOT EXISTS departments (
     name VARCHAR(150) NOT NULL,
     active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
-        ON UPDATE CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_departments PRIMARY KEY (id),
     CONSTRAINT uk_departments_code UNIQUE (code)
 ) ENGINE = InnoDB;
@@ -143,8 +117,7 @@ CREATE TABLE IF NOT EXISTS registration_periods (
     status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
     created_by BIGINT NULL,
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
-        ON UPDATE CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_registration_periods PRIMARY KEY (id),
     CONSTRAINT fk_registration_periods_created_by
         FOREIGN KEY (created_by) REFERENCES users (id),
@@ -164,8 +137,7 @@ CREATE TABLE IF NOT EXISTS topics (
     description TEXT NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'DRAFT',
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
-        ON UPDATE CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_topics PRIMARY KEY (id),
     CONSTRAINT fk_topics_period FOREIGN KEY (period_id) REFERENCES registration_periods (id),
     CONSTRAINT fk_topics_department FOREIGN KEY (department_id) REFERENCES departments (id),
@@ -186,16 +158,18 @@ CREATE TABLE IF NOT EXISTS topic_supervisors (
 
 CREATE TABLE IF NOT EXISTS student_groups (
     id BIGINT NOT NULL AUTO_INCREMENT,
+    period_id BIGINT NOT NULL,
     name VARCHAR(150) NOT NULL,
     created_by BIGINT NOT NULL,
     leader_id BIGINT NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
-        ON UPDATE CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_student_groups PRIMARY KEY (id),
+    CONSTRAINT fk_student_groups_period FOREIGN KEY (period_id) REFERENCES registration_periods (id),
     CONSTRAINT fk_student_groups_created_by FOREIGN KEY (created_by) REFERENCES users (id),
     CONSTRAINT fk_student_groups_leader FOREIGN KEY (leader_id) REFERENCES users (id),
+    INDEX idx_student_groups_period_status (period_id, status),
     INDEX idx_student_groups_status (status),
     INDEX idx_student_groups_leader (leader_id)
 ) ENGINE = InnoDB;
@@ -219,14 +193,13 @@ CREATE TABLE IF NOT EXISTS topic_registrations (
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     rejection_reason VARCHAR(500) NULL,
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
-        ON UPDATE CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_topic_registrations PRIMARY KEY (id),
-    CONSTRAINT uk_registration_group_period UNIQUE (group_id, period_id),
     CONSTRAINT fk_topic_registrations_group FOREIGN KEY (group_id) REFERENCES student_groups (id),
     CONSTRAINT fk_topic_registrations_topic FOREIGN KEY (topic_id) REFERENCES topics (id),
     CONSTRAINT fk_topic_registrations_period FOREIGN KEY (period_id) REFERENCES registration_periods (id),
     CONSTRAINT fk_topic_registrations_submitted_by FOREIGN KEY (submitted_by) REFERENCES users (id),
+    INDEX idx_topic_registrations_group_period_status (group_id, period_id, status),
     INDEX idx_topic_registrations_status (status),
     INDEX idx_topic_registrations_topic (topic_id),
     INDEX idx_topic_registrations_group (group_id)
@@ -242,8 +215,7 @@ CREATE TABLE IF NOT EXISTS reports (
     uploader_id BIGINT NOT NULL,
     submitted_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
-        ON UPDATE CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_reports PRIMARY KEY (id),
     CONSTRAINT fk_reports_registration FOREIGN KEY (registration_id)
         REFERENCES topic_registrations (id),
@@ -252,22 +224,80 @@ CREATE TABLE IF NOT EXISTS reports (
     INDEX idx_reports_uploader (uploader_id)
 ) ENGINE = InnoDB;
 
+-- One review board per accepted topic registration for the MVP.
+CREATE TABLE IF NOT EXISTS review_boards (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    registration_id BIGINT NOT NULL,
+    scheduled_at DATETIME(6) NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
+    created_by BIGINT NOT NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    CONSTRAINT pk_review_boards PRIMARY KEY (id),
+    CONSTRAINT uk_review_boards_registration UNIQUE (registration_id),
+    CONSTRAINT fk_review_boards_registration FOREIGN KEY (registration_id)
+        REFERENCES topic_registrations (id),
+    CONSTRAINT fk_review_boards_created_by FOREIGN KEY (created_by) REFERENCES users (id),
+    INDEX idx_review_boards_status (status)
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS review_board_members (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    board_id BIGINT NOT NULL,
+    lecturer_id BIGINT NOT NULL,
+    member_role VARCHAR(20) NOT NULL DEFAULT 'MEMBER',
+    assigned_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    CONSTRAINT pk_review_board_members PRIMARY KEY (id),
+    CONSTRAINT uk_review_board_members_board_lecturer UNIQUE (board_id, lecturer_id),
+    CONSTRAINT fk_review_board_members_board FOREIGN KEY (board_id)
+        REFERENCES review_boards (id),
+    CONSTRAINT fk_review_board_members_lecturer FOREIGN KEY (lecturer_id)
+        REFERENCES users (id),
+    INDEX idx_review_board_members_lecturer (lecturer_id)
+) ENGINE = InnoDB;
+
 CREATE TABLE IF NOT EXISTS evaluations (
     id BIGINT NOT NULL AUTO_INCREMENT,
     registration_id BIGINT NOT NULL,
+    board_id BIGINT NULL,
     lecturer_id BIGINT NOT NULL,
     score DECIMAL(5, 2) NULL,
-    average_score DECIMAL(5, 2) NULL,
     comment TEXT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
-    published_at DATETIME(6) NULL,
+    submitted_at DATETIME(6) NULL,
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
-        ON UPDATE CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_evaluations PRIMARY KEY (id),
-    CONSTRAINT uk_evaluations_registration UNIQUE (registration_id),
     CONSTRAINT fk_evaluations_registration FOREIGN KEY (registration_id)
         REFERENCES topic_registrations (id),
+    CONSTRAINT fk_evaluations_board FOREIGN KEY (board_id) REFERENCES review_boards (id),
     CONSTRAINT fk_evaluations_lecturer FOREIGN KEY (lecturer_id) REFERENCES users (id),
-    INDEX idx_evaluations_lecturer_status (lecturer_id, status)
+    INDEX idx_evaluations_registration_lecturer (registration_id, lecturer_id),
+    INDEX idx_evaluations_board (board_id),
+    INDEX idx_evaluations_lecturer_status (lecturer_id, status),
+    INDEX idx_evaluations_registration_status (registration_id, status)
+) ENGINE = InnoDB;
+
+-- Final/aggregate result for one topic registration.
+CREATE TABLE IF NOT EXISTS registration_results (
+    registration_id BIGINT NOT NULL,
+    average_score DECIMAL(5, 2) NULL,
+    final_comment TEXT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
+    finalized_by BIGINT NULL,
+    finalized_at DATETIME(6) NULL,
+    published_by BIGINT NULL,
+    published_at DATETIME(6) NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    CONSTRAINT pk_registration_results PRIMARY KEY (registration_id),
+    CONSTRAINT fk_registration_results_registration FOREIGN KEY (registration_id)
+        REFERENCES topic_registrations (id),
+    CONSTRAINT fk_registration_results_finalized_by FOREIGN KEY (finalized_by)
+        REFERENCES users (id),
+    CONSTRAINT fk_registration_results_published_by FOREIGN KEY (published_by)
+        REFERENCES users (id),
+    INDEX idx_registration_results_status (status)
 ) ENGINE = InnoDB;

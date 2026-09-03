@@ -26,7 +26,6 @@ import com.hcmute.topicmanagement.repository.DepartmentRepository;
 import com.hcmute.topicmanagement.repository.PermissionRepository;
 import com.hcmute.topicmanagement.repository.RoleRepository;
 import com.hcmute.topicmanagement.repository.RolePermissionRepository;
-import com.hcmute.topicmanagement.repository.StudentProfileRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
 import com.hcmute.topicmanagement.security.DatabaseUserPrincipal;
 
@@ -55,9 +54,6 @@ class DatabaseSeedControllerTest {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private StudentProfileRepository studentProfileRepository;
-
     @Test
     void onlyAdminCanOpenTheSeedPage() throws Exception {
         mockMvc.perform(get("/seed").with(user("student").roles("STUDENT")))
@@ -82,8 +78,7 @@ class DatabaseSeedControllerTest {
                 "/api/seed/permissions",
                 "/api/seed/roles",
                 "/api/seed/role-permissions",
-                "/api/seed/users",
-                "/api/seed/student-profiles");
+                "/api/seed/users");
 
         for (String endpoint : endpoints) {
             mockMvc.perform(post(endpoint)
@@ -99,10 +94,14 @@ class DatabaseSeedControllerTest {
                     .andExpect(status().isOk());
         }
 
+        mockMvc.perform(post("/api/seed/student-profiles")
+                        .with(user(adminPrincipal()))
+                        .with(csrf()))
+                .andExpect(status().isNotFound());
+
         org.assertj.core.api.Assertions.assertThat(roleRepository.count()).isEqualTo(4);
         org.assertj.core.api.Assertions.assertThat(permissionRepository.count()).isEqualTo(21);
         org.assertj.core.api.Assertions.assertThat(userRepository.count()).isEqualTo(4);
-        org.assertj.core.api.Assertions.assertThat(studentProfileRepository.count()).isEqualTo(1);
         org.assertj.core.api.Assertions.assertThat(passwordEncoder.matches(
                 "admin123", userRepository.findByLoginIdentifier("admin").orElseThrow().getPasswordHash()))
                 .isTrue();
@@ -121,15 +120,15 @@ class DatabaseSeedControllerTest {
                         .with(user("admin").roles("ADMIN"))
                         .with(csrf()))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tablesReset").value(17))
                 .andExpect(jsonPath("$.roles").value(4))
                 .andExpect(jsonPath("$.permissions").value(21))
                 .andExpect(jsonPath("$.users").value(4))
-                .andExpect(jsonPath("$.studentProfiles").value(1));
+                .andExpect(jsonPath("$.studentProfiles").doesNotExist());
 
         org.assertj.core.api.Assertions.assertThat(roleRepository.count()).isEqualTo(4);
         org.assertj.core.api.Assertions.assertThat(permissionRepository.count()).isEqualTo(21);
         org.assertj.core.api.Assertions.assertThat(userRepository.count()).isEqualTo(4);
-        org.assertj.core.api.Assertions.assertThat(studentProfileRepository.count()).isEqualTo(1);
         org.assertj.core.api.Assertions.assertThat(departmentRepository.count()).isZero();
 
         var facultyHead = roleRepository.findByCode("FACULTY_HEAD").orElseThrow();

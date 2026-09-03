@@ -32,7 +32,7 @@ public class TopicEntity extends BaseEntity {
     @JoinColumn(name = "proposed_by", nullable = false)
     private UserEntity proposedBy;
 
-    @Column(nullable = false, length = 250)
+    @Column(nullable = false, length = 255)
     private String title;
 
     @Column(columnDefinition = "TEXT")

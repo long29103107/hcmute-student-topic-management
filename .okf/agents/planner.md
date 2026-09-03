@@ -19,8 +19,8 @@ or later roadmap item without an explicit user decision.
 - Read `PRODUCT_VISION.md`, the relevant standards and phase task note first.
 - Add Vision alignment, intended user outcome and out-of-scope boundary to each
   new task or plan.
-- Identify affected model, DTO, Service, DAO/JDBC, Controller/REST Controller,
-  filter/interceptor, JSP, SQL and test files.
+- Identify affected model, DTO, Service, repository, Controller/REST Controller,
+  filter/interceptor, Thymeleaf template, SQL and test files.
 - State role/permission, status, time-window and transaction implications.
 - Call out any point from `docs/open-questions.md` that blocks a decision.
 - Select focused Maven and MySQL/Tomcat verification.

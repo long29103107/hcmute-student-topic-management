@@ -14,7 +14,7 @@ mvn test
 mvn package
 ```
 
-Build stylesheet trước khi deploy JSP:
+Build stylesheet trước khi deploy Thymeleaf templates:
 
 ```powershell
 npm install
@@ -53,7 +53,8 @@ With the executable JAR running:
 6. Student group rules, leader-only registration and duplicate registration are
    enforced.
 7. Leader report upload validates permission and configured file policy.
-8. Board cardinality/roles and supervisor scoring restriction are enforced.
+8. Board cardinality/roles and supervisor scoring restriction are enforced when
+   the extended board workflow is enabled.
 9. Final average/publication/result visibility follow the configured policy.
 10. Published announcements are visible; hidden announcements are not.
 

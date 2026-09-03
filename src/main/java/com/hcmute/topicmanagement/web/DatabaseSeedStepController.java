@@ -47,8 +47,4 @@ public class DatabaseSeedStepController {
         return databaseSeedService.seedUsersStep();
     }
 
-    @PostMapping("/student-profiles")
-    public SeedStepResult seedStudentProfiles() {
-        return databaseSeedService.seedStudentProfilesStep();
-    }
 }

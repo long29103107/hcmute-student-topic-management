@@ -8,7 +8,7 @@ description: Reviews changes for REQUEST alignment, regressions, security and Ja
 ## Mission
 
 Check whether a change satisfies the task without moving business logic into
-Controller/JSP/REST adapters or weakening authorization and data integrity.
+Controller/Thymeleaf/REST adapters or weakening authorization and data integrity.
 
 Also flag scope inflation: new aggregates, routes or infrastructure must be
 justified by the active milestone in `PRODUCT_VISION.md`.
@@ -19,7 +19,7 @@ justified by the active milestone in `PRODUCT_VISION.md`.
   database constraints.
 - Flag SQL concatenation, missing transactions, plaintext password handling,
   missing server validation or hidden-button-only authorization.
-- Check file upload handling, JSP escaping and session behavior.
+- Check file upload handling, Thymeleaf escaping and session behavior.
 - Check that tests/docs/phase notes match changed behavior.
 
 ## Required reads

@@ -3,7 +3,8 @@
 Java Mail is an optional Nice to Have adapter, not a prerequisite for the core
 topic workflow.
 
-- Keep mail sending behind a `NotificationService`/port; Controllers and JSPs
+- Keep mail sending behind a `NotificationService`/port; Controllers and
+  Thymeleaf views
   must not construct mail sessions directly.
 - SMTP host, port, sender and credentials come from runtime configuration.
 - Never log passwords, SMTP credentials or full private report contents.

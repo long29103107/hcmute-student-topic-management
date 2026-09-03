@@ -5,12 +5,13 @@ AJAX-specific endpoints for search, dashboards, email or extended board
 management unless the corresponding Should/Nice to Have scope is approved.
 
 This project is a Spring MVC monolith with SSR pages and a RESTful API adapter.
-The API is deployed in the same WAR and reuses the same Service/DAO contracts;
+The API is deployed in the same executable Spring Boot JAR and reuses the same
+Service/repository contracts;
 it is not a separate service or SPA backend.
 
 - Keep SSR routes and `/api` routes documented in `docs/ui-route-map.md`.
 - Use explicit request DTOs or command objects between Controller and Service.
-- Keep domain entities out of JSP when a view model can expose less data.
+- Keep domain entities out of Thymeleaf when a view model can expose less data.
 - Keep domain entities out of REST JSON when a response DTO can expose less data.
 - Use stable error keys for field-level validation and Vietnamese messages at
   the presentation boundary.
