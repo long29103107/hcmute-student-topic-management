@@ -242,6 +242,20 @@
                   <span class="ms-3" data-sidebar-label>Registration periods</span>
                 </a>
               </li>
+              <li sec:authorize="hasAuthority('SUPERVISOR_MANAGE')">
+                <a
+                  th:href="@{/faculty/topics/supervisors}"
+                  th:aria-current="${pageTitle == 'Supervisor assignments' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'Supervisor assignments' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Supervisor assignments' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m7-8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm9-3v6m3-3h-6"/>
+                  </svg>
+                  <span class="ms-3" data-sidebar-label>Supervisor assignments</span>
+                </a>
+              </li>
             </ul>
           </div>
         </nav>

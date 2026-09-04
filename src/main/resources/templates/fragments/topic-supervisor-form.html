@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="supervisorModal(modalId, formObjectName, formAction, topic, supervisorOptions)"
+     th:id="${modalId}" tabindex="-1" aria-hidden="true" role="dialog" aria-modal="true"
+     class="fixed inset-0 z-50 hidden h-full w-full overflow-y-auto overflow-x-hidden bg-gray-900/50 p-4 md:inset-0">
+    <div class="relative mx-auto my-8 w-full max-w-2xl">
+        <button type="button" class="absolute end-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-900"
+                th:attr="data-modal-hide=${modalId}" aria-label="Close modal">
+            <svg class="h-3 w-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 12 12M13 1 1 13"/>
+            </svg>
+        </button>
+        <div class="relative rounded-lg border border-gray-200 bg-white shadow-xl">
+            <div class="border-b border-gray-200 px-6 py-5 pe-16 sm:px-8">
+                <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Topic supervisors</p>
+                <h2 class="text-xl font-semibold text-gray-900">Assign supervisors</h2>
+                <p class="mt-2 text-sm leading-5 text-gray-500" th:text="${topic.title}">Smart campus platform</p>
+            </div>
+
+            <form class="p-6 sm:p-8" th:action="${formAction}" th:object="${__${formObjectName}__}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <fieldset>
+                    <legend class="text-sm font-medium text-gray-900">Select one or two supervisors</legend>
+                    <p class="mt-1 text-xs text-gray-500">Only active Lecturer and Faculty Head accounts are listed.</p>
+                    <div class="mt-4 max-h-72 space-y-2 overflow-y-auto rounded-lg border border-gray-200 p-3">
+                        <label class="flex cursor-pointer items-start gap-3 rounded-lg p-3 hover:bg-gray-50"
+                               th:each="supervisor : ${supervisorOptions}">
+                            <input type="checkbox" class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                   th:field="*{lecturerIds}" th:value="${supervisor.id}">
+                            <span class="min-w-0">
+                                <span class="block text-sm font-medium text-gray-900" th:text="${supervisor.fullName}">Nguyễn Thanh Bình</span>
+                                <span class="block truncate text-xs text-gray-500" th:text="${supervisor.email}">lecturer@lecturer.hcmute.edu.vn</span>
+                                <span class="block text-xs text-gray-500" th:if="${supervisor.departmentCode != null}"
+                                      th:text="${supervisor.departmentCode + ' · ' + supervisor.departmentName}">CNTT · Công nghệ thông tin</span>
+                            </span>
+                        </label>
+                        <p class="px-2 py-4 text-sm text-gray-500" th:if="${#lists.isEmpty(supervisorOptions)}">No active lecturer-capability accounts are available.</p>
+                    </div>
+                </fieldset>
+
+                <div class="mt-7 flex flex-wrap justify-end gap-3 border-t border-gray-200 pt-6">
+                    <button type="button" class="order-1 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                            th:attr="data-modal-hide=${modalId}">Cancel</button>
+                    <button class="order-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                            type="submit">Save supervisors</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

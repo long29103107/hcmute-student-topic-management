@@ -89,6 +89,8 @@ public class DatabaseSeedService {
             new PermissionSeed("PERIOD_MANAGE", "Manage registration periods", "Registration periods",
                     "Create and manage topic registration periods."),
             new PermissionSeed("TOPIC_PROPOSE", "Propose topics", "Topics", "Create and update topic proposals."),
+            new PermissionSeed("SUPERVISOR_MANAGE", "Manage topic supervisors", "Topics",
+                    "Assign one or two lecturer-capability supervisors to a topic."),
             new PermissionSeed("TOPIC_REVIEW", "Review topics", "Topics",
                     "Review, approve, reject, and publish topic proposals."),
             new PermissionSeed("TOPIC_VIEW", "View published topics", "Topics",
@@ -112,7 +114,7 @@ public class DatabaseSeedService {
     private static final Map<String, List<String>> ROLE_PERMISSIONS = Map.of(
             "ADMIN", allPermissionCodes(),
             "FACULTY_HEAD", withLecturerPermissions(
-                    "PERIOD_MANAGE", "TOPIC_REVIEW", "REGISTRATION_REVIEW"),
+                    "PERIOD_MANAGE", "SUPERVISOR_MANAGE", "TOPIC_REVIEW", "REGISTRATION_REVIEW"),
             "LECTURER", LECTURER_PERMISSIONS,
             "STUDENT", List.of("TOPIC_VIEW", "GROUP_MANAGE", "REGISTRATION_SUBMIT", "REPORT_SUBMIT", "RESULT_VIEW"));
 

@@ -1,5 +1,6 @@
 package com.hcmute.topicmanagement.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -78,4 +79,26 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
             + "where r.code = :roleCode and r.active = true "
             + "and ur.active = true and u.active = true")
     List<UserEntity> findByRoleCodeAndActiveTrue(@Param("roleCode") String roleCode);
+
+    @Query("select distinct u from UserEntity u "
+            + "left join fetch u.department "
+            + "left join fetch u.userRoles ur "
+            + "left join fetch ur.role "
+            + "where lower(u.emailOrCode) = lower(:email)")
+    Optional<UserEntity> findByEmailIgnoreCaseWithRolesAndDepartment(@Param("email") String email);
+
+    @Query("select distinct u from UserEntity u "
+            + "left join fetch u.department "
+            + "join u.userRoles ur join ur.role r "
+            + "where u.active = true and ur.active = true and r.active = true "
+            + "and r.code in ('LECTURER', 'FACULTY_HEAD') "
+            + "order by lower(u.fullName), lower(u.loginIdentifier)")
+    List<UserEntity> findActiveLecturerCapabilitiesOrderByFullName();
+
+    @Query("select distinct u from UserEntity u "
+            + "left join fetch u.department "
+            + "join u.userRoles ur join ur.role r "
+            + "where u.id in :ids and u.active = true and ur.active = true and r.active = true "
+            + "and r.code in ('LECTURER', 'FACULTY_HEAD')")
+    List<UserEntity> findActiveLecturerCapabilitiesByIdIn(@Param("ids") Collection<Long> ids);
 }

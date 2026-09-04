@@ -34,5 +34,30 @@ public interface TopicRepository extends JpaRepository<TopicEntity, Long> {
     Optional<TopicEntity> findOwnProposalWithPeriodAndDepartment(
             @Param("topicId") Long topicId, @Param("lecturerId") Long lecturerId);
 
+    @Query("select distinct t from TopicEntity t "
+            + "join fetch t.registrationPeriod "
+            + "join fetch t.department "
+            + "join fetch t.proposedBy "
+            + "left join fetch t.supervisors "
+            + "order by t.updatedAt desc, t.id desc")
+    List<TopicEntity> findAllForSupervisorManagement();
+
+    @Query("select distinct t from TopicEntity t "
+            + "join fetch t.registrationPeriod "
+            + "join fetch t.department "
+            + "join fetch t.proposedBy "
+            + "left join fetch t.supervisors "
+            + "where t.department.id = :departmentId "
+            + "order by t.updatedAt desc, t.id desc")
+    List<TopicEntity> findForSupervisorManagementByDepartmentId(@Param("departmentId") Long departmentId);
+
+    @Query("select distinct t from TopicEntity t "
+            + "join fetch t.registrationPeriod "
+            + "join fetch t.department "
+            + "join fetch t.proposedBy "
+            + "left join fetch t.supervisors "
+            + "where t.id = :topicId")
+    Optional<TopicEntity> findByIdForSupervisorManagement(@Param("topicId") Long topicId);
+
     boolean existsByDepartment_Id(Long departmentId);
 }
