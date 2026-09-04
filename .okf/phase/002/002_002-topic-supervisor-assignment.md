@@ -26,8 +26,8 @@ department.
 ## Scope
 
 In: supervisor assignment service, permission/role seed, Faculty Head/Admin
-topic assignment page, REST adapter, server-side validation and authorization
-tests.
+topic assignment page, REST adapter, server-side validation, authorization
+tests and local topic/supervisor fixtures.
 
 Out: supervisor invitation/confirmation, assignment history, topic review,
 publication, board membership and evaluation assignment.
@@ -37,6 +37,7 @@ publication, board membership and evaluation assignment.
 - A topic must have between one and two supervisors after an assignment.
 - A supervisor must be active and have an active `LECTURER` or
   `FACULTY_HEAD` role; Faculty Head does not need a second `LECTURER` role.
+- A supervisor must belong to the same department as the topic.
 - Duplicate supervisors are rejected before persistence.
 - Admin can manage every topic.
 - Faculty Head can only manage topics in the Faculty Head's assigned
@@ -47,11 +48,15 @@ publication, board membership and evaluation assignment.
 ## HTTP contract
 
 - `GET /faculty/topics/supervisors` renders the manageable topic list and
-  assignment modals.
+  assignment modals; it supports `search`, `page`, `size`, the whitelisted
+  `sort` columns (`topic`, `department`, `period`, `status`, `proposer`,
+  `supervisors`) and `direction` (`asc`/`desc`).
 - `POST /faculty/topics/{id}/supervisors` replaces the topic's supervisors
   using repeated `lecturerIds` form parameters and redirects on success.
-- `GET /api/faculty/topics/supervisors` returns the manageable topics and valid
-  supervisor options.
+- `GET /api/faculty/topics/supervisors` returns a filtered, sorted page of
+  manageable topics with `page`, `size`, `totalItems`, `totalPages`, search
+  and sort metadata, plus valid same-department supervisor options on each
+  topic.
 - `PUT /api/faculty/topics/{id}/supervisors` accepts
   `{ "lecturerIds": [1, 2] }` and returns the updated assignment.
 - Mutating browser/API requests require CSRF according to the existing
@@ -59,22 +64,33 @@ publication, board membership and evaluation assignment.
 
 ## Acceptance checklist
 
-- [ ] `SUPERVISOR_MANAGE` is present in the seed permission catalog.
-- [ ] Admin receives the permission through the full permission bundle.
-- [ ] Faculty Head receives the permission; Lecturer and Student do not.
-- [ ] The UI lists only topics inside the actor's allowed scope.
-- [ ] Valid one- and two-supervisor assignments persist to
+- [x] `SUPERVISOR_MANAGE` is present in the seed permission catalog.
+- [x] The admin seed pipeline creates realistic topic fixtures with one or two
+  supervisor rows per topic.
+- [x] Admin receives the permission through the full permission bundle.
+- [x] Faculty Head receives the permission; Lecturer and Student do not.
+- [x] The UI lists only topics inside the actor's allowed scope.
+- [x] The UI/API lists only active lecturer-capability members of each topic's
+  department as supervisor options.
+- [x] Valid one- and two-supervisor assignments persist to
   `topic_supervisors`.
-- [ ] Duplicate, zero, over-two, inactive and non-lecturer assignments are
+- [x] Duplicate, zero, over-two, inactive and non-lecturer assignments are
   rejected server-side.
-- [ ] Faculty Head cannot assign a topic from another department.
-- [ ] Admin can assign topics across departments.
-- [ ] REST and SSR use the same Service rules.
-- [ ] Tests cover permission, department scope, valid assignments and all
+- [x] Cross-department supervisor assignments are rejected server-side.
+- [x] Faculty Head cannot assign a topic from another department.
+- [x] Admin can assign topics across departments.
+- [x] REST and SSR use the same Service rules.
+- [x] Search, whitelisted column sort and pagination preserve the actor scope
+  and per-topic same-department supervisor options.
+- [x] Tests cover permission, department scope, valid assignments and all
   validation boundaries.
 
 ## Verification plan
 
-- Focused `TopicSupervisorControllerTest` for SSR/REST and persistence.
-- Seed assertions for permission count and Admin/Faculty Head mappings.
-- Full `mvn test`, `mvn package -DskipTests` and `git diff --check`.
+- Focused `TopicSupervisorControllerTest` for SSR/REST, persistence, search,
+  sort and pagination — pass, 6 tests.
+- Seed assertions for permission count, Admin/Faculty Head mappings and topic
+  supervisor fixtures — pass, 3 tests.
+- Full `mvn test` — pass, 87 tests.
+- `mvn package -DskipTests` — pass; executable Spring Boot JAR created.
+- `git diff --check` — pass; only normal LF/CRLF conversion warnings.

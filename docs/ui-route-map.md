@@ -55,6 +55,8 @@ Have unless explicitly selected.
 | GET/POST | `/admin/departments`, `/admin/departments/{id}/edit`, `/admin/departments/{id}/status`, `/admin/departments/{id}/delete` | `DepartmentController` → Admin-only department CRUD, search (`search`), pagination (`page`, `size`), column sort (`sort=code|name|status`, `direction=asc|desc`), activate/deactivate and safe delete; delete succeeds only when no users or topics reference the department |
 | GET | `/faculty/departments` | `FacultyDepartmentController` → Faculty Head read-only view of their assigned department members |
 | GET/POST | `/faculty/periods`, `/faculty/periods/{id}/edit` | `RegistrationPeriodController` → Faculty Head/Admin registration-period CRUD with lecturer/student windows, status and creator tracking |
+| GET | `/faculty/topics/supervisors` | `TopicSupervisorController` → Admin/Faculty Head topic list scoped by authorization, with search (`search`), pagination (`page`, `size`), column sort (`sort=topic|department|period|status|proposer|supervisors`, `direction=asc|desc`) and supervisor-assignment modals (`SUPERVISOR_MANAGE`) |
+| POST | `/faculty/topics/{id}/supervisors` | `TopicSupervisorController` → replace one or two active Lecturer/Faculty Head supervisors through the shared Service validation |
 | GET/POST | `/faculty/topics/review` | `TopicReviewController` → approve/reject/publish |
 | GET/POST | `/faculty/registrations/review` | `RegistrationReviewController` → approve/reject |
 | GET/POST | `/faculty/boards` | `ReviewBoardController` → full board/member/topic assignment (Should Have) |
@@ -96,10 +98,13 @@ not replace the Thymeleaf flow or duplicate Service rules.
 | POST | `/api/seed/role-permissions` | recreate role-permission fixture assignments | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
 | POST | `/api/seed/users` | create or update local test accounts and role assignments | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
 | POST | `/api/seed/registration-periods` | create or update the local open registration-period fixture | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
-| POST | `/api/admin/seed` | truncate all 17 revised-schema tables and recreate local identity fixtures; response includes `tablesReset`, `roles`, `permissions`, and `users` | ADMIN only + CSRF; local destructive operation |
+| POST | `/api/seed/topics` | create or update eight local topic fixtures and their one-to-two supervisor assignments | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
+| POST | `/api/admin/seed` | truncate all 17 revised-schema tables and recreate local identity, academic topic and supervisor fixtures; response includes `tablesReset`, `roles`, `permissions`, `users`, `topics` and `topicSupervisors` | ADMIN only + CSRF; local destructive operation |
 | GET | `/api/announcements` | published announcements | authenticated |
 | GET | `/api/topics` | published topics with period/department/status filters | authenticated |
 | GET/POST | `/api/faculty/periods` | planned REST adapter; current registration-period CRUD is available through `/faculty/periods` | Faculty Head/Admin |
+| GET | `/api/faculty/topics/supervisors` | list manageable topics with search, pagination metadata, column sort (`sort=topic|department|period|status|proposer|supervisors`, `direction=asc|desc`) and active lecturer-capability supervisor options filtered to each topic's department | `SUPERVISOR_MANAGE` |
+| PUT | `/api/faculty/topics/{id}/supervisors` | replace a topic's supervisor IDs; accepts one or two IDs and returns the updated assignment | `SUPERVISOR_MANAGE` + CSRF |
 | GET/POST | `/api/lecturer/topics` | list or create the authenticated user's own topic proposals; create validates the active department and inclusive lecturer registration window | `TOPIC_PROPOSE` |
 | PUT | `/api/lecturer/topics/{id}` | update an owned `DRAFT`/`REJECTED` proposal; a rejected proposal returns to `DRAFT` after a valid update | `TOPIC_PROPOSE` |
 | POST | `/api/topics/{id}/approve` | approve/reject/publish topic action | Faculty Head |

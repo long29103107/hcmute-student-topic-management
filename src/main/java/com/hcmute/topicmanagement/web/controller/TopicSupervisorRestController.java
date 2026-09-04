@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hcmute.topicmanagement.service.TopicSupervisorService;
@@ -35,8 +36,15 @@ public class TopicSupervisorRestController {
 
     @GetMapping("/supervisors")
     @PreAuthorize("hasAuthority('SUPERVISOR_MANAGE')")
-    public TopicAssignmentPage list(Authentication authentication) {
-        return topicSupervisorService.listManageableTopics(authentication.getName());
+    public TopicAssignmentPage list(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "topic") String sort,
+            @RequestParam(defaultValue = "asc") String direction) {
+        return topicSupervisorService.listManageableTopics(
+                authentication.getName(), search, page, size, sort, direction);
     }
 
     @PutMapping("/{id}/supervisors")

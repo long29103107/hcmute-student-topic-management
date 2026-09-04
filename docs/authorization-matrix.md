@@ -22,7 +22,8 @@ do not create extra authorization paths for it unless selected.
 | Approve/reject group registration | yes | yes | no | no | no |
 | Submit report | yes | no | no | no | group leader only |
 | View/download permitted report | yes | yes | assigned roles | group members + assigned roles | group member |
-| Manage supervisors/board/assignments | yes | yes, Should | no | no | no |
+| Manage topic supervisors | yes | yes, own department | no | no | no |
+| Manage review board/assignments | yes | yes, Should | no | no | no |
 | Enter score for assigned topic | yes | assigned Faculty Head only when also the assigned lecturer | assigned lecturer | no | no |
 | Aggregate board result | yes | yes/assigned chair, Should | chair only, Should | no | no |
 | Publish final result | yes | yes | no | no | no |
@@ -35,7 +36,7 @@ permission to `ADMIN`, route gates accept Admin for every role workspace, and
 the sidebar exposes available role workspaces. Faculty Head receives the
 Lecturer permission bundle explicitly through `role_permissions`, then
 receives additional faculty workflow permissions such as `PERIOD_MANAGE`,
-`TOPIC_REVIEW` and `REGISTRATION_REVIEW`. Resource-specific rules still apply
+`SUPERVISOR_MANAGE`, `TOPIC_REVIEW` and `REGISTRATION_REVIEW`. Resource-specific rules still apply
 where a contract explicitly says own/group/assigned; full Admin capability
 does not silently impersonate another user's ownership relationship.
 

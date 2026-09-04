@@ -215,6 +215,73 @@ factual and free of secrets. Update this file after every code or UI update.
 - Verification: `git diff --check` passed; no application tests were run for
   this documentation-only change.
 
+## 2026-09-04 — Topic Supervisor Assignment (002_002)
+
+- Implemented Admin/Faculty Head supervisor management for topics through
+  `TopicSupervisorService`, SSR routes under `/faculty/topics/supervisors`
+  and REST routes under `/api/faculty/topics/supervisors`.
+- Added the `SUPERVISOR_MANAGE` permission to the seed catalog and Faculty
+  Head bundle; Admin continues to receive every current permission.
+- Enforced one-to-two active Lecturer/Faculty Head supervisors, duplicate and
+  invalid-user rejection, Admin all-topic scope and Faculty Head own-
+  department scope. Added the Faculty workflow sidebar entry.
+- Updated `docs/ui-route-map.md`, `docs/domain-model.md`,
+  `docs/authorization-matrix.md`, `docs/workflows.md`,
+  `docs/verification.md`, the Phase 002 summary and the task checklist.
+- Verification: focused `TopicSupervisorControllerTest` passes 5/5; full
+  `mvn test` passes 86/86; `mvn package -DskipTests` succeeds and
+  `git diff --check` passes. GitHub issue #5 status update remains the
+  external closeout step.
+
+## 2026-09-04 — Topic and supervisor seed fixtures
+
+- Extended the admin reset/step seed pipeline with eight realistic topic
+  fixtures across CNTT, KHMT, CNPM and HTTT, plus thirteen valid
+  `topic_supervisors` rows.
+- Added `POST /api/seed/topics` as the final step in the admin seed page;
+  the reset response now reports topic and supervisor counts.
+- Updated the seed test, route map, verification checklist and
+  `002_002` task note. No additional permission was needed.
+- Verification: `DatabaseSeedControllerTest` passes 3/3 and full
+  `mvn test` passes 86/86; `mvn package -DskipTests` succeeds and
+  `git diff --check` passes.
+
+## 2026-09-04 — Same-department supervisor enforcement
+
+- Tightened `TopicSupervisorService` so every assigned supervisor must have
+  an active Lecturer/Faculty Head role and belong to the topic's department.
+- SSR modals and REST responses now expose per-topic supervisor options filtered
+  to that department; cross-department IDs return validation errors.
+- Updated the supervisor assignment tests, task checklist, domain/workflow
+  documentation and route/verification notes. No permission or seed fixture
+  change was needed because all existing fixtures already match their topic
+  departments.
+- Verification: focused `TopicSupervisorControllerTest` passes 5/5; full
+  `mvn test` passes 86/86; `mvn package -DskipTests` succeeds and
+  `git diff --check` passes.
+
+## 2026-09-04 — Same-department seed regression coverage
+
+- Extended `DatabaseSeedControllerTest` to assert every seeded
+  `topic_supervisors` row points to a user in the topic's department.
+- Verification: focused seed suite passes 3/3 after the assertion; the
+  previously rerun full suite passes 86/86, package succeeds and diff checks
+  remain clean apart from normal LF/CRLF warnings.
+
+## 2026-09-04 — Supervisor assignment directory controls
+
+- Added scoped search across topic, department, period, status, proposer and
+  assigned-supervisor text, whitelisted column sorting and request-level
+  pagination to the SSR and REST supervisor-assignment listings.
+- Pagination metadata and query-preserving links keep the Admin/Faculty Head
+  scope and each topic's same-department supervisor options intact; no new
+  permission or seed fixture was needed.
+- Updated `docs/ui-route-map.md`, `docs/verification.md`, the `002_002` task
+  note and Phase 002 summary.
+- Verification: focused `TopicSupervisorControllerTest` passes 6/6; full
+  `mvn test` passes 87/87; `mvn package -DskipTests` succeeds and
+  `git diff --check` passes with only normal LF/CRLF warnings.
+
 ## Entry template
 
 ### YYYY-MM-DD — Short update title

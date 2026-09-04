@@ -137,12 +137,15 @@ class TopicSupervisorControllerTest {
         String suffix = suffix();
         UserEntity admin = saveUser("validation-admin-" + suffix, "Validation Admin " + suffix, "ADMIN", null);
         DepartmentEntity department = department("VALID-" + suffix);
+        DepartmentEntity otherDepartment = department("OTHER-VALID-" + suffix);
         RegistrationPeriodEntity period = openPeriod(suffix);
         UserEntity proposer = saveUser("validation-proposer-" + suffix, "Validation Proposer " + suffix, "LECTURER", department);
         UserEntity first = saveUser("validation-first-" + suffix, "Validation First " + suffix, "LECTURER", department);
         UserEntity second = saveUser("validation-second-" + suffix, "Validation Second " + suffix, "LECTURER", department);
         UserEntity student = saveUser("validation-student-" + suffix, "Validation Student " + suffix, "STUDENT", department);
         UserEntity inactive = saveUser("validation-inactive-" + suffix, "Validation Inactive " + suffix, "LECTURER", department);
+        UserEntity otherDepartmentSupervisor = saveUser(
+                "validation-other-" + suffix, "Validation Other " + suffix, "LECTURER", otherDepartment);
         inactive.setActive(false);
         userRepository.saveAndFlush(inactive);
         TopicEntity topic = topic(period, department, proposer, "validation-" + suffix);
@@ -156,6 +159,9 @@ class TopicSupervisorControllerTest {
                 "Every selected supervisor must be an active Lecturer or Faculty Head.", student.getId());
         assertBadAssignment(admin, topic,
                 "Every selected supervisor must be an active Lecturer or Faculty Head.", inactive.getId());
+        assertBadAssignment(admin, topic,
+                "Every selected supervisor must belong to the topic's department.",
+                otherDepartmentSupervisor.getId());
 
         org.assertj.core.api.Assertions.assertThat(
                 topicRepository.findByIdForSupervisorManagement(topic.getId()).orElseThrow().getSupervisors())
@@ -170,13 +176,18 @@ class TopicSupervisorControllerTest {
         RegistrationPeriodEntity period = openPeriod(suffix);
         UserEntity proposer = saveUser("rest-proposer-" + suffix, "REST Proposer " + suffix, "LECTURER", department);
         UserEntity supervisor = saveUser("rest-supervisor-" + suffix, "REST Supervisor " + suffix, "LECTURER", department);
+        DepartmentEntity otherDepartment = department("OTHER-REST-" + suffix);
+        UserEntity otherDepartmentSupervisor = saveUser(
+                "rest-other-" + suffix, "REST Other " + suffix, "LECTURER", otherDepartment);
         TopicEntity topic = topic(period, department, proposer, "rest-" + suffix);
 
         mockMvc.perform(get("/api/faculty/topics/supervisors")
-                        .with(user(adminPrincipal(admin.getEmailOrCode()))))
+                        .with(user(adminPrincipal(admin.getEmailOrCode())))
+                        .param("search", "rest-" + suffix))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.topics[0].title").value(topic.getTitle()))
-                .andExpect(jsonPath("$.supervisorOptions").isArray());
+                .andExpect(jsonPath("$.topics[0].supervisorOptions[*].id")
+                        .value(org.hamcrest.Matchers.hasItem(supervisor.getId().intValue())));
 
         mockMvc.perform(put("/api/faculty/topics/{id}/supervisors", topic.getId())
                         .with(user(adminPrincipal(admin.getEmailOrCode())))
@@ -193,6 +204,14 @@ class TopicSupervisorControllerTest {
                 .andExpect(jsonPath("$.id").value(topic.getId()))
                 .andExpect(jsonPath("$.supervisors[0].id").value(supervisor.getId()));
 
+        mockMvc.perform(put("/api/faculty/topics/{id}/supervisors", topic.getId())
+                        .with(user(adminPrincipal(admin.getEmailOrCode())))
+                        .with(csrf())
+                        .contentType("application/json")
+                        .content("{\"lecturerIds\":[" + otherDepartmentSupervisor.getId() + "]}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("TOPIC_SUPERVISOR_INVALID"));
+
         mockMvc.perform(get("/faculty/topics/supervisors")
                         .with(user("student").roles("STUDENT")))
                 .andExpect(status().isForbidden());
@@ -207,17 +226,25 @@ class TopicSupervisorControllerTest {
         String suffix = suffix();
         UserEntity admin = saveUser("option-admin-" + suffix, "Option Admin " + suffix, "ADMIN", null);
         DepartmentEntity department = department("OPTION-" + suffix);
+        DepartmentEntity otherDepartment = department("OTHER-OPTION-" + suffix);
         RegistrationPeriodEntity period = openPeriod(suffix);
         UserEntity proposer = saveUser("option-proposer-" + suffix, "Option Proposer " + suffix, "LECTURER", department);
         UserEntity facultyHead = saveUser("option-head-" + suffix, "Option Faculty Head " + suffix, "FACULTY_HEAD", department);
         UserEntity student = saveUser("option-student-" + suffix, "Option Student " + suffix, "STUDENT", department);
+        UserEntity otherDepartmentSupervisor = saveUser(
+                "option-other-" + suffix, "Option Other " + suffix, "LECTURER", otherDepartment);
         TopicEntity topic = topic(period, department, proposer, "options-" + suffix);
 
         mockMvc.perform(get("/api/faculty/topics/supervisors")
-                        .with(user(adminPrincipal(admin.getEmailOrCode()))))
+                        .with(user(adminPrincipal(admin.getEmailOrCode())))
+                        .param("search", "options-" + suffix))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.supervisorOptions[*].id").value(org.hamcrest.Matchers.hasItem(facultyHead.getId().intValue())))
-                .andExpect(jsonPath("$.supervisorOptions[*].id").value(not(org.hamcrest.Matchers.hasItem(student.getId().intValue()))));
+                .andExpect(jsonPath("$.topics[0].supervisorOptions[*].id")
+                        .value(org.hamcrest.Matchers.hasItem(facultyHead.getId().intValue())))
+                .andExpect(jsonPath("$.topics[0].supervisorOptions[*].id")
+                        .value(not(org.hamcrest.Matchers.hasItem(student.getId().intValue()))))
+                .andExpect(jsonPath("$.topics[0].supervisorOptions[*].id")
+                        .value(not(org.hamcrest.Matchers.hasItem(otherDepartmentSupervisor.getId().intValue()))));
 
         mockMvc.perform(put("/api/faculty/topics/{id}/supervisors", topic.getId())
                         .with(user(adminPrincipal(admin.getEmailOrCode())))
@@ -225,6 +252,71 @@ class TopicSupervisorControllerTest {
                         .contentType("application/json")
                         .content("{\"lecturerIds\":[" + facultyHead.getId() + "]}"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void supervisorListSupportsSearchSortAndPagination() throws Exception {
+        String suffix = suffix();
+        UserEntity admin = saveUser("page-admin-" + suffix, "Page Admin " + suffix, "ADMIN", null);
+        DepartmentEntity firstDepartment = department("AAA-" + suffix);
+        DepartmentEntity secondDepartment = department("ZZZ-" + suffix);
+        RegistrationPeriodEntity period = openPeriod(suffix);
+        UserEntity firstProposer = saveUser(
+                "page-first-proposer-" + suffix, "Page First Proposer " + suffix, "LECTURER", firstDepartment);
+        UserEntity secondProposer = saveUser(
+                "page-second-proposer-" + suffix, "Page Second Proposer " + suffix, "LECTURER", secondDepartment);
+
+        TopicEntity firstTopic = topic(period, firstDepartment, firstProposer, "a-0-" + suffix);
+        topic(period, firstDepartment, firstProposer, "a-1-" + suffix);
+        topic(period, firstDepartment, firstProposer, "a-2-" + suffix);
+        topic(period, secondDepartment, secondProposer, "z-0-" + suffix);
+        topic(period, secondDepartment, secondProposer, "z-1-" + suffix);
+        TopicEntity lastTopic = topic(period, secondDepartment, secondProposer, "z-2-" + suffix);
+
+        mockMvc.perform(get("/faculty/topics/supervisors")
+                        .with(user(adminPrincipal(admin.getEmailOrCode())))
+                        .param("page", "1")
+                        .param("size", "5")
+                        .param("search", suffix)
+                        .param("sort", "department")
+                        .param("direction", "asc"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("faculty/supervisors"))
+                .andExpect(content().string(containsString("Showing")))
+                .andExpect(content().string(containsString("6 topics")))
+                .andExpect(content().string(containsString(lastTopic.getTitle())))
+                .andExpect(content().string(not(containsString(firstTopic.getTitle()))))
+                .andExpect(content().string(containsString("size=5")))
+                .andExpect(content().string(containsString("sort=department")))
+                .andExpect(content().string(containsString("direction=asc")));
+
+        mockMvc.perform(get("/api/faculty/topics/supervisors")
+                        .with(user(adminPrincipal(admin.getEmailOrCode())))
+                        .param("page", "1")
+                        .param("size", "5")
+                        .param("search", suffix)
+                        .param("sort", "department")
+                        .param("direction", "asc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page").value(1))
+                .andExpect(jsonPath("$.size").value(5))
+                .andExpect(jsonPath("$.totalItems").value(6))
+                .andExpect(jsonPath("$.totalPages").value(2))
+                .andExpect(jsonPath("$.topics.length()").value(1))
+                .andExpect(jsonPath("$.topics[0].title").value(lastTopic.getTitle()));
+
+        mockMvc.perform(get("/api/faculty/topics/supervisors")
+                        .with(user(adminPrincipal(admin.getEmailOrCode())))
+                        .param("page", "99")
+                        .param("size", "1")
+                        .param("search", suffix)
+                        .param("sort", "department")
+                        .param("direction", "asc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page").value(1))
+                .andExpect(jsonPath("$.size").value(5))
+                .andExpect(jsonPath("$.totalPages").value(2))
+                .andExpect(jsonPath("$.topics.length()").value(1));
     }
 
     private void assertBadAssignment(UserEntity admin, TopicEntity topic, String message, Long... ids)

@@ -71,6 +71,21 @@ DRAFT -> PENDING_APPROVAL -> APPROVED -> PUBLISHED
 - Rejection reason is optional for Must Have and useful for Should Have; keep
   the data field available without requiring a particular UI until confirmed.
 
+## Topic supervisor assignment gates
+
+- Admin may manage supervisors for every topic.
+- Faculty Head may manage supervisors only for topics in the Faculty Head's
+  assigned department; an unassigned Faculty Head has no manageable topics.
+- An assignment must contain one or two active users with an active
+  `LECTURER` or `FACULTY_HEAD` role. Duplicate IDs, inactive users, students
+  and empty/over-limit assignments are rejected server-side.
+- Every selected supervisor must be a member of the topic's department;
+  cross-department assignments are rejected even when the selected user has a
+  valid lecturer-capability role.
+- `SUPERVISOR_MANAGE` is the permission gate. The UI only filters the list;
+  `TopicSupervisorService` rechecks actor scope, candidate roles and the
+  transaction before replacing `topic_supervisors`.
+
 ## Group registration gates
 
 1. Authenticated student creates or joins a group.

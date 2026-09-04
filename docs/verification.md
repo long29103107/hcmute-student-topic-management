@@ -85,6 +85,33 @@ The period service and controller tests also cover the follow-up rules:
 
 ## REST smoke checklist
 
+## Topic Supervisor Assignment checklist (Issue #5 / 002_002)
+
+The `TopicSupervisorControllerTest` suite maps the task acceptance criteria to
+SSR and REST request-level assertions:
+
+- `SUPERVISOR_MANAGE` is seeded; Admin receives all permissions, Faculty Head
+  receives the supervisor permission, and Lecturer/Student do not.
+- The admin seed pipeline creates eight realistic topic fixtures and thirteen
+  `topic_supervisors` rows after users, departments and the open period.
+- Admin can view and assign one or two supervisors across departments.
+- Faculty Head sees and manages only topics in their own department.
+- Active Lecturer and Faculty Head users are valid candidates; students and
+  inactive users are rejected.
+- Cross-department lecturer-capability users are rejected and are not listed
+  as options for the topic.
+- Empty, duplicate and over-two assignments are rejected server-side.
+- Valid assignments persist to `topic_supervisors`.
+- SSR and REST use the same Service rules; unauthorized access and missing
+  CSRF on mutations are rejected.
+- The supervisor directory searches topic, department, period, status, proposer
+  and assigned-supervisor text within the actor's scope.
+- Topic and Department/Period/Status/Supervisors column links toggle the
+  whitelisted ascending/descending sort while preserving the current search
+  and page size.
+- SSR and REST pagination return the requested page size, total item/page
+  metadata and clamp out-of-range page/size values safely.
+
 When REST endpoints are implemented, verify at least:
 
 - login/logout session behavior through `/api/auth/*`;

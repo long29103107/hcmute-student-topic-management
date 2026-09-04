@@ -22,15 +22,18 @@ import com.hcmute.topicmanagement.model.PermissionEntity;
 import com.hcmute.topicmanagement.model.RegistrationPeriodEntity;
 import com.hcmute.topicmanagement.model.RoleEntity;
 import com.hcmute.topicmanagement.model.RolePermissionEntity;
+import com.hcmute.topicmanagement.model.TopicEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
 import com.hcmute.topicmanagement.model.enums.PeriodType;
 import com.hcmute.topicmanagement.model.enums.RegistrationPeriodStatus;
+import com.hcmute.topicmanagement.model.enums.TopicStatus;
 import com.hcmute.topicmanagement.repository.DepartmentRepository;
 import com.hcmute.topicmanagement.repository.PermissionRepository;
 import com.hcmute.topicmanagement.repository.RegistrationPeriodRepository;
 import com.hcmute.topicmanagement.repository.RolePermissionRepository;
 import com.hcmute.topicmanagement.repository.RoleRepository;
+import com.hcmute.topicmanagement.repository.TopicRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
 import com.hcmute.topicmanagement.repository.UserRoleRepository;
 
@@ -211,6 +214,64 @@ public class DatabaseSeedService {
             student("24110048", "Lý Ngọc Huyền", "HTTT"),
             student("24110049", "Nguyễn Đức Toàn", "HTTT"));
 
+    private static final List<TopicSeed> TOPICS = List.of(
+            new TopicSeed(
+                    "Nền tảng quản lý đề tài và tiến độ khóa luận",
+                    "Xây dựng nền tảng theo dõi vòng đời đề tài, tiến độ thực hiện và các mốc nghiệm thu cho sinh viên.",
+                    "CNTT",
+                    "nguyen.thanh.binh",
+                    TopicStatus.PENDING_APPROVAL,
+                    List.of("nguyen.van.khang", "vo.hoang.nam")),
+            new TopicSeed(
+                    "Phân tích dữ liệu học tập bằng dashboard tương tác",
+                    "Thiết kế dashboard giúp cố vấn nhận diện xu hướng học tập và hỗ trợ sinh viên theo dữ liệu thực tế.",
+                    "CNTT",
+                    "bui.thanh.ha",
+                    TopicStatus.DRAFT,
+                    List.of("dang.minh.tri")),
+            new TopicSeed(
+                    "Phát hiện bất thường trong kết quả học tập",
+                    "Nghiên cứu các phương pháp phát hiện sớm kết quả bất thường trong dữ liệu điểm và lịch sử học tập.",
+                    "KHMT",
+                    "nguyen.quoc.viet",
+                    TopicStatus.APPROVED,
+                    List.of("tran.thi.hong.gam", "doan.thi.ngoc")),
+            new TopicSeed(
+                    "Mô hình gợi ý lộ trình học tập cá nhân hóa",
+                    "Xây dựng mô hình gợi ý học phần dựa trên năng lực, mục tiêu và lịch sử đăng ký của sinh viên.",
+                    "KHMT",
+                    "doan.thi.ngoc",
+                    TopicStatus.PENDING_APPROVAL,
+                    List.of("truong.gia.huy")),
+            new TopicSeed(
+                    "Kiến trúc microservices cho cổng dịch vụ sinh viên",
+                    "Đề xuất và triển khai thử nghiệm kiến trúc microservices cho các dịch vụ học vụ có khả năng mở rộng.",
+                    "CNPM",
+                    "phan.tuan.anh",
+                    TopicStatus.PUBLISHED,
+                    List.of("le.quang.huy", "huynh.thi.my.linh")),
+            new TopicSeed(
+                    "Ứng dụng quản lý quy trình thực tập doanh nghiệp",
+                    "Số hóa quy trình đăng ký, phê duyệt và theo dõi thực tập giữa sinh viên, giảng viên và doanh nghiệp.",
+                    "CNPM",
+                    "huynh.thi.my.linh",
+                    TopicStatus.APPROVED,
+                    List.of("ngo.duy.khanh", "mai.quoc.thang")),
+            new TopicSeed(
+                    "Hệ thống cảnh báo sớm nguy cơ trễ tiến độ đề tài",
+                    "Phân tích các mốc công việc và tín hiệu tiến độ để cảnh báo sớm những đề tài có nguy cơ chậm kế hoạch.",
+                    "HTTT",
+                    "hoang.duc.long",
+                    TopicStatus.PENDING_APPROVAL,
+                    List.of("pham.minh.tuan")),
+            new TopicSeed(
+                    "Số hóa quy trình tiếp nhận yêu cầu hỗ trợ học vụ",
+                    "Thiết kế hệ thống tiếp nhận, phân loại và theo dõi yêu cầu hỗ trợ học vụ theo từng đơn vị phụ trách.",
+                    "HTTT",
+                    "nguyen.thi.thu",
+                    TopicStatus.DRAFT,
+                    List.of("nguyen.thi.thu", "ta.minh.quan")));
+
     private static final List<UserSeed> USERS = buildUsers();
 
     private static List<UserSeed> buildUsers() {
@@ -260,6 +321,7 @@ public class DatabaseSeedService {
     private final RegistrationPeriodRepository registrationPeriodRepository;
     private final RolePermissionRepository rolePermissionRepository;
     private final DepartmentRepository departmentRepository;
+    private final TopicRepository topicRepository;
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     @PersistenceContext
@@ -272,6 +334,7 @@ public class DatabaseSeedService {
             RegistrationPeriodRepository registrationPeriodRepository,
             RolePermissionRepository rolePermissionRepository,
             DepartmentRepository departmentRepository,
+            TopicRepository topicRepository,
             UserRepository userRepository,
             UserRoleRepository userRoleRepository) {
         this.dataSource = dataSource;
@@ -280,6 +343,7 @@ public class DatabaseSeedService {
         this.registrationPeriodRepository = registrationPeriodRepository;
         this.rolePermissionRepository = rolePermissionRepository;
         this.departmentRepository = departmentRepository;
+        this.topicRepository = topicRepository;
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
     }
@@ -294,6 +358,7 @@ public class DatabaseSeedService {
         seedDepartments();
         seedUsers(roles);
         seedRegistrationPeriods();
+        List<TopicEntity> topics = seedTopics();
         entityManager.clear();
 
         return new SeedResult(
@@ -303,6 +368,8 @@ public class DatabaseSeedService {
                 DEPARTMENTS.size(),
                 USERS.size(),
                 1,
+                topics.size(),
+                topics.stream().mapToInt(topic -> topic.getSupervisors().size()).sum(),
                 countUsersWithRole("FACULTY_HEAD"),
                 countUsersWithRole("LECTURER"),
                 countUsersWithRole("STUDENT"),
@@ -380,6 +447,12 @@ public class DatabaseSeedService {
     public SeedStepResult seedRegistrationPeriodsStep() {
         List<RegistrationPeriodEntity> periods = seedRegistrationPeriods();
         return new SeedStepResult("registration-periods", periods.size(), LocalDateTime.now());
+    }
+
+    @Transactional
+    public SeedStepResult seedTopicsStep() {
+        List<TopicEntity> topics = seedTopics();
+        return new SeedStepResult("topics", topics.size(), LocalDateTime.now());
     }
 
     private void truncateAllTables() {
@@ -490,6 +563,46 @@ public class DatabaseSeedService {
         return List.of(registrationPeriodRepository.saveAndFlush(period));
     }
 
+    private List<TopicEntity> seedTopics() {
+        RegistrationPeriodEntity period = registrationPeriodRepository.findByNameIgnoreCase(SEEDED_PERIOD_NAME)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Seed registration periods before topics."));
+        Map<String, DepartmentEntity> departments = departmentsByCode();
+        List<TopicEntity> topics = TOPICS.stream()
+                .map(seed -> {
+                    DepartmentEntity department = departments.get(seed.departmentCode().toUpperCase(Locale.ROOT));
+                    if (department == null) {
+                        throw new IllegalStateException("Seed department before topic: " + seed.departmentCode());
+                    }
+                    UserEntity proposer = requireSeedUser(seed.proposerLogin());
+                    TopicEntity topic = topicRepository.findFirstByTitleIgnoreCase(seed.title())
+                            .orElseGet(() -> new TopicEntity(
+                                    period, department, proposer, seed.title(), seed.description()));
+                    topic.setRegistrationPeriod(period);
+                    topic.setDepartment(department);
+                    topic.setProposedBy(proposer);
+                    topic.setTitle(seed.title());
+                    topic.setDescription(seed.description());
+                    topic.setStatus(seed.status());
+                    topic.getSupervisors().clear();
+                    seed.supervisorLogins().stream()
+                            .map(this::requireSeedUser)
+                            .forEach(supervisor -> topic.getSupervisors().add(supervisor));
+                    return topic;
+                })
+                .toList();
+        return topicRepository.saveAllAndFlush(topics);
+    }
+
+    private UserEntity requireSeedUser(String loginIdentifier) {
+        String lookupIdentifier = loginIdentifier.contains("@")
+                ? loginIdentifier
+                : loginIdentifier + LECTURER_EMAIL_DOMAIN;
+        return userRepository.findByLoginIdentifier(lookupIdentifier)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Seed users before topic: " + lookupIdentifier));
+    }
+
     private Map<String, DepartmentEntity> departmentsByCode() {
         return departmentRepository.findAll().stream()
                 .collect(Collectors.toMap(
@@ -580,6 +693,8 @@ public class DatabaseSeedService {
             int departments,
             int users,
             int registrationPeriods,
+            int topics,
+            int topicSupervisors,
             int facultyHeads,
             int lecturers,
             int students,
@@ -601,5 +716,14 @@ public class DatabaseSeedService {
             String emailOrCode,
             String roleCode,
             String departmentCode) {
+    }
+
+    private record TopicSeed(
+            String title,
+            String description,
+            String departmentCode,
+            String proposerLogin,
+            TopicStatus status,
+            List<String> supervisorLogins) {
     }
 }

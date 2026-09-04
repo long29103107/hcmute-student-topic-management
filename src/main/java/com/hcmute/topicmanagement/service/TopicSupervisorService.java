@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -35,20 +36,56 @@ public class TopicSupervisorService {
 
     @PreAuthorize("hasAuthority('SUPERVISOR_MANAGE')")
     public TopicAssignmentPage listManageableTopics(String actorEmail) {
+        return listManageableTopics(actorEmail, "", 0, 10, "topic", "asc");
+    }
+
+    @PreAuthorize("hasAuthority('SUPERVISOR_MANAGE')")
+    public TopicAssignmentPage listManageableTopics(
+            String actorEmail, String search, int page, int size, String sort, String direction) {
         UserEntity actor = findActiveActor(actorEmail);
         ManagementScope scope = scopeFor(actor);
+        String normalizedSearch = search == null ? "" : search.trim().toLowerCase(java.util.Locale.ROOT);
+        String normalizedSort = normalizeSort(sort);
+        String normalizedDirection = normalizeDirection(direction);
+        int safeSize = Math.min(Math.max(size, 5), 100);
         if (!scope.hasDepartmentScope()) {
-            return new TopicAssignmentPage(List.of(), List.of(), scope.label());
+            return new TopicAssignmentPage(
+                    List.of(), 0, safeSize, 0, 1, normalizedSearch, normalizedSort, normalizedDirection, scope.label());
         }
 
         List<TopicEntity> topics = scope.isAdmin()
                 ? topicRepository.findAllForSupervisorManagement()
                 : topicRepository.findForSupervisorManagementByDepartmentId(scope.departmentId());
-        List<SupervisorOption> options = userRepository.findActiveLecturerCapabilitiesOrderByFullName().stream()
+        Map<Long, List<SupervisorOption>> optionsByDepartment = userRepository
+                .findActiveLecturerCapabilitiesOrderByFullName().stream()
+                .filter(user -> user.getDepartment() != null && user.getDepartment().getId() != null)
                 .map(TopicSupervisorService::toOption)
+                .collect(Collectors.groupingBy(
+                        SupervisorOption::getDepartmentId,
+                        java.util.LinkedHashMap::new,
+                        Collectors.toList()));
+        List<TopicSummary> filtered = topics.stream()
+                .map(topic -> toSummary(
+                        topic,
+                        optionsByDepartment.getOrDefault(topic.getDepartment().getId(), List.of())))
+                .filter(topic -> matchesSearch(topic, normalizedSearch))
+                .sorted(topicComparator(normalizedSort, normalizedDirection))
                 .toList();
+        int totalItems = filtered.size();
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / safeSize));
+        int safePage = Math.min(Math.max(page, 0), totalPages - 1);
+        int from = Math.min(safePage * safeSize, totalItems);
+        int to = Math.min(from + safeSize, totalItems);
         return new TopicAssignmentPage(
-                topics.stream().map(TopicSupervisorService::toSummary).toList(), options, scope.label());
+                filtered.subList(from, to),
+                safePage,
+                safeSize,
+                totalItems,
+                totalPages,
+                normalizedSearch,
+                normalizedSort,
+                normalizedDirection,
+                scope.label());
     }
 
     @Transactional
@@ -68,10 +105,18 @@ public class TopicSupervisorService {
             throw new TopicSupervisorValidationException(
                     "Every selected supervisor must be an active Lecturer or Faculty Head.");
         }
+        Long topicDepartmentId = topic.getDepartment().getId();
+        if (candidates.stream().anyMatch(candidate -> candidate.getDepartment() == null
+                || !topicDepartmentId.equals(candidate.getDepartment().getId()))) {
+            throw new TopicSupervisorValidationException(
+                    "Every selected supervisor must belong to the topic's department.");
+        }
 
         topic.getSupervisors().clear();
         normalizedIds.forEach(id -> topic.getSupervisors().add(candidatesById.get(id)));
-        return toSummary(topicRepository.saveAndFlush(topic));
+        return toSummary(
+                topicRepository.saveAndFlush(topic),
+                supervisorOptionsForDepartment(topic.getDepartment().getId()));
     }
 
     private UserEntity findActiveActor(String actorEmail) {
@@ -134,7 +179,67 @@ public class TopicSupervisorService {
                 .anyMatch(role -> roleCode.equalsIgnoreCase(role.getCode()));
     }
 
-    private static TopicSummary toSummary(TopicEntity topic) {
+    private static boolean matchesSearch(TopicSummary topic, String search) {
+        if (search.isBlank()) {
+            return true;
+        }
+        String supervisorText = topic.getSupervisors().stream()
+                .map(supervisor -> supervisor.getFullName() + " " + supervisor.getEmail())
+                .collect(Collectors.joining(" "));
+        return contains(topic.getTitle(), search)
+                || contains(topic.getDepartmentCode(), search)
+                || contains(topic.getDepartmentName(), search)
+                || contains(topic.getPeriodName(), search)
+                || contains(topic.getPeriodType(), search)
+                || contains(topic.getStatus(), search)
+                || contains(topic.getProposedByName(), search)
+                || contains(supervisorText, search);
+    }
+
+    private static boolean contains(String value, String search) {
+        return value != null && value.toLowerCase(java.util.Locale.ROOT).contains(search);
+    }
+
+    private static Comparator<TopicSummary> topicComparator(String sort, String direction) {
+        Comparator<TopicSummary> comparator = switch (sort) {
+            case "department" -> Comparator.comparing(
+                    TopicSummary::getDepartmentCode, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(TopicSummary::getDepartmentName, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(TopicSummary::getTitle, String.CASE_INSENSITIVE_ORDER);
+            case "period" -> Comparator.comparing(
+                    TopicSummary::getPeriodName, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(TopicSummary::getTitle, String.CASE_INSENSITIVE_ORDER);
+            case "status" -> Comparator.comparing(
+                    TopicSummary::getStatus, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(TopicSummary::getTitle, String.CASE_INSENSITIVE_ORDER);
+            case "proposer" -> Comparator.comparing(
+                    TopicSummary::getProposedByName, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(TopicSummary::getTitle, String.CASE_INSENSITIVE_ORDER);
+            case "supervisors" -> Comparator.comparing(
+                    (TopicSummary topic) -> topic.getSupervisors().stream()
+                            .map(SupervisorSummary::getFullName)
+                            .collect(Collectors.joining(", ")),
+                    String.CASE_INSENSITIVE_ORDER).thenComparing(
+                            TopicSummary::getTitle, String.CASE_INSENSITIVE_ORDER);
+            default -> Comparator.comparing(TopicSummary::getTitle, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(TopicSummary::getDepartmentCode, String.CASE_INSENSITIVE_ORDER);
+        };
+        return "desc".equals(direction) ? comparator.reversed() : comparator;
+    }
+
+    private static String normalizeSort(String sort) {
+        return switch (sort == null ? "" : sort.trim().toLowerCase(java.util.Locale.ROOT)) {
+            case "department", "period", "status", "proposer", "supervisors" ->
+                    sort.trim().toLowerCase(java.util.Locale.ROOT);
+            default -> "topic";
+        };
+    }
+
+    private static String normalizeDirection(String direction) {
+        return "desc".equalsIgnoreCase(direction == null ? "" : direction.trim()) ? "desc" : "asc";
+    }
+
+    private static TopicSummary toSummary(TopicEntity topic, List<SupervisorOption> supervisorOptions) {
         List<SupervisorSummary> supervisors = topic.getSupervisors().stream()
                 .sorted(Comparator.comparing(UserEntity::getFullName, String.CASE_INSENSITIVE_ORDER))
                 .map(TopicSupervisorService::toSupervisorSummary)
@@ -149,7 +254,8 @@ public class TopicSupervisorService {
                 topic.getStatus().name(),
                 topic.getProposedBy().getFullName(),
                 supervisors,
-                supervisors.stream().map(SupervisorSummary::getId).toList());
+                supervisors.stream().map(SupervisorSummary::getId).toList(),
+                supervisorOptions);
     }
 
     private static SupervisorSummary toSupervisorSummary(UserEntity user) {
@@ -160,7 +266,16 @@ public class TopicSupervisorService {
     private static SupervisorOption toOption(UserEntity user) {
         return new SupervisorOption(user.getId(), user.getFullName(), user.getEmailOrCode(),
                 user.getDepartment() == null ? null : user.getDepartment().getCode(),
-                user.getDepartment() == null ? null : user.getDepartment().getName());
+                user.getDepartment() == null ? null : user.getDepartment().getName(),
+                user.getDepartment() == null ? null : user.getDepartment().getId());
+    }
+
+    private List<SupervisorOption> supervisorOptionsForDepartment(Long departmentId) {
+        return userRepository.findActiveLecturerCapabilitiesOrderByFullName().stream()
+                .filter(user -> user.getDepartment() != null
+                        && departmentId.equals(user.getDepartment().getId()))
+                .map(TopicSupervisorService::toOption)
+                .toList();
     }
 
     private record ManagementScope(boolean isAdmin, Long departmentId, String label) {
@@ -171,18 +286,46 @@ public class TopicSupervisorService {
 
     public static final class TopicAssignmentPage {
         private final List<TopicSummary> topics;
-        private final List<SupervisorOption> supervisorOptions;
+        private final int page;
+        private final int size;
+        private final int totalItems;
+        private final int totalPages;
+        private final String search;
+        private final String sort;
+        private final String direction;
         private final String scopeLabel;
 
-        public TopicAssignmentPage(List<TopicSummary> topics, List<SupervisorOption> supervisorOptions,
-                                   String scopeLabel) {
+        public TopicAssignmentPage(
+                List<TopicSummary> topics,
+                int page,
+                int size,
+                int totalItems,
+                int totalPages,
+                String search,
+                String sort,
+                String direction,
+                String scopeLabel) {
             this.topics = List.copyOf(topics);
-            this.supervisorOptions = List.copyOf(supervisorOptions);
+            this.page = page;
+            this.size = size;
+            this.totalItems = totalItems;
+            this.totalPages = totalPages;
+            this.search = search;
+            this.sort = sort;
+            this.direction = direction;
             this.scopeLabel = scopeLabel;
         }
 
         public List<TopicSummary> getTopics() { return topics; }
-        public List<SupervisorOption> getSupervisorOptions() { return supervisorOptions; }
+        public int getPage() { return page; }
+        public int getSize() { return size; }
+        public int getTotalItems() { return totalItems; }
+        public int getTotalPages() { return totalPages; }
+        public String getSearch() { return search; }
+        public String getSort() { return sort; }
+        public String getDirection() { return direction; }
+        public boolean isHasPrevious() { return page > 0; }
+        public boolean isHasNext() { return page + 1 < totalPages; }
         public String getScopeLabel() { return scopeLabel; }
     }
 
@@ -197,10 +340,12 @@ public class TopicSupervisorService {
         private final String proposedByName;
         private final List<SupervisorSummary> supervisors;
         private final List<Long> supervisorIds;
+        private final List<SupervisorOption> supervisorOptions;
 
         public TopicSummary(Long id, String title, String departmentCode, String departmentName,
                             String periodName, String periodType, String status, String proposedByName,
-                            List<SupervisorSummary> supervisors, List<Long> supervisorIds) {
+                            List<SupervisorSummary> supervisors, List<Long> supervisorIds,
+                            List<SupervisorOption> supervisorOptions) {
             this.id = id;
             this.title = title;
             this.departmentCode = departmentCode;
@@ -211,6 +356,7 @@ public class TopicSupervisorService {
             this.proposedByName = proposedByName;
             this.supervisors = List.copyOf(supervisors);
             this.supervisorIds = List.copyOf(supervisorIds);
+            this.supervisorOptions = List.copyOf(supervisorOptions);
         }
 
         public Long getId() { return id; }
@@ -223,6 +369,7 @@ public class TopicSupervisorService {
         public String getProposedByName() { return proposedByName; }
         public List<SupervisorSummary> getSupervisors() { return supervisors; }
         public List<Long> getSupervisorIds() { return supervisorIds; }
+        public List<SupervisorOption> getSupervisorOptions() { return supervisorOptions; }
     }
 
     public static final class SupervisorSummary {
@@ -250,13 +397,16 @@ public class TopicSupervisorService {
         private final String email;
         private final String departmentCode;
         private final String departmentName;
+        private final Long departmentId;
 
-        public SupervisorOption(Long id, String fullName, String email, String departmentCode, String departmentName) {
+        public SupervisorOption(Long id, String fullName, String email, String departmentCode, String departmentName,
+                                Long departmentId) {
             this.id = id;
             this.fullName = fullName;
             this.email = email;
             this.departmentCode = departmentCode;
             this.departmentName = departmentName;
+            this.departmentId = departmentId;
         }
 
         public Long getId() { return id; }
@@ -264,6 +414,7 @@ public class TopicSupervisorService {
         public String getEmail() { return email; }
         public String getDepartmentCode() { return departmentCode; }
         public String getDepartmentName() { return departmentName; }
+        public Long getDepartmentId() { return departmentId; }
     }
 
     public static class TopicSupervisorNotFoundException extends RuntimeException {

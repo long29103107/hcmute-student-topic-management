@@ -12,6 +12,8 @@ import com.hcmute.topicmanagement.model.enums.TopicStatus;
 
 public interface TopicRepository extends JpaRepository<TopicEntity, Long> {
 
+    Optional<TopicEntity> findFirstByTitleIgnoreCase(String title);
+
     List<TopicEntity> findByStatusOrderByCreatedAtDesc(TopicStatus status);
 
     List<TopicEntity> findByRegistrationPeriod_IdAndStatus(Long periodId, TopicStatus status);
@@ -58,6 +60,9 @@ public interface TopicRepository extends JpaRepository<TopicEntity, Long> {
             + "left join fetch t.supervisors "
             + "where t.id = :topicId")
     Optional<TopicEntity> findByIdForSupervisorManagement(@Param("topicId") Long topicId);
+
+    @Query("select count(supervisor) from TopicEntity topic join topic.supervisors supervisor")
+    long countSupervisorAssignments();
 
     boolean existsByDepartment_Id(Long departmentId);
 }

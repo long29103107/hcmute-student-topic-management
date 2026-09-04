@@ -29,10 +29,13 @@ revised schema does not have a separate Student Profile entity.
   lecturer window contains the current instant (inclusive), creates proposals
   as `DRAFT`, and permits edits only for owned `DRAFT` or `REJECTED` topics.
   Updating a rejected proposal returns it to `DRAFT`. `topic_supervisors`
-  supports multiple lecturers; Service rules limit a topic to one or two
-  supervisors in the later assignment flow. Topic review currently uses only
-  the `topics.status` transition to `APPROVED` or `REJECTED`; the revised schema
-  has no approval audit columns/history, so detailed review history is deferred.
+  supports multiple lecturers. The `TopicSupervisorService` requires one or
+  two active users with an active `LECTURER` or `FACULTY_HEAD` role, rejects
+  duplicates, requires each supervisor to belong to the topic's department, and
+  scopes management to all topics for Admin or the Faculty Head's own
+  department. Topic review currently uses only the `topics.status`
+  transition to `APPROVED` or `REJECTED`; the revised schema has no approval
+  audit columns/history, so detailed review history is deferred.
 
 ## Student workflow
 
