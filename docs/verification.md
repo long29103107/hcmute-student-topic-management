@@ -58,6 +58,31 @@ With the executable JAR running:
 9. Final average/publication/result visibility follow the configured policy.
 10. Published announcements are visible; hidden announcements are not.
 
+## Registration Period CRUD checklist (Issue #2)
+
+The `RegistrationPeriodControllerTest` suite maps the issue checklist to
+request-level assertions:
+
+- DATN/course and KLTN period types can be created.
+- Lecturer and student registration windows are persisted on create and update.
+- The current status and creator are persisted and rendered in the management list.
+- Invalid window ordering and inapplicable reviewer/council milestones are rejected.
+- Users without `PERIOD_MANAGE` cannot view or modify periods.
+- Mutating requests without a CSRF token are rejected.
+
+## Timeline Rules & Permission Tests checklist (Issue #3)
+
+The period service and controller tests also cover the follow-up rules:
+
+- Reviewer and council milestones are rejected for non-KLTN periods.
+- Missing required fields and reversed windows are rejected server-side.
+- Status transitions follow `DRAFT -> OPEN -> CLOSED -> ARCHIVED`; backwards
+  and skipped transitions are rejected.
+- `RegistrationPeriodService.inspect` and its `requireOpenFor*` methods provide
+  an inclusive boundary contract with stable error codes for downstream modules.
+- Department and period direct requests enforce their existing permissions and
+  CSRF protection.
+
 ## REST smoke checklist
 
 When REST endpoints are implemented, verify at least:

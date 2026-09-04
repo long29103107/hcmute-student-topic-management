@@ -91,6 +91,19 @@ class DepartmentControllerTest {
     }
 
     @Test
+    void administratorWithoutDepartmentPermissionCannotManageDepartments() throws Exception {
+        mockMvc.perform(get("/admin/departments").with(user(administrator(false))))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/admin/departments")
+                        .with(user(administrator(false)))
+                        .with(csrf())
+                        .param("code", "NO-PERM")
+                        .param("name", "No permission"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void administratorCanSearchAndSortDepartments() throws Exception {
         String suffix = suffix();
         departmentRepository.saveAndFlush(

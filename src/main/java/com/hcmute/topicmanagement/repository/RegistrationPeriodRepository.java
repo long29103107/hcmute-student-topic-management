@@ -12,6 +12,10 @@ import com.hcmute.topicmanagement.model.enums.RegistrationPeriodStatus;
 
 public interface RegistrationPeriodRepository extends JpaRepository<RegistrationPeriodEntity, Long> {
 
+    List<RegistrationPeriodEntity> findAllByOrderByLecturerRegistrationStartDesc();
+
+    java.util.Optional<RegistrationPeriodEntity> findByNameIgnoreCase(String name);
+
     List<RegistrationPeriodEntity> findByStatusOrderByStudentRegistrationStartDesc(RegistrationPeriodStatus status);
 
     @Query("select p from RegistrationPeriodEntity p "

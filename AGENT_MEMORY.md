@@ -129,6 +129,58 @@ factual and free of secrets. Update this file after every code or UI update.
 - Verification: focused `SecurityConfigTest` passes 15/15; full `mvn test`
   passes 73/73; `mvn package -DskipTests` passes.
 
+## 2026-09-04 — Compact topic proposal modal
+
+- Reduced the Lecturer topic create/edit modal from an unconstrained visual
+  width to the existing generated `max-w-2xl` utility, keeping the form focused
+  and preventing it from stretching across the viewport.
+- Added a template regression assertion and documented the constrained modal as
+  an intentional UI exception.
+- Documents updated: `AGENT.md`, `docs/ui-route-map.md`.
+- Verification: topic proposal controller test passes with the compact modal
+  assertion; full `mvn test` and `mvn package -DskipTests` pass.
+
+## 2026-09-04 — Registration Period CRUD (Issue #2)
+
+- Implemented `/faculty/periods` for Faculty Head/Admin with create and edit
+  modals, period type/status, lecturer and student registration windows,
+  optional reviewer deadline/council date, and created-by display.
+- Server validation enforces ordered windows, only allows reviewer and council
+  milestones for graduation thesis periods, and protects mutations with
+  permission and CSRF checks.
+- Added an open local seed period and `/api/seed/registration-periods` so the
+  Lecturer topic proposal dropdown has a usable period after running the seed
+  pipeline. Added the Registration periods sidebar link for Admin and Faculty
+  Head.
+- Documents updated: `AGENT.md`, `docs/ui-route-map.md`,
+  `docs/domain-model.md`, `docs/workflows.md`.
+- Verification: focused Registration Period/seed tests pass 8/8; full
+  `mvn test` passes 78/78; `mvn package -DskipTests` and diff checks pass.
+
+## 2026-09-04 — Registration Period checklist test audit
+
+- Added explicit checklist coverage for DATN/course and KLTN types, both
+  registration windows on create/update, rendered status/creator, invalid
+  milestone/window rules, unauthorized view/modify and missing CSRF.
+- Documented the Issue #2 test mapping in `docs/verification.md`.
+- Verification: focused checklist/seed tests pass 8/8; full `mvn test`
+  passes 78/78; `mvn package -DskipTests` and diff checks pass.
+
+## 2026-09-04 — Timeline Rules & Permission Tests (Issue #3)
+
+- Added forward-only Registration Period lifecycle validation, inclusive
+  lecturer/student window inspection, read-only `requireOpenFor*` handoff
+  methods with stable error codes, and routed Topic Proposal period checks
+  through that contract.
+- Updated the KLTN-only milestone rule, added explicit Department/Period
+  permission coverage, and kept the existing `PERIOD_MANAGE` and
+  `DEPARTMENT_MANAGE` permissions; no new permission or seed mapping was
+  required.
+- Documents updated: `REQUEST.md`, `AGENT.md`, `docs/domain-model.md`,
+  `docs/workflows.md`, `docs/verification.md`.
+- Verification: focused Issue #3 tests pass 26/26; full `mvn test` passes
+  81/81; `mvn package -DskipTests` passes.
+
 ## Entry template
 
 ### YYYY-MM-DD — Short update title

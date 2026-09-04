@@ -3,7 +3,7 @@
 ## Main sequence
 
 ```text
-Faculty Head creates period
+Faculty Head/Admin creates and opens a period
   -> Lecturer submits topic
   -> Faculty Head approves and publishes topics
   -> Student creates group
@@ -18,6 +18,30 @@ Faculty Head creates period
 
 The full board workflow (3–5 lecturers, chair, secretary and multiple
 assignments) is a Should Have extension. It must not block the MVP workflow.
+
+## Registration period status contract
+
+Registration periods use a forward-only lifecycle. Keeping the same status is
+allowed; backward transitions and skipped states are rejected server-side:
+
+```text
+DRAFT -> OPEN -> CLOSED -> ARCHIVED
+```
+
+The read-only contract exposed by `RegistrationPeriodService` is used by topic
+and topic-registration modules:
+
+- `inspect(id, now)` returns status, both windows and inclusive booleans
+  `lecturerRegistrationOpen` / `studentRegistrationOpen`.
+- `requireOpenForLecturer(id, now)` returns the period or throws
+  `REGISTRATION_PERIOD_NOT_FOUND`, `REGISTRATION_PERIOD_NOT_OPEN` or
+  `LECTURER_REGISTRATION_WINDOW_CLOSED`.
+- `requireOpenForStudent(id, now)` returns the period or throws
+  `REGISTRATION_PERIOD_NOT_FOUND`, `REGISTRATION_PERIOD_NOT_OPEN` or
+  `STUDENT_REGISTRATION_WINDOW_CLOSED`.
+
+Reviewer score deadline and council report date are only valid for KLTN
+(`GRADUATION_THESIS`) periods.
 
 ## Time gates
 

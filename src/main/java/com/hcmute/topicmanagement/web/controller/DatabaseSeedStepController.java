@@ -52,4 +52,9 @@ public class DatabaseSeedStepController {
         return databaseSeedService.seedDepartmentsStep();
     }
 
+    @PostMapping("/registration-periods")
+    public SeedStepResult seedRegistrationPeriods() {
+        return databaseSeedService.seedRegistrationPeriodsStep();
+    }
+
 }

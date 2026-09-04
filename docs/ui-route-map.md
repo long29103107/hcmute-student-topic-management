@@ -54,7 +54,7 @@ Have unless explicitly selected.
 | GET/POST | `/admin/roles/{id}/permissions` | `RoleManagementController` → select/toggle permissions for a system role only; GET redirects to the combined editor |
 | GET/POST | `/admin/departments`, `/admin/departments/{id}/edit`, `/admin/departments/{id}/status`, `/admin/departments/{id}/delete` | `DepartmentController` → Admin-only department CRUD, search (`search`), pagination (`page`, `size`), column sort (`sort=code|name|status`, `direction=asc|desc`), activate/deactivate and safe delete; delete succeeds only when no users or topics reference the department |
 | GET | `/faculty/departments` | `FacultyDepartmentController` → Faculty Head read-only view of their assigned department members |
-| GET/POST | `/faculty/periods` | `RegistrationPeriodController` → list/create/update |
+| GET/POST | `/faculty/periods`, `/faculty/periods/{id}/edit` | `RegistrationPeriodController` → Faculty Head/Admin registration-period CRUD with lecturer/student windows, status and creator tracking |
 | GET/POST | `/faculty/topics/review` | `TopicReviewController` → approve/reject/publish |
 | GET/POST | `/faculty/registrations/review` | `RegistrationReviewController` → approve/reject |
 | GET/POST | `/faculty/boards` | `ReviewBoardController` → full board/member/topic assignment (Should Have) |
@@ -65,7 +65,7 @@ Have unless explicitly selected.
 
 | Method | Route | Purpose |
 |---|---|---|
-| GET | `/lecturer/topics` | `TopicProposalController` → list the authenticated Lecturer's own proposals and render create/edit modals; Faculty Head access is limited to the same own-proposal capability |
+| GET | `/lecturer/topics` | `TopicProposalController` → list the authenticated Lecturer's own proposals and render compact `max-w-2xl` create/edit modals; Faculty Head access is limited to the same own-proposal capability |
 | POST | `/lecturer/topics`, `/lecturer/topics/{id}/edit` | `TopicProposalController` → create or update an owned proposal through PRG; the Service requires an active department, an open lecturer registration window and an editable `DRAFT`/`REJECTED` status |
 | GET | `/lecturer/assignments` | `AssignmentController` → supervised/reviewer assignments |
 | GET/POST | `/lecturer/scoring` | `ScoreController` → score/comment |
@@ -95,10 +95,11 @@ not replace the Thymeleaf flow or duplicate Service rules.
 | POST | `/api/seed/roles` | create or update local role fixtures | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
 | POST | `/api/seed/role-permissions` | recreate role-permission fixture assignments | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
 | POST | `/api/seed/users` | create or update local test accounts and role assignments | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
+| POST | `/api/seed/registration-periods` | create or update the local open registration-period fixture | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
 | POST | `/api/admin/seed` | truncate all 17 revised-schema tables and recreate local identity fixtures; response includes `tablesReset`, `roles`, `permissions`, and `users` | ADMIN only + CSRF; local destructive operation |
 | GET | `/api/announcements` | published announcements | authenticated |
 | GET | `/api/topics` | published topics with period/department/status filters | authenticated |
-| GET/POST | `/api/faculty/periods` | list/create periods | Faculty Head |
+| GET/POST | `/api/faculty/periods` | planned REST adapter; current registration-period CRUD is available through `/faculty/periods` | Faculty Head/Admin |
 | GET/POST | `/api/lecturer/topics` | list or create the authenticated user's own topic proposals; create validates the active department and inclusive lecturer registration window | `TOPIC_PROPOSE` |
 | PUT | `/api/lecturer/topics/{id}` | update an owned `DRAFT`/`REJECTED` proposal; a rejected proposal returns to `DRAFT` after a valid update | `TOPIC_PROPOSE` |
 | POST | `/api/topics/{id}/approve` | approve/reject/publish topic action | Faculty Head |

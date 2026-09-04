@@ -121,7 +121,7 @@ Trưởng khoa tạo và quản lý đợt với:
 - Loại: môn học, NCKH, TLCN hoặc KLTN.
 - Thời gian bắt đầu/kết thúc cho giảng viên đăng ký đề tài.
 - Thời gian bắt đầu/kết thúc cho sinh viên đăng ký đề tài.
-- Hạn GVPB nộp điểm, chỉ thiết lập cho TLCN hoặc KLTN.
+- Hạn GVPB nộp điểm, chỉ thiết lập cho KLTN.
 - Ngày báo cáo hội đồng, chỉ thiết lập cho KLTN.
 
 Đợt đăng ký gồm hai giai đoạn:
@@ -226,7 +226,7 @@ Không bắt buộc cho phiên bản đầu:
 | BR-05 | Mỗi nhóm chỉ đăng ký duy nhất 1 đề tài. |
 | BR-06 | Chỉ nhóm trưởng được đăng ký đề tài và nộp báo cáo. |
 | BR-07 | Chỉ được đăng ký trong thời gian quy định. |
-| BR-08 | Hạn GVPB chỉ áp dụng cho TLCN hoặc KLTN. |
+| BR-08 | Hạn GVPB chỉ áp dụng cho KLTN. |
 | BR-09 | Ngày báo cáo hội đồng chỉ áp dụng cho KLTN. |
 | BR-10 | MVP có ít nhất 1 giảng viên được phân công đánh giá; hội đồng 3–5 GV, đúng 1 chủ tịch và 1 thư ký là Should Have. |
 | BR-11 | GV không được chấm đề tài mình hướng dẫn. |

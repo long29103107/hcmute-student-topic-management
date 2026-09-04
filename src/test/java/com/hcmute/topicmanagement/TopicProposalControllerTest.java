@@ -94,6 +94,7 @@ class TopicProposalControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("lecturer/topics"))
                 .andExpect(content().string(containsString("Smart campus platform " + suffix)))
+                .andExpect(content().string(containsString("my-8 w-full max-w-2xl")))
                 .andExpect(content().string(not(containsString(otherTopic.getTitle()))));
     }
 

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head><title>Registration period management</title></head>
+<body>
+<main layout:fragment="content" class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+    <section aria-labelledby="page-title">
+        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <div>
+                <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Faculty workflow / Setup</p>
+                <h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Registration period management</h1>
+                <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500">Create and maintain the lecturer and student windows used by topic workflows.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <span class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
+                    <span class="me-1.5 h-2 w-2 rounded-full bg-blue-500"></span>Faculty Head and Admin
+                </span>
+                <button sec:authorize="hasAuthority('PERIOD_MANAGE')" type="button"
+                        class="inline-flex w-fit items-center justify-center rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                        data-modal-target="create-period-modal" data-modal-toggle="create-period-modal">
+                    <svg class="me-2 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m-7-7h14"/>
+                    </svg>
+                    Add registration period
+                </button>
+            </div>
+        </div>
+
+        <div class="mb-6 flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-5 text-blue-900" role="status">
+            <svg class="mt-0.5 h-5 w-5 shrink-0 text-blue-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 1a9 9 0 1 0 9 9 9.01 9.01 0 0 0-9-9Zm0 4a1 1 0 1 1 0 0 0 0 2 1 1 0 0 0 0-2Zm1 10H9v-6h2v6Z"/>
+            </svg>
+            <span>Only periods with an open lecturer window appear in the lecturer topic proposal form.</span>
+        </div>
+
+        <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm" aria-labelledby="periods-heading">
+            <div class="flex flex-col justify-between gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:p-6">
+                <div>
+                    <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Academic setup</p>
+                    <h2 id="periods-heading" class="text-xl font-semibold text-gray-900">Registration periods</h2>
+                </div>
+                <span class="text-sm text-gray-500" th:text="${#lists.size(periods) + ' periods'}">0 periods</span>
+            </div>
+            <div class="overflow-x-auto" th:if="${!#lists.isEmpty(periods)}">
+                <table class="w-full min-w-[1100px] text-left text-sm text-gray-500">
+                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                    <tr>
+                        <th scope="col" class="px-6 py-3">Period</th>
+                        <th scope="col" class="px-6 py-3">Lecturer window</th>
+                        <th scope="col" class="px-6 py-3">Student window</th>
+                        <th scope="col" class="px-6 py-3">Status</th>
+                        <th scope="col" class="px-6 py-3">Created by</th>
+                        <th scope="col" class="px-6 py-3"><span class="sr-only">Actions</span></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="border-b border-gray-100 align-top hover:bg-gray-50" th:each="period : ${periods}">
+                        <td class="max-w-xs px-6 py-4">
+                            <strong class="block font-semibold text-gray-900" th:text="${period.name}">Semester 1 — Academic year 2026–2027</strong>
+                            <span class="mt-1 block text-xs text-gray-500" th:text="${period.type}">COURSE</span>
+                        </td>
+                        <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-600">
+                            <span class="block" th:text="${#temporals.format(period.lecturerRegistrationStart, 'dd/MM/yyyy HH:mm')}">01/09/2026 08:00</span>
+                            <span class="my-1 block text-gray-400">to</span>
+                            <span class="block" th:text="${#temporals.format(period.lecturerRegistrationEnd, 'dd/MM/yyyy HH:mm')}">15/09/2026 23:59</span>
+                        </td>
+                        <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-600">
+                            <span class="block" th:text="${#temporals.format(period.studentRegistrationStart, 'dd/MM/yyyy HH:mm')}">16/09/2026 08:00</span>
+                            <span class="my-1 block text-gray-400">to</span>
+                            <span class="block" th:text="${#temporals.format(period.studentRegistrationEnd, 'dd/MM/yyyy HH:mm')}">30/09/2026 23:59</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
+                                  th:classappend="${period.status.name() == 'OPEN' ? 'bg-green-100 text-green-800' : period.status.name() == 'CLOSED' ? 'bg-gray-100 text-gray-800' : period.status.name() == 'ARCHIVED' ? 'bg-purple-100 text-purple-800' : 'bg-yellow-100 text-yellow-800'}"
+                                  th:text="${period.status}">OPEN</span>
+                        </td>
+                        <td class="px-6 py-4 text-xs text-gray-600" th:text="${period.createdByName ?: 'System seed'}">System Administrator</td>
+                        <td class="px-6 py-4">
+                            <div class="flex justify-end">
+                                <button type="button"
+                                        class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                                        th:id="${'period-actions-' + period.id}"
+                                        th:attr="data-dropdown-toggle=${'period-actions-menu-' + period.id},aria-controls=${'period-actions-menu-' + period.id},aria-haspopup='true'">
+                                    Actions
+                                    <svg class="ms-2 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
+                                    </svg>
+                                </button>
+                                <div class="z-10 hidden w-44 divide-y divide-gray-100 rounded-lg bg-white shadow"
+                                     th:id="${'period-actions-menu-' + period.id}">
+                                    <ul class="py-2 text-sm text-gray-700" th:attr="aria-labelledby=${'period-actions-' + period.id}">
+                                        <li>
+                                            <button type="button" class="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                                                    th:attr="data-modal-target=${'edit-period-modal-' + period.id},data-modal-toggle=${'edit-period-modal-' + period.id}">
+                                                Edit
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="px-6 py-12 text-center text-sm text-gray-500" th:if="${#lists.isEmpty(periods)}">No registration periods are available.</p>
+        </section>
+    </section>
+
+    <div th:replace="~{fragments/registration-period-form :: periodModal(modalId='create-period-modal', formObjectName='createForm', formAction='/faculty/periods', title='Create registration period', submitLabel='Create period', fieldPrefix='create-period', periodTypes=${periodTypes}, periodStatuses=${periodStatuses})}"></div>
+    <th:block th:each="period : ${periods}">
+        <div th:replace="~{fragments/registration-period-form :: periodModal(modalId=${'edit-period-modal-' + period.id}, formObjectName=${'editForm' + period.id}, formAction=${'/faculty/periods/' + period.id + '/edit'}, title='Edit registration period', submitLabel='Save changes', fieldPrefix=${'edit-period-' + period.id}, periodTypes=${periodTypes}, periodStatuses=${periodStatuses})}"></div>
+    </th:block>
+</main>
+</body>
+</html>

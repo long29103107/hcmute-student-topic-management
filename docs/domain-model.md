@@ -18,7 +18,11 @@ revised schema does not have a separate Student Profile entity.
 
 - `DepartmentEntity` owns department code/name and has many topics and users.
 - `RegistrationPeriodEntity` stores separate lecturer and student windows,
-  optional score deadline/council date, status and creator.
+  optional score deadline/council date, status and creator. The
+  `RegistrationPeriodService` validates required/ordered windows, only allows
+  reviewer and council milestones for graduation-thesis periods, enforces the
+  `DRAFT -> OPEN -> CLOSED -> ARCHIVED` lifecycle, exposes an inclusive,
+  read-only window contract for downstream modules, and records the creating user.
 - `TopicEntity` belongs to one period and department and references its
   proposer. The topic-proposal Service only exposes the authenticated user's
   own proposals, requires an active department and an `OPEN` period whose

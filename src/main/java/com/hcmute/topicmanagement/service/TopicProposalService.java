@@ -13,10 +13,8 @@ import com.hcmute.topicmanagement.model.DepartmentEntity;
 import com.hcmute.topicmanagement.model.RegistrationPeriodEntity;
 import com.hcmute.topicmanagement.model.TopicEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
-import com.hcmute.topicmanagement.model.enums.RegistrationPeriodStatus;
 import com.hcmute.topicmanagement.model.enums.TopicStatus;
 import com.hcmute.topicmanagement.repository.DepartmentRepository;
-import com.hcmute.topicmanagement.repository.RegistrationPeriodRepository;
 import com.hcmute.topicmanagement.repository.TopicRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
 
@@ -32,17 +30,17 @@ public class TopicProposalService {
     private final TopicRepository topicRepository;
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
-    private final RegistrationPeriodRepository registrationPeriodRepository;
+    private final RegistrationPeriodService registrationPeriodService;
 
     public TopicProposalService(
             TopicRepository topicRepository,
             UserRepository userRepository,
             DepartmentRepository departmentRepository,
-            RegistrationPeriodRepository registrationPeriodRepository) {
+            RegistrationPeriodService registrationPeriodService) {
         this.topicRepository = topicRepository;
         this.userRepository = userRepository;
         this.departmentRepository = departmentRepository;
-        this.registrationPeriodRepository = registrationPeriodRepository;
+        this.registrationPeriodService = registrationPeriodService;
     }
 
     @PreAuthorize("hasAuthority('TOPIC_PROPOSE')")
@@ -60,8 +58,8 @@ public class TopicProposalService {
                 .map(department -> new DepartmentOption(
                         department.getId(), department.getCode(), department.getName()))
                 .toList();
-        List<PeriodOption> periods = registrationPeriodRepository
-                .findOpenForLecturer(RegistrationPeriodStatus.OPEN, now).stream()
+        List<PeriodOption> periods = registrationPeriodService
+                .listOpenForLecturer(now).stream()
                 .map(period -> new PeriodOption(period.getId(), period.getName(), period.getType().name()))
                 .toList();
         return new ProposalFormOptions(departments, periods);
@@ -127,16 +125,13 @@ public class TopicProposalService {
             throw new TopicProposalValidationException("Select a registration period.");
         }
         LocalDateTime now = LocalDateTime.now();
-        return registrationPeriodRepository.findById(periodId)
-                .filter(period -> period.getStatus() == RegistrationPeriodStatus.OPEN)
-                .filter(period -> isWithinLecturerWindow(period, now))
-                .orElseThrow(() -> new TopicProposalValidationException(
-                        "The selected registration period is not open for lecturer proposals."));
-    }
-
-    private static boolean isWithinLecturerWindow(RegistrationPeriodEntity period, LocalDateTime now) {
-        return !now.isBefore(period.getLecturerRegistrationStart())
-                && !now.isAfter(period.getLecturerRegistrationEnd());
+        try {
+            return registrationPeriodService.requireOpenForLecturer(periodId, now);
+        } catch (RegistrationPeriodService.RegistrationPeriodNotFoundException
+                | RegistrationPeriodService.RegistrationPeriodAccessException exception) {
+            throw new TopicProposalValidationException(
+                    "The selected registration period is not open for lecturer proposals.");
+        }
     }
 
     private static TopicInput validateInput(String title, String description) {

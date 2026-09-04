@@ -147,6 +147,22 @@ public class RegistrationPeriodEntity extends BaseEntity {
         this.status = status;
     }
 
+    /**
+     * Registration periods move forward through their lifecycle and cannot be
+     * reopened or skip a lifecycle state.
+     */
+    public boolean canTransitionTo(RegistrationPeriodStatus target) {
+        if (target == null || status == null || status == target) {
+            return target != null;
+        }
+        return switch (status) {
+            case DRAFT -> target == RegistrationPeriodStatus.OPEN;
+            case OPEN -> target == RegistrationPeriodStatus.CLOSED;
+            case CLOSED -> target == RegistrationPeriodStatus.ARCHIVED;
+            case ARCHIVED -> false;
+        };
+    }
+
     public UserEntity getCreatedBy() {
         return createdBy;
     }

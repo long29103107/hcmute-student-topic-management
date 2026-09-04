@@ -68,7 +68,8 @@ MVC chạy được end-to-end với các thực thể lõi:
 - Normal User edit never changes the MSSV/login identifier. A future MSSV change
   must be a separately authorized action/API.
 - The admin-only `/seed` page invokes `POST /api/seed/ddl`, then the permissions,
-  roles, role-permissions and users endpoints in that order with
+  roles, role-permissions, departments, users and registration-periods endpoints
+  in that order with
   `fetch` plus the session CSRF token; keep a confirmation before running it.
   These endpoints and the page require an authenticated `ADMIN` by default.
   For a local bootstrap before an admin exists, `SEED_PUBLIC_ENABLED=true`
@@ -133,6 +134,9 @@ Trước khi tạo task/plan hoặc thay đổi code, đọc:
   Flowbite-style panels, and consistent headings/actions/forms/tables/modals/
   toasts. Only use a constrained `max-w-*` layout when the page genuinely
   needs it and the task explicitly justifies the exception.
+- Topic proposal create/edit modals are a justified constrained exception:
+  keep the modal panel at `max-w-2xl` so the form stays focused instead of
+  expanding across the full viewport.
 - Inline explanatory helper text for immutable/generated fields should use the
   shared info-icon tooltip pattern in the user form, with hover and keyboard
   focus support instead of always-visible paragraphs.
@@ -146,6 +150,12 @@ Trước khi tạo task/plan hoặc thay đổi code, đọc:
 - Passwords are not collected during Student/Lecturer creation or normal edit;
   credential setup uses the separate reusable Set password modal and the
   dedicated `/{id}/password` action protected by `USER_UPDATE`.
+- Registration periods are managed at `/faculty/periods` by users with
+  `PERIOD_MANAGE` (Faculty Head and Admin). The Service validates both lecturer
+  and student windows, restricts reviewer and council milestones to graduation
+  thesis periods, enforces the forward-only `DRAFT -> OPEN -> CLOSED ->
+  ARCHIVED` lifecycle, exposes the read-only period-window contract used by
+  topic modules, and stores the active creator in `registration_periods.created_by`.
 - Error pages for HTTP 400, 401, 403, 404, 500 and 503 live as standalone templates
   under `src/main/resources/templates/error/`. They must not decorate the main
   layout or include the application sidebar/header/footer; the 403 page is also

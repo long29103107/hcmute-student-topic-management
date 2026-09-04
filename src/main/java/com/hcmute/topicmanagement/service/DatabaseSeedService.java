@@ -19,12 +19,16 @@ import org.springframework.stereotype.Service;
 
 import com.hcmute.topicmanagement.model.DepartmentEntity;
 import com.hcmute.topicmanagement.model.PermissionEntity;
+import com.hcmute.topicmanagement.model.RegistrationPeriodEntity;
 import com.hcmute.topicmanagement.model.RoleEntity;
 import com.hcmute.topicmanagement.model.RolePermissionEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
+import com.hcmute.topicmanagement.model.enums.PeriodType;
+import com.hcmute.topicmanagement.model.enums.RegistrationPeriodStatus;
 import com.hcmute.topicmanagement.repository.DepartmentRepository;
 import com.hcmute.topicmanagement.repository.PermissionRepository;
+import com.hcmute.topicmanagement.repository.RegistrationPeriodRepository;
 import com.hcmute.topicmanagement.repository.RolePermissionRepository;
 import com.hcmute.topicmanagement.repository.RoleRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
@@ -39,6 +43,7 @@ public class DatabaseSeedService {
             "$2a$10$Tib/thYqs.dQRhB17iTfIO7qY0KKHBywglurPCoADhi9VRnjep79i";
     private static final String STUDENT_EMAIL_DOMAIN = "@student.hcmute.edu.vn";
     private static final String LECTURER_EMAIL_DOMAIN = "@lecturer.hcmute.edu.vn";
+    private static final String SEEDED_PERIOD_NAME = "Đợt đăng ký đề tài học kỳ 1 năm học 2026-2027";
 
     private static final List<String> TABLES = List.of(
             "registration_results",
@@ -250,6 +255,7 @@ public class DatabaseSeedService {
     private final DataSource dataSource;
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
+    private final RegistrationPeriodRepository registrationPeriodRepository;
     private final RolePermissionRepository rolePermissionRepository;
     private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
@@ -261,6 +267,7 @@ public class DatabaseSeedService {
             DataSource dataSource,
             RoleRepository roleRepository,
             PermissionRepository permissionRepository,
+            RegistrationPeriodRepository registrationPeriodRepository,
             RolePermissionRepository rolePermissionRepository,
             DepartmentRepository departmentRepository,
             UserRepository userRepository,
@@ -268,6 +275,7 @@ public class DatabaseSeedService {
         this.dataSource = dataSource;
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
+        this.registrationPeriodRepository = registrationPeriodRepository;
         this.rolePermissionRepository = rolePermissionRepository;
         this.departmentRepository = departmentRepository;
         this.userRepository = userRepository;
@@ -283,6 +291,7 @@ public class DatabaseSeedService {
         seedRolePermissions(roles, permissions);
         seedDepartments();
         seedUsers(roles);
+        seedRegistrationPeriods();
         entityManager.clear();
 
         return new SeedResult(
@@ -291,6 +300,7 @@ public class DatabaseSeedService {
                 PERMISSIONS.size(),
                 DEPARTMENTS.size(),
                 USERS.size(),
+                1,
                 countUsersWithRole("FACULTY_HEAD"),
                 countUsersWithRole("LECTURER"),
                 countUsersWithRole("STUDENT"),
@@ -362,6 +372,12 @@ public class DatabaseSeedService {
     public SeedStepResult seedDepartmentsStep() {
         List<DepartmentEntity> departments = seedDepartments();
         return new SeedStepResult("departments", departments.size(), LocalDateTime.now());
+    }
+
+    @Transactional
+    public SeedStepResult seedRegistrationPeriodsStep() {
+        List<RegistrationPeriodEntity> periods = seedRegistrationPeriods();
+        return new SeedStepResult("registration-periods", periods.size(), LocalDateTime.now());
     }
 
     private void truncateAllTables() {
@@ -447,6 +463,29 @@ public class DatabaseSeedService {
                 .toList();
         departmentRepository.saveAllAndFlush(departments);
         return departments;
+    }
+
+    private List<RegistrationPeriodEntity> seedRegistrationPeriods() {
+        LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
+        RegistrationPeriodEntity period = registrationPeriodRepository.findByNameIgnoreCase(SEEDED_PERIOD_NAME)
+                .orElseGet(() -> new RegistrationPeriodEntity(
+                        SEEDED_PERIOD_NAME,
+                        PeriodType.COURSE,
+                        now.minusDays(14),
+                        now.plusDays(14),
+                        now.minusDays(7),
+                        now.plusDays(30)));
+        period.setName(SEEDED_PERIOD_NAME);
+        period.setType(PeriodType.COURSE);
+        period.setLecturerRegistrationStart(now.minusDays(14));
+        period.setLecturerRegistrationEnd(now.plusDays(14));
+        period.setStudentRegistrationStart(now.minusDays(7));
+        period.setStudentRegistrationEnd(now.plusDays(30));
+        period.setReviewerScoreDeadline(null);
+        period.setCouncilReportDate(null);
+        period.setStatus(RegistrationPeriodStatus.OPEN);
+        period.setCreatedBy(userRepository.findByLoginIdentifier("admin").orElse(null));
+        return List.of(registrationPeriodRepository.saveAndFlush(period));
     }
 
     private Map<String, DepartmentEntity> departmentsByCode() {
@@ -538,6 +577,7 @@ public class DatabaseSeedService {
             int permissions,
             int departments,
             int users,
+            int registrationPeriods,
             int facultyHeads,
             int lecturers,
             int students,

@@ -228,6 +228,20 @@
                   <span class="ms-3" data-sidebar-label>My department</span>
                 </a>
               </li>
+              <li sec:authorize="hasAuthority('PERIOD_MANAGE')">
+                <a
+                  th:href="@{/faculty/periods}"
+                  th:aria-current="${pageTitle == 'Registration period management' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'Registration period management' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Registration period management' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3v4m10-4v4M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm3 8h3m-3 4h6"/>
+                  </svg>
+                  <span class="ms-3" data-sidebar-label>Registration periods</span>
+                </a>
+              </li>
             </ul>
           </div>
         </nav>
