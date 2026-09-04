@@ -1,5 +1,7 @@
 package com.hcmute.topicmanagement.config;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -53,19 +55,28 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/", "/dashboard").authenticated();
                     auth.requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll();
-                    auth.requestMatchers("/login", "/forgot-password", "/access-denied").permitAll();
+                    auth.requestMatchers(
+                                    "/login", "/forgot-password", "/access-denied", "/error", "/error/**",
+                                    "/bad-request", "/unauthorized", "/forbidden", "/not-found",
+                                    "/internal-server-error", "/service-unavailable")
+                            .permitAll();
                     auth.requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll();
                     if (publicSeedEnabled) {
                         auth.requestMatchers("/seed", "/api/seed/**").permitAll();
                     } else {
                         auth.requestMatchers("/seed", "/api/seed/**").hasRole("ADMIN");
                     }
+                    auth.requestMatchers("/admin/departments", "/admin/departments/**").hasRole("ADMIN");
                     auth.requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN");
-                    auth.requestMatchers("/faculty/**").hasRole("FACULTY_HEAD");
-                    auth.requestMatchers("/api/faculty/scores/**").hasAnyRole("LECTURER", "FACULTY_HEAD");
-                    auth.requestMatchers("/api/faculty/**").hasRole("FACULTY_HEAD");
-                    auth.requestMatchers("/lecturer/**", "/api/lecturer/**").hasAnyRole("LECTURER", "FACULTY_HEAD");
-                    auth.requestMatchers("/student/**", "/api/student/**").hasRole("STUDENT");
+                    auth.requestMatchers("/faculty/departments", "/faculty/departments/**")
+                            .hasAnyRole("ADMIN", "FACULTY_HEAD");
+                    auth.requestMatchers("/faculty/**").hasAnyRole("ADMIN", "FACULTY_HEAD");
+                    auth.requestMatchers("/api/faculty/scores/**")
+                            .hasAnyRole("ADMIN", "LECTURER", "FACULTY_HEAD");
+                    auth.requestMatchers("/api/faculty/**").hasAnyRole("ADMIN", "FACULTY_HEAD");
+                    auth.requestMatchers("/lecturer/**", "/api/lecturer/**")
+                            .hasAnyRole("ADMIN", "LECTURER", "FACULTY_HEAD");
+                    auth.requestMatchers("/student/**", "/api/student/**").hasAnyRole("ADMIN", "STUDENT");
                     auth.requestMatchers("/announcements/manage", "/api/announcements/manage/**")
                             .hasAnyRole("ADMIN", "FACULTY_HEAD");
                     auth.anyRequest().authenticated();
@@ -82,7 +93,16 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID", "hcmute-remember-me")
                         .logoutSuccessUrl("/login?logout")
                         .permitAll())
-                .exceptionHandling(exception -> exception.accessDeniedPage("/access-denied"))
+                .exceptionHandling(exception -> exception.accessDeniedHandler((request, response, accessDeniedException) -> {
+                    String accept = request.getHeader("Accept");
+                    boolean htmlRequest = accept != null && (accept.contains("text/html") || accept.contains("*/*"));
+                    boolean apiRequest = request.getRequestURI().startsWith(request.getContextPath() + "/api/");
+                    if (htmlRequest && !apiRequest) {
+                        response.sendRedirect(request.getContextPath() + "/forbidden");
+                    } else {
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                    }
+                }))
                 .headers(headers -> {
                     headers.frameOptions(frame -> frame.deny());
                     headers.contentTypeOptions(Customizer.withDefaults());

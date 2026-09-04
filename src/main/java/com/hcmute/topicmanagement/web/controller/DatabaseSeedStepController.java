@@ -1,4 +1,4 @@
-package com.hcmute.topicmanagement.web;
+package com.hcmute.topicmanagement.web.controller;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,6 +45,11 @@ public class DatabaseSeedStepController {
     @PostMapping("/users")
     public SeedStepResult seedUsers() {
         return databaseSeedService.seedUsersStep();
+    }
+
+    @PostMapping("/departments")
+    public SeedStepResult seedDepartments() {
+        return databaseSeedService.seedDepartmentsStep();
     }
 
 }

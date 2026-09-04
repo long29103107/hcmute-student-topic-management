@@ -1,4 +1,4 @@
-package com.hcmute.topicmanagement.web;
+package com.hcmute.topicmanagement.web.controller;
 
 import java.util.List;
 
@@ -20,17 +20,22 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.hcmute.topicmanagement.service.UserManagementService;
+import com.hcmute.topicmanagement.service.DepartmentService;
 import com.hcmute.topicmanagement.service.UserManagementService.UserEditorData;
 import com.hcmute.topicmanagement.service.UserManagementService.UserSummary;
+import com.hcmute.topicmanagement.web.form.UserForm;
 
 @Controller
 @RequestMapping("/admin/users")
 public class UserManagementController {
 
     private final UserManagementService userManagementService;
+    private final DepartmentService departmentService;
 
-    public UserManagementController(UserManagementService userManagementService) {
+    public UserManagementController(UserManagementService userManagementService,
+            DepartmentService departmentService) {
         this.userManagementService = userManagementService;
+        this.departmentService = departmentService;
     }
 
     @GetMapping
@@ -65,6 +70,7 @@ public class UserManagementController {
         model.addAttribute("editBasePath", "/admin/users");
         model.addAttribute("roles", roles);
         model.addAttribute("createRoles", createRoles);
+        model.addAttribute("departments", departmentService.listDepartmentsForAssignment());
         return "admin/users";
     }
 
@@ -95,11 +101,13 @@ public class UserManagementController {
             if ("STUDENT".equals(accountType)) {
                 userManagementService.createStudent(
                         form.getFullName(),
-                        form.getStudentCode());
+                        form.getStudentCode(),
+                        form.getDepartmentId());
             } else if ("LECTURER".equals(accountType)) {
                 userManagementService.createLecturer(
                         form.getFullName(),
-                        form.getEmailOrCode());
+                        form.getEmailOrCode(),
+                        form.getDepartmentId());
             } else {
                 userManagementService.createUser(
                         form.getLoginIdentifier(),
@@ -107,7 +115,8 @@ public class UserManagementController {
                         form.getEmailOrCode(),
                         form.getPassword(),
                         form.getRoleIds(),
-                        form.getStudentCode());
+                        form.getStudentCode(),
+                        form.getDepartmentId());
             }
             redirectAttributes.addFlashAttribute("successMessage", "User account created successfully.");
             return "redirect:/admin/users";
@@ -145,7 +154,8 @@ public class UserManagementController {
                     form.getFullName(),
                     form.getEmailOrCode(),
                     form.getPassword(),
-                    form.getRoleIds());
+                    form.getRoleIds(),
+                    form.getDepartmentId());
             redirectAttributes.addFlashAttribute("successMessage", "User account updated successfully.");
             return "redirect:/admin/users";
         } catch (UserManagementService.UserValidationException exception) {
@@ -194,6 +204,7 @@ public class UserManagementController {
                     .ifPresent(role -> form.setRoleIds(java.util.Set.of(role.getId())));
         }
         model.addAttribute("roles", roles);
+        model.addAttribute("departments", departmentService.listDepartmentsForAssignment());
         model.addAttribute("editMode", editMode);
         model.addAttribute("user", user);
         if (!editMode && !StringUtils.hasText(form.getAccountType())) {
@@ -220,6 +231,7 @@ public class UserManagementController {
         form.setEmailOrCode(user.getEmailOrCode());
         form.setRoleIds(user.getRoleIds());
         form.setStudentCode(user.getStudentCode());
+        form.setDepartmentId(user.getDepartmentId());
         return form;
     }
 

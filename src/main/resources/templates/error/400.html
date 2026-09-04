@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>400 · Bad request</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <link rel="stylesheet" th:href="@{/css/error.css}">
+</head>
+<body class="error-page error-page--orange">
+<div class="error-page__shell">
+    <header class="error-page__brand">
+        <span class="error-page__brand-mark">TM</span>
+        <span class="error-page__brand-copy"><strong>HCMUTE Student Topic Management</strong><span>Student topic management portal</span></span>
+    </header>
+    <main class="error-page__card" aria-labelledby="error-title">
+        <div class="error-page__topline"><p class="error-page__eyebrow">Bad request</p><span class="error-page__status-dot" aria-hidden="true"></span></div>
+        <div class="error-page__code-row"><div class="error-page__code" aria-hidden="true">400</div><div class="error-page__signal" aria-hidden="true"></div></div>
+        <div class="error-page__copy"><p class="error-page__eyebrow">HTTP ERROR</p><h1 id="error-title">We couldn't process that request.</h1><p>Something about the submitted request was not valid. Please check the information and try again.</p></div>
+        <div class="error-page__actions"><a class="error-page__button error-page__button--primary" th:href="@{/dashboard}">Back to dashboard</a></div>
+        <p class="error-page__hint">If the problem keeps happening, contact your administrator.</p>
+    </main>
+</div>
+</body>
+</html>

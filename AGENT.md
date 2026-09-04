@@ -57,6 +57,11 @@ MVC chạy được end-to-end với các thực thể lõi:
   topic-registration-review permissions. This is an explicit role-permission
   bundle rather than runtime role inheritance. Add Lecturer creates only
   `LECTURER`; `FACULTY_HEAD` is granted separately.
+- `ADMIN` is the full-capability system role. The seed assigns every current
+  permission to Admin, route-level authorization accepts Admin for Lecturer,
+  Faculty Head and Student workspaces, and the sidebar exposes available role
+  workspaces to Admin. Resource-specific own/group/assigned constraints remain
+  explicit service rules unless an Admin-wide operational view is defined.
 - The revised schema has no separate Student Profile table. For Student
   accounts, the immutable `users.login_identifier` is the unique 8-digit MSSV;
   the generated student email is stored in `users.email_or_code`.
@@ -102,6 +107,8 @@ Trước khi tạo task/plan hoặc thay đổi code, đọc:
   hoặc plan mới phải ghi rõ `Vision alignment`, outcome và out-of-scope boundary.
 - Không sửa/khôi phục thay đổi không liên quan của người dùng.
 - Khi hoàn thành task, cập nhật tài liệu/phase summary phù hợp sau khi đã verification.
+- Sau mỗi lần update code hoặc UI, cập nhật document liên quan và ghi một entry
+  ngắn vào `AGENT_MEMORY.md` để các lượt làm việc sau giữ được context.
 - Feedback sau các thao tác quản trị dùng fragment toast tái sử dụng tại
   `src/main/resources/templates/fragments/toast.html`; layout đọc các flash
   attribute `successMessage`, `warningMessage`, `errorMessage`. Logic đóng và
@@ -139,6 +146,15 @@ Trước khi tạo task/plan hoặc thay đổi code, đọc:
 - Passwords are not collected during Student/Lecturer creation or normal edit;
   credential setup uses the separate reusable Set password modal and the
   dedicated `/{id}/password` action protected by `USER_UPDATE`.
+- Error pages for HTTP 400, 401, 403, 404, 500 and 503 live as standalone templates
+  under `src/main/resources/templates/error/`. They must not decorate the main
+  layout or include the application sidebar/header/footer; the 403 page is also
+  the Spring Security access-denied destination. Keep their shared visual
+  styling in `static/css/error.css` instead of relying on generated Tailwind
+  utilities that may be stale until assets are rebuilt. Browser error handling
+  redirects to semantic paths such as `/not-found` and `/forbidden`; API
+  requests keep their status/JSON contract. `/error/{status}` remains a legacy
+  alias.
 
 ## Verification
 

@@ -122,6 +122,20 @@
                   <span class="ms-3" data-sidebar-label>Manage lecturers</span>
                 </a>
               </li>
+              <li sec:authorize="hasAuthority('DEPARTMENT_MANAGE')">
+                <a
+                  th:href="@{/admin/departments}"
+                  th:aria-current="${pageTitle == 'Department management' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'Department management' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Department management' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 21h18M5 21V5l7-3 7 3v16M9 9h1m4 0h1M9 13h1m4 0h1M9 17h1m4 0h1"/>
+                  </svg>
+                  <span class="ms-3" data-sidebar-label>Departments</span>
+                </a>
+              </li>
               <li sec:authorize="hasAuthority('ROLE_READ')">
                 <a
                   th:href="@{/admin/roles}"
@@ -149,6 +163,69 @@
                   <span class="ms-3" data-sidebar-label
                     >Roles &amp; permissions</span
                   >
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div sec:authorize="hasAnyRole('ADMIN', 'LECTURER', 'FACULTY_HEAD')">
+            <p
+              class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400"
+              data-sidebar-label
+            >
+              Lecturer workspace
+            </p>
+            <ul class="space-y-1.5">
+              <li>
+                <a
+                  th:href="@{/lecturer/topics}"
+                  th:aria-current="${pageTitle == 'My topic proposals' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'My topic proposals' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'My topic proposals' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5m0-15v15M8 7h8m-8 4h8m-8 4h5"
+                    />
+                  </svg>
+                  <span class="ms-3" data-sidebar-label>My topic proposals</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div sec:authorize="hasAnyRole('ADMIN', 'FACULTY_HEAD')">
+            <p
+              class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400"
+              data-sidebar-label
+            >
+              Faculty workflow
+            </p>
+            <ul class="space-y-1.5">
+              <li>
+                <a
+                  th:href="@{/faculty/departments}"
+                  th:aria-current="${pageTitle == 'My department' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'My department' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'My department' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 21h18M5 21V5l7-3 7 3v16M9 9h1m4 0h1M9 13h1m4 0h1M9 17h1m4 0h1"/>
+                  </svg>
+                  <span class="ms-3" data-sidebar-label>My department</span>
                 </a>
               </li>
             </ul>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>401 · Unauthorized</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <link rel="stylesheet" th:href="@{/css/error.css}">
+</head>
+<body class="error-page">
+<div class="error-page__shell">
+    <header class="error-page__brand">
+        <span class="error-page__brand-mark">TM</span>
+        <span class="error-page__brand-copy"><strong>HCMUTE Student Topic Management</strong><span>Student topic management portal</span></span>
+    </header>
+    <main class="error-page__card" aria-labelledby="error-title">
+        <div class="error-page__topline"><p class="error-page__eyebrow">Authentication required</p><span class="error-page__status-dot" aria-hidden="true"></span></div>
+        <div class="error-page__code-row"><div class="error-page__code" aria-hidden="true">401</div><div class="error-page__signal" aria-hidden="true"></div></div>
+        <div class="error-page__copy"><p class="error-page__eyebrow">HTTP ERROR</p><h1 id="error-title">Sign in to continue.</h1><p>This page is reserved for signed-in members of the topic management portal.</p></div>
+        <div class="error-page__actions"><a class="error-page__button error-page__button--primary" th:href="@{/login}">Go to sign in</a><a class="error-page__button error-page__button--secondary" th:href="@{/}">Return home</a></div>
+        <p class="error-page__hint">Your session may have expired. Signing in again should get you back on track.</p>
+    </main>
+</div>
+</body>
+</html>

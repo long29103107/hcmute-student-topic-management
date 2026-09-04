@@ -7,21 +7,26 @@ revised schema does not have a separate Student Profile entity.
 ## Identity
 
 - `UserEntity` stores the immutable internal `login_identifier`, display name,
-  login email/code, non-null password hash and active status. For a Student,
-  `login_identifier` is the unique 8-digit MSSV and `email_or_code` contains
-  the generated student email.
+  login email/code, optional department, non-null password hash and active
+  status. For a Student, `login_identifier` is the unique 8-digit MSSV and
+  `email_or_code` contains the generated student email.
 - `RoleEntity` and `PermissionEntity` are system-managed catalogs.
   `UserRoleEntity` and `RolePermissionEntity` model their many-to-many
   assignments.
 
 ## Academic setup
 
-- `DepartmentEntity` owns department code/name and has many topics.
+- `DepartmentEntity` owns department code/name and has many topics and users.
 - `RegistrationPeriodEntity` stores separate lecturer and student windows,
   optional score deadline/council date, status and creator.
 - `TopicEntity` belongs to one period and department and references its
-  proposer. `topic_supervisors` supports multiple lecturers; Service rules
-  limit a topic to one or two supervisors.
+  proposer. The topic-proposal Service only exposes the authenticated user's
+  own proposals, requires an active department and an `OPEN` period whose
+  lecturer window contains the current instant (inclusive), creates proposals
+  as `DRAFT`, and permits edits only for owned `DRAFT` or `REJECTED` topics.
+  Updating a rejected proposal returns it to `DRAFT`. `topic_supervisors`
+  supports multiple lecturers; Service rules limit a topic to one or two
+  supervisors in the later assignment flow.
 
 ## Student workflow
 
@@ -57,6 +62,8 @@ revised schema does not have a separate Student Profile entity.
 ```text
 RegistrationPeriod 1 ── * Topic
 RegistrationPeriod 1 ── * StudentGroup
+Department 1 ── * User
+Department 1 ── * Topic
 Topic 1 ── * TopicRegistration * ── 1 StudentGroup
 Topic * ── * User (topic_supervisors)
 StudentGroup * ── * User (group_members)

@@ -1,6 +1,8 @@
-package com.hcmute.topicmanagement.web;
+package com.hcmute.topicmanagement.web.controller;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,9 +23,15 @@ public class LoginController {
 
     @GetMapping("/login")
     public String login(
+            Authentication authentication,
             @RequestParam(name = "error", required = false) String error,
             @RequestParam(name = "logout", required = false) String logout,
             Model model) {
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken)) {
+            return "redirect:/dashboard";
+        }
         model.addAttribute("loginError", error != null);
         model.addAttribute("loggedOut", logout != null);
         model.addAttribute("googleLoginEnabled", googleOAuthEnabled);

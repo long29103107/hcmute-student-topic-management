@@ -1,4 +1,4 @@
-package com.hcmute.topicmanagement.web;
+package com.hcmute.topicmanagement.web.form;
 
 import java.util.LinkedHashSet;
 import java.util.Set;

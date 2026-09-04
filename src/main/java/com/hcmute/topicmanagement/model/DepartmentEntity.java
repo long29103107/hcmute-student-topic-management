@@ -7,12 +7,16 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "departments")
+@Table(name = "departments", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_departments_code", columnNames = "code"),
+        @UniqueConstraint(name = "uk_departments_name", columnNames = "name")
+})
 public class DepartmentEntity extends BaseEntity {
 
-    @Column(nullable = false, unique = true, length = 30)
+    @Column(nullable = false, length = 30)
     private String code;
 
     @Column(nullable = false, length = 150)
@@ -23,6 +27,9 @@ public class DepartmentEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "department")
     private Set<TopicEntity> topics = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "department")
+    private Set<UserEntity> users = new LinkedHashSet<>();
 
     protected DepartmentEntity() {
     }
@@ -58,5 +65,9 @@ public class DepartmentEntity extends BaseEntity {
 
     public Set<TopicEntity> getTopics() {
         return topics;
+    }
+
+    public Set<UserEntity> getUsers() {
+        return users;
     }
 }

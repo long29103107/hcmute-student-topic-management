@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="departmentForm(formObjectName, formAction, editing, title, submitLabel, fieldPrefix, modalId)"
+         class="relative rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div class="border-b border-gray-200 px-6 py-5 pe-16 sm:px-8">
+            <h2 class="text-xl font-semibold text-gray-900" th:text="${title}">Create department</h2>
+            <p class="mt-2 text-sm leading-5 text-gray-500"
+               th:text="${editing ? 'Update the department code and display name.' : 'Create a department for faculty topics and account assignments.'}">
+                Create a department for faculty topics and account assignments.
+            </p>
+        </div>
+
+        <form class="p-6 sm:p-8" th:action="${formAction}" th:object="${__${formObjectName}__}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <div class="flex items-start rounded-lg bg-red-50 p-4 text-sm text-red-800"
+                 th:if="${#fields.hasGlobalErrors()}" role="alert">
+                <svg class="me-3 mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9 5h2v6H9V5Zm0 8h2v2H9v-2Z"/>
+                </svg>
+                <div><p th:each="error : ${#fields.globalErrors()}" th:text="${error}">The department could not be saved.</p></div>
+            </div>
+
+            <div class="grid gap-5 sm:grid-cols-2" th:classappend="${#fields.hasGlobalErrors() ? 'mt-6' : ''}">
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-code'}">Code</label>
+                    <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm uppercase text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                           th:id="${fieldPrefix + '-code'}" type="text" th:field="*{code}" maxlength="30" autocomplete="off">
+                    <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('code')}" th:errors="*{code}">Department code is invalid.</p>
+                </div>
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-name'}">Department name</label>
+                    <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                           th:id="${fieldPrefix + '-name'}" type="text" th:field="*{name}" maxlength="150" autocomplete="off">
+                    <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Department name is invalid.</p>
+                </div>
+            </div>
+
+            <div class="mt-7 flex flex-wrap justify-end gap-3 border-t border-gray-200 pt-6">
+                <button type="button" class="order-1 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100"
+                        th:attr="data-modal-hide=${modalId}">Cancel</button>
+                <button class="order-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                        type="submit" th:text="${submitLabel}">Create department</button>
+            </div>
+        </form>
+    </div>
+
+    <div th:fragment="departmentModal(modalId, formObjectName, formAction, editing, title, submitLabel, fieldPrefix)"
+         th:id="${modalId}" tabindex="-1" aria-hidden="true" role="dialog" aria-modal="true"
+         class="fixed inset-0 z-50 hidden h-full w-full overflow-y-auto overflow-x-hidden bg-gray-900/50 p-4 md:inset-0">
+        <div class="relative mx-auto my-8 w-full max-w-2xl">
+            <button type="button" class="absolute end-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-900"
+                    th:attr="data-modal-hide=${modalId}" aria-label="Close modal">
+                <svg class="h-3 w-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 12 12M13 1 1 13"/>
+                </svg>
+            </button>
+            <div th:replace="~{fragments/department-form :: departmentForm(formObjectName=${formObjectName}, formAction=${formAction}, editing=${editing}, title=${title}, submitLabel=${submitLabel}, fieldPrefix=${fieldPrefix}, modalId=${modalId})}"></div>
+        </div>
+    </div>
+</body>
+</html>

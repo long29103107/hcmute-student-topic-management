@@ -1,4 +1,4 @@
-package com.hcmute.topicmanagement.web;
+package com.hcmute.topicmanagement.web.form;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

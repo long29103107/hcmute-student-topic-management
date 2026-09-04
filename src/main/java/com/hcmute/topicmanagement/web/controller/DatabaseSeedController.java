@@ -1,4 +1,4 @@
-package com.hcmute.topicmanagement.web;
+package com.hcmute.topicmanagement.web.controller;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;

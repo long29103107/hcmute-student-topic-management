@@ -44,17 +44,32 @@ CREATE TABLE IF NOT EXISTS permissions (
     CONSTRAINT uk_permissions_code UNIQUE (code)
 ) ENGINE = InnoDB;
 
+CREATE TABLE IF NOT EXISTS departments (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    code VARCHAR(30) NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    CONSTRAINT pk_departments PRIMARY KEY (id),
+    CONSTRAINT uk_departments_code UNIQUE (code),
+    CONSTRAINT uk_departments_name UNIQUE (name)
+) ENGINE = InnoDB;
+
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT NOT NULL AUTO_INCREMENT,
     login_identifier VARCHAR(100) NOT NULL,
     full_name VARCHAR(150) NOT NULL,
     email_or_code VARCHAR(100) NULL,
+    department_id BIGINT NULL,
     password_hash VARCHAR(255) NOT NULL,
     active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_users PRIMARY KEY (id),
-    CONSTRAINT uk_users_login_identifier UNIQUE (login_identifier)
+    CONSTRAINT uk_users_login_identifier UNIQUE (login_identifier),
+    CONSTRAINT fk_users_department FOREIGN KEY (department_id) REFERENCES departments (id),
+    INDEX idx_users_department (department_id)
 ) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS user_roles (
@@ -92,17 +107,6 @@ CREATE TABLE IF NOT EXISTS role_permissions (
 -- ================================================================
 -- Core MVP domain
 -- ================================================================
-
-CREATE TABLE IF NOT EXISTS departments (
-    id BIGINT NOT NULL AUTO_INCREMENT,
-    code VARCHAR(30) NOT NULL,
-    name VARCHAR(150) NOT NULL,
-    active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    CONSTRAINT pk_departments PRIMARY KEY (id),
-    CONSTRAINT uk_departments_code UNIQUE (code)
-) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS registration_periods (
     id BIGINT NOT NULL AUTO_INCREMENT,

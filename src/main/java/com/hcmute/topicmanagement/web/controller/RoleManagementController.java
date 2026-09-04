@@ -1,4 +1,4 @@
-package com.hcmute.topicmanagement.web;
+package com.hcmute.topicmanagement.web.controller;
 
 import java.util.List;
 
@@ -19,6 +19,7 @@ import jakarta.validation.Valid;
 
 import com.hcmute.topicmanagement.service.RoleManagementService;
 import com.hcmute.topicmanagement.service.RoleManagementService.RolePermissionData;
+import com.hcmute.topicmanagement.web.form.PermissionAssignmentForm;
 
 @Controller
 @RequestMapping("/admin/roles")

@@ -6,6 +6,8 @@ import java.util.Set;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -23,6 +25,10 @@ public class UserEntity extends BaseEntity {
 
     @Column(name = "email_or_code", length = 100)
     private String emailOrCode;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private DepartmentEntity department;
 
     /**
      * The revised schema keeps this column non-null. An empty value means the
@@ -69,6 +75,14 @@ public class UserEntity extends BaseEntity {
 
     public void setEmailOrCode(String emailOrCode) {
         this.emailOrCode = emailOrCode;
+    }
+
+    public DepartmentEntity getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(DepartmentEntity department) {
+        this.department = department;
     }
 
     public String getPasswordHash() {

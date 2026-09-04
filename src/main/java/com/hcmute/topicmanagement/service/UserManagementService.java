@@ -19,9 +19,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.hcmute.topicmanagement.model.DepartmentEntity;
 import com.hcmute.topicmanagement.model.RoleEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
+import com.hcmute.topicmanagement.repository.DepartmentRepository;
 import com.hcmute.topicmanagement.repository.RoleRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
 import com.hcmute.topicmanagement.repository.UserRoleRepository;
@@ -37,16 +39,19 @@ public class UserManagementService {
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     private final RoleRepository roleRepository;
+    private final DepartmentRepository departmentRepository;
     private final PasswordEncoder passwordEncoder;
 
     public UserManagementService(
             UserRepository userRepository,
             UserRoleRepository userRoleRepository,
             RoleRepository roleRepository,
+            DepartmentRepository departmentRepository,
             PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
         this.roleRepository = roleRepository;
+        this.departmentRepository = departmentRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -147,13 +152,15 @@ public class UserManagementService {
                 user.isActive(),
                 roleIds,
                 hasActiveRole(user, DEFAULT_ACCOUNT_ROLE_CODE),
-                hasActiveRole(user, DEFAULT_ACCOUNT_ROLE_CODE) ? user.getLoginIdentifier() : null);
+                hasActiveRole(user, DEFAULT_ACCOUNT_ROLE_CODE) ? user.getLoginIdentifier() : null,
+                user.getDepartment() == null ? null : user.getDepartment().getId());
     }
 
     @Transactional
     public void createStudent(
             String fullName,
-            String studentCode) {
+            String studentCode,
+            Long departmentId) {
         String normalizedStudentCode = validateStudentCode(studentCode);
         String normalizedLogin = normalizedStudentCode;
         validateIdentity(normalizedLogin, fullName);
@@ -167,6 +174,7 @@ public class UserManagementService {
 
         UserEntity user = new UserEntity(normalizedLogin, fullName.trim(), null);
         user.setEmailOrCode(normalizedEmail);
+        user.setDepartment(resolveDepartment(departmentId));
         UserEntity savedUser = userRepository.saveAndFlush(user);
         saveRoleAssignments(savedUser, List.of(loadCreationRole(DEFAULT_ACCOUNT_ROLE_CODE)));
     }
@@ -174,7 +182,8 @@ public class UserManagementService {
     @Transactional
     public void createLecturer(
             String fullName,
-            String email) {
+            String email,
+            Long departmentId) {
         String normalizedEmail = validateEmail(email);
         String normalizedLogin = normalizedEmail;
         validateIdentity(normalizedLogin, fullName);
@@ -190,6 +199,7 @@ public class UserManagementService {
                 fullName.trim(),
                 null);
         user.setEmailOrCode(normalizedEmail);
+        user.setDepartment(resolveDepartment(departmentId));
         UserEntity savedUser = userRepository.saveAndFlush(user);
         saveRoleAssignments(savedUser, List.of(loadCreationRole("LECTURER")));
     }
@@ -201,7 +211,8 @@ public class UserManagementService {
             String emailOrCode,
             String password,
             Set<Long> roleIds,
-            String studentCode) {
+            String studentCode,
+            Long departmentId) {
         validatePassword(password, true);
 
         List<RoleEntity> roles = validateAndLoadRoles(roleIds, false);
@@ -223,6 +234,7 @@ public class UserManagementService {
                 fullName.trim(),
                 passwordEncoder.encode(password));
         user.setEmailOrCode(normalizedEmail);
+        user.setDepartment(resolveDepartment(departmentId));
         UserEntity savedUser = userRepository.saveAndFlush(user);
         saveRoleAssignments(savedUser, roles);
     }
@@ -233,7 +245,8 @@ public class UserManagementService {
             String fullName,
             String emailOrCode,
             String newPassword,
-            Set<Long> roleIds) {
+            Set<Long> roleIds,
+            Long departmentId) {
         UserEntity user = findUserWithRoles(id);
         validateIdentity(user.getLoginIdentifier(), fullName);
         List<RoleEntity> roles = validateAndLoadRoles(roleIds, true);
@@ -250,6 +263,7 @@ public class UserManagementService {
 
         user.setFullName(fullName.trim());
         user.setEmailOrCode(normalizedEmail);
+        user.setDepartment(resolveDepartment(departmentId));
         if (StringUtils.hasText(newPassword)) {
             validatePassword(newPassword, false);
             user.setPasswordHash(passwordEncoder.encode(newPassword));
@@ -380,7 +394,19 @@ public class UserManagementService {
                 hasActiveRole(user, "STUDENT"),
                 user.isActive(),
                 initials(user.getFullName(), user.getLoginIdentifier()),
-                roles);
+                roles,
+                user.getDepartment() == null ? null : user.getDepartment().getId(),
+                user.getDepartment() == null ? null : user.getDepartment().getCode(),
+                user.getDepartment() == null ? null : user.getDepartment().getName());
+    }
+
+    private DepartmentEntity resolveDepartment(Long departmentId) {
+        if (departmentId == null) {
+            return null;
+        }
+        return departmentRepository.findById(departmentId)
+                .filter(DepartmentEntity::isActive)
+                .orElseThrow(() -> new UserValidationException("The selected department is not available."));
     }
 
     private static void validateIdentity(String loginIdentifier, String fullName) {
@@ -547,10 +573,14 @@ public class UserManagementService {
         private final boolean active;
         private final String initials;
         private final List<RoleBadge> roles;
+        private final Long departmentId;
+        private final String departmentCode;
+        private final String departmentName;
 
         public UserSummary(Long id, String loginIdentifier, String fullName, String emailOrCode,
                 String studentCode, boolean student,
-                boolean active, String initials, List<RoleBadge> roles) {
+                boolean active, String initials, List<RoleBadge> roles,
+                Long departmentId, String departmentCode, String departmentName) {
             this.id = id;
             this.loginIdentifier = loginIdentifier;
             this.fullName = fullName;
@@ -560,6 +590,9 @@ public class UserManagementService {
             this.active = active;
             this.initials = initials;
             this.roles = List.copyOf(roles);
+            this.departmentId = departmentId;
+            this.departmentCode = departmentCode;
+            this.departmentName = departmentName;
         }
 
         public Long getId() { return id; }
@@ -571,6 +604,9 @@ public class UserManagementService {
         public boolean isActive() { return active; }
         public String getInitials() { return initials; }
         public List<RoleBadge> getRoles() { return roles; }
+        public Long getDepartmentId() { return departmentId; }
+        public String getDepartmentCode() { return departmentCode; }
+        public String getDepartmentName() { return departmentName; }
     }
 
     public static final class UserEditorData {
@@ -582,10 +618,11 @@ public class UserManagementService {
         private final Set<Long> roleIds;
         private final boolean student;
         private final String studentCode;
+        private final Long departmentId;
 
         public UserEditorData(Long id, String loginIdentifier, String fullName, String emailOrCode,
                 boolean active, Set<Long> roleIds,
-                boolean student, String studentCode) {
+                boolean student, String studentCode, Long departmentId) {
             this.id = id;
             this.loginIdentifier = loginIdentifier;
             this.fullName = fullName;
@@ -594,6 +631,7 @@ public class UserManagementService {
             this.roleIds = new LinkedHashSet<>(roleIds);
             this.student = student;
             this.studentCode = studentCode;
+            this.departmentId = departmentId;
         }
 
         public Long getId() { return id; }
@@ -604,6 +642,7 @@ public class UserManagementService {
         public Set<Long> getRoleIds() { return roleIds; }
         public boolean isStudent() { return student; }
         public String getStudentCode() { return studentCode; }
+        public Long getDepartmentId() { return departmentId; }
     }
 
     public static final class RoleOption {

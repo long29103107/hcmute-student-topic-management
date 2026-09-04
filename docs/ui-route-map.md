@@ -15,10 +15,17 @@ Have unless explicitly selected.
 
 | Method | Route | Controller/view | Access |
 |---|---|---|---|
-| GET | `/login` | `LoginController` → `login.html` | anonymous |
+| GET | `/login` | `LoginController` → `login.html`; authenticated users are redirected to `/dashboard` | anonymous page, authenticated redirect |
 | POST | `/login` | `AuthController` | anonymous |
 | POST | `/logout` | `AuthController` | authenticated |
-| GET | `/access-denied` | `ErrorController` | any |
+| GET | `/access-denied` | `AccessDeniedController` → redirect to `/forbidden` | any; compatibility redirect |
+| GET | `/error` | `ErrorPageController` (`ErrorViewResolver`) → redirect to a named error path | HTML error dispatch; standalone pages |
+| GET | `/bad-request`, `/error/400` | `ErrorPageController` → `error/400.html` | public page; response keeps 400 |
+| GET | `/unauthorized`, `/error/401` | `ErrorPageController` → `error/401.html` | public page; response keeps 401 |
+| GET | `/forbidden`, `/error/403` | `ErrorPageController` → `error/403.html` | public page; response keeps 403 |
+| GET | `/not-found`, `/error/404` | `ErrorPageController` → `error/404.html` | public page; response keeps 404 |
+| GET | `/internal-server-error`, `/error/500` | `ErrorPageController` → `error/500.html` | public page; response keeps 500 |
+| GET | `/service-unavailable`, `/error/503` | `ErrorPageController` → `error/503.html` | public page; response keeps 503 |
 
 ## Shared pages
 
@@ -34,8 +41,8 @@ Have unless explicitly selected.
 
 | Method | Route | Purpose |
 |---|---|---|
-| GET | `/admin/students` | `StudentManagementController` → student directory, search, status summary |
-| GET | `/admin/lecturers` | `LecturerManagementController` → lecturer-capability directory (`LECTURER` or `FACULTY_HEAD`), search, status summary |
+| GET | `/admin/students` | `StudentManagementController` → student directory, search, status summary and department display |
+| GET | `/admin/lecturers` | `LecturerManagementController` → lecturer-capability directory (`LECTURER` or `FACULTY_HEAD`), search, status summary and department display |
 | POST | `/admin/students`, `/admin/students/{id}/edit`, `/admin/students/{id}/status`, `/admin/students/{id}/delete` | `StudentManagementController` → student create, update, lock/unlock and safe delete |
 | POST | `/admin/lecturers`, `/admin/lecturers/{id}/edit`, `/admin/lecturers/{id}/status`, `/admin/lecturers/{id}/delete` | `LecturerManagementController` → lecturer create, update, lock/unlock and safe delete |
 | GET | `/admin/users` | `UserManagementController` → legacy combined account directory |
@@ -45,7 +52,8 @@ Have unless explicitly selected.
 | GET | `/seed` | `DatabaseSeedPageController` → admin page for invoking the seed API |
 | GET | `/admin/roles?roleId=...` | `RoleManagementController` → combined system-role directory and permission editor (ADMIN hidden) |
 | GET/POST | `/admin/roles/{id}/permissions` | `RoleManagementController` → select/toggle permissions for a system role only; GET redirects to the combined editor |
-| GET/POST | `/faculty/departments` | `DepartmentController` → management |
+| GET/POST | `/admin/departments`, `/admin/departments/{id}/edit`, `/admin/departments/{id}/status`, `/admin/departments/{id}/delete` | `DepartmentController` → Admin-only department CRUD, search (`search`), pagination (`page`, `size`), column sort (`sort=code|name|status`, `direction=asc|desc`), activate/deactivate and safe delete; delete succeeds only when no users or topics reference the department |
+| GET | `/faculty/departments` | `FacultyDepartmentController` → Faculty Head read-only view of their assigned department members |
 | GET/POST | `/faculty/periods` | `RegistrationPeriodController` → list/create/update |
 | GET/POST | `/faculty/topics/review` | `TopicReviewController` → approve/reject/publish |
 | GET/POST | `/faculty/registrations/review` | `RegistrationReviewController` → approve/reject |
@@ -57,7 +65,8 @@ Have unless explicitly selected.
 
 | Method | Route | Purpose |
 |---|---|---|
-| GET/POST | `/lecturer/topics` | `TopicController` → propose/view own topics |
+| GET | `/lecturer/topics` | `TopicProposalController` → list the authenticated Lecturer's own proposals and render create/edit modals; Faculty Head access is limited to the same own-proposal capability |
+| POST | `/lecturer/topics`, `/lecturer/topics/{id}/edit` | `TopicProposalController` → create or update an owned proposal through PRG; the Service requires an active department, an open lecturer registration window and an editable `DRAFT`/`REJECTED` status |
 | GET | `/lecturer/assignments` | `AssignmentController` → supervised/reviewer assignments |
 | GET/POST | `/lecturer/scoring` | `ScoreController` → score/comment |
 | GET | `/reports/view?id=...` | `ReportController` → permitted download/view |
@@ -90,6 +99,8 @@ not replace the Thymeleaf flow or duplicate Service rules.
 | GET | `/api/announcements` | published announcements | authenticated |
 | GET | `/api/topics` | published topics with period/department/status filters | authenticated |
 | GET/POST | `/api/faculty/periods` | list/create periods | Faculty Head |
+| GET/POST | `/api/lecturer/topics` | list or create the authenticated user's own topic proposals; create validates the active department and inclusive lecturer registration window | `TOPIC_PROPOSE` |
+| PUT | `/api/lecturer/topics/{id}` | update an owned `DRAFT`/`REJECTED` proposal; a rejected proposal returns to `DRAFT` after a valid update | `TOPIC_PROPOSE` |
 | POST | `/api/topics/{id}/approve` | approve/reject/publish topic action | Faculty Head |
 | GET/POST | `/api/student/groups` | group/member operations | Student |
 | POST | `/api/student/groups/{groupId}/registrations` | leader submits registration | Group leader |
@@ -102,7 +113,32 @@ REST request/response DTOs, status codes and field errors must be documented in
 the owning task before implementation. `@RestController` methods must never
 calculate final grades or bypass resource authorization.
 
+## Error pages
+
+The 400, 401, 403, 404, 500 and 503 pages are standalone Thymeleaf documents under
+`src/main/resources/templates/error/`. They intentionally do not decorate the
+main layout and do not include the application sidebar, header or footer. The
+Spring Boot error controller selects the matching status template for error
+dispatches; Spring Security's access-denied flow redirects browser requests to
+the semantic `/forbidden` path. API requests retain their normal status/JSON
+response instead of redirecting to HTML. The legacy `/error/{status}` aliases
+remain available. Their shared visual styling is isolated in
+`src/main/resources/static/css/error.css` so the pages do not depend on the
+generated Tailwind utility bundle.
+
 ## Implementation rules
+
+### Account directory UI contract
+
+- The canonical Student and Lecturer directories keep the account name and
+  login email together in the `Account` cell: the name is shown first and the
+  email is shown below it without a leading `@`.
+- The directories do not render a separate `Email` column. `Department` is a
+  separate column showing the department code and name, or `Not assigned` for
+  legacy accounts without a department.
+- Admin create/edit account modals expose an active-department selector. The
+  selected `departmentId` value is persisted through `users.department_id`;
+  unassigned legacy accounts remain supported.
 
 - Use POST/redirect/GET for all state changes.
 - `id` values are parsed and validated before Service call; Service rechecks

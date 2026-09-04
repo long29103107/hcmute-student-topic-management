@@ -1,4 +1,4 @@
-package com.hcmute.topicmanagement.web;
+package com.hcmute.topicmanagement.web.controller;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;

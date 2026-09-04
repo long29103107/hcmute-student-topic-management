@@ -17,6 +17,11 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
             + "where lower(u.emailOrCode) = lower(:email)")
     Optional<UserEntity> findByEmailIgnoreCase(@Param("email") String email);
 
+    @Query("select u from UserEntity u "
+            + "left join fetch u.department "
+            + "where lower(u.emailOrCode) = lower(:email)")
+    Optional<UserEntity> findByEmailIgnoreCaseWithDepartment(@Param("email") String email);
+
     boolean existsByLoginIdentifierIgnoreCase(String loginIdentifier);
 
     @Query("select count(u) > 0 from UserEntity u "
@@ -28,17 +33,37 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     boolean existsByEmailOrCodeIgnoreCaseAndIdNot(
             @Param("emailOrCode") String emailOrCode, @Param("id") Long id);
 
+    boolean existsByDepartment_Id(Long departmentId);
+
+    @Query("select count(u) from UserEntity u "
+            + "join u.userRoles userRole "
+            + "where lower(u.department.code) = lower(:departmentCode) "
+            + "and userRole.role.code = :roleCode "
+            + "and u.active = true and userRole.active = true")
+    long countActiveByDepartmentCodeAndRoleCode(
+            @Param("departmentCode") String departmentCode,
+            @Param("roleCode") String roleCode);
+
     @Query("select distinct u from UserEntity u "
             + "left join fetch u.userRoles ur "
             + "left join fetch ur.role "
+            + "left join fetch u.department "
             + "order by lower(u.fullName), lower(u.loginIdentifier)")
     List<UserEntity> findAllWithRolesOrderByFullNameAsc();
 
     @Query("select distinct u from UserEntity u "
             + "left join fetch u.userRoles ur "
             + "left join fetch ur.role "
+            + "left join fetch u.department "
             + "where u.id = :id")
     Optional<UserEntity> findByIdWithRoles(@Param("id") Long id);
+
+    @Query("select distinct u from UserEntity u "
+            + "left join fetch u.userRoles ur "
+            + "left join fetch ur.role "
+            + "where u.department.id = :departmentId and u.active = true "
+            + "order by lower(u.fullName), lower(u.loginIdentifier)")
+    List<UserEntity> findActiveByDepartmentIdWithRolesOrderByFullNameAsc(@Param("departmentId") Long departmentId);
 
     @Query("select u from UserEntity u "
             + "where lower(u.loginIdentifier) = lower(:identifier) "

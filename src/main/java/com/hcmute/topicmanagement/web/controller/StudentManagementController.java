@@ -1,4 +1,4 @@
-package com.hcmute.topicmanagement.web;
+package com.hcmute.topicmanagement.web.controller;
 
 import java.util.List;
 
@@ -17,18 +17,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.hcmute.topicmanagement.service.DepartmentService;
 import com.hcmute.topicmanagement.service.UserManagementService;
 import com.hcmute.topicmanagement.service.UserManagementService.UserEditorData;
 import com.hcmute.topicmanagement.service.UserManagementService.UserSummary;
+import com.hcmute.topicmanagement.web.form.PasswordForm;
+import com.hcmute.topicmanagement.web.form.StudentForm;
 
 @Controller
-@RequestMapping("/admin/lecturers")
-public class LecturerManagementController {
+@RequestMapping("/admin/students")
+public class StudentManagementController {
 
     private final UserManagementService service;
+    private final DepartmentService departmentService;
 
-    public LecturerManagementController(UserManagementService service) {
+    public StudentManagementController(UserManagementService service, DepartmentService departmentService) {
         this.service = service;
+        this.departmentService = departmentService;
     }
 
     @GetMapping
@@ -38,42 +43,43 @@ public class LecturerManagementController {
             @RequestParam(defaultValue = "account") String sort,
             @RequestParam(defaultValue = "asc") String direction,
             @RequestParam(defaultValue = "") String search, Model model) {
-        UserManagementService.UserDirectoryPage directory = service.listUsersPage("LECTURER", search, page, size, sort, direction);
+        UserManagementService.UserDirectoryPage directory = service.listUsersPage("STUDENT", search, page, size, sort, direction);
         populateDirectory(model, directory, search);
-        model.addAttribute("lecturerForm", new LecturerForm());
-        model.addAttribute("createForm", model.getAttribute("lecturerForm"));
-        model.addAttribute("createFormName", "lecturerForm");
-        model.addAttribute("formAction", "/admin/lecturers");
-        model.addAttribute("statusBasePath", "/admin/lecturers");
-        model.addAttribute("editBasePath", "/admin/lecturers");
-        model.addAttribute("directoryPath", "/admin/lecturers");
-        return "admin/lecturers";
+        StudentForm form = new StudentForm();
+        model.addAttribute("studentForm", form);
+        model.addAttribute("createForm", form);
+        model.addAttribute("createFormName", "studentForm");
+        model.addAttribute("formAction", "/admin/students");
+        model.addAttribute("statusBasePath", "/admin/students");
+        model.addAttribute("editBasePath", "/admin/students");
+        model.addAttribute("directoryPath", "/admin/students");
+        return "admin/students";
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('USER_CREATE') and hasAuthority('USER_ROLE_ASSIGN')")
-    public String create(@Valid @ModelAttribute("lecturerForm") LecturerForm form,
+    public String create(@Valid @ModelAttribute("studentForm") StudentForm form,
             BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
-        if (!StringUtils.hasText(form.getEmailOrCode())) {
-            bindingResult.rejectValue("emailOrCode", "email.required", "Email is required for a lecturer.");
+        if (StringUtils.hasText(form.getStudentCode())) {
+            form.setLoginIdentifier(form.getStudentCode());
         }
         if (bindingResult.hasErrors()) {
-            populateDirectory(model, service.listUsersPage("LECTURER", "", 0, 20, "account", "asc"), "");
-            model.addAttribute("lecturerForm", form);
+            populateDirectory(model, service.listUsersPage("STUDENT", "", 0, 20, "account", "asc"), "");
+            model.addAttribute("studentForm", form);
             model.addAttribute("createForm", form);
-            model.addAttribute("createFormName", "lecturerForm");
-            model.addAttribute("formAction", "/admin/lecturers");
-            model.addAttribute("statusBasePath", "/admin/lecturers");
-            model.addAttribute("editBasePath", "/admin/lecturers");
-            return "admin/lecturers";
+            model.addAttribute("createFormName", "studentForm");
+            model.addAttribute("formAction", "/admin/students");
+            model.addAttribute("statusBasePath", "/admin/students");
+            model.addAttribute("editBasePath", "/admin/students");
+            return "admin/students";
         }
         try {
-            service.createLecturer(form.getFullName(), form.getEmailOrCode());
-            redirectAttributes.addFlashAttribute("successMessage", "Lecturer account created successfully.");
+            service.createStudent(form.getFullName(), form.getStudentCode(), form.getDepartmentId());
+            redirectAttributes.addFlashAttribute("successMessage", "Student account created successfully.");
         } catch (UserManagementService.UserValidationException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
         }
-        return "redirect:/admin/lecturers";
+        return "redirect:/admin/students";
     }
 
     @PostMapping("/{id}/status")
@@ -81,8 +87,8 @@ public class LecturerManagementController {
     public String toggleStatus(@PathVariable Long id, org.springframework.security.core.Authentication authentication,
             RedirectAttributes redirectAttributes) {
         boolean active = service.toggleActive(id, authentication.getName());
-        redirectAttributes.addFlashAttribute("successMessage", active ? "Lecturer account unlocked successfully." : "Lecturer account locked successfully.");
-        return "redirect:/admin/lecturers";
+        redirectAttributes.addFlashAttribute("successMessage", active ? "Student account unlocked successfully." : "Student account locked successfully.");
+        return "redirect:/admin/students";
     }
 
     @PostMapping("/{id}/delete")
@@ -90,12 +96,12 @@ public class LecturerManagementController {
     public String delete(@PathVariable Long id, org.springframework.security.core.Authentication authentication,
             RedirectAttributes redirectAttributes) {
         try {
-            service.deleteUser(id, authentication.getName(), "LECTURER");
-            redirectAttributes.addFlashAttribute("successMessage", "Lecturer account deleted successfully.");
+            service.deleteUser(id, authentication.getName(), "STUDENT");
+            redirectAttributes.addFlashAttribute("successMessage", "Student account deleted successfully.");
         } catch (UserManagementService.UserValidationException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
         }
-        return "redirect:/admin/lecturers";
+        return "redirect:/admin/students";
     }
 
     @PostMapping("/{id}/password")
@@ -108,41 +114,42 @@ public class LecturerManagementController {
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("errorMessage",
                     "Password must be between 8 and 72 characters, and both passwords must match.");
-            return "redirect:/admin/lecturers";
+            return "redirect:/admin/students";
         }
         try {
             service.setPassword(id, form.getPassword());
-            redirectAttributes.addFlashAttribute("successMessage", "Lecturer password set successfully.");
+            redirectAttributes.addFlashAttribute("successMessage", "Student password set successfully.");
         } catch (UserManagementService.UserValidationException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
         }
-        return "redirect:/admin/lecturers";
+        return "redirect:/admin/students";
     }
 
     @PostMapping("/{id}/edit")
-    @PreAuthorize("hasAuthority('USER_UPDATE')")
-    public String update(@PathVariable Long id, @Valid @ModelAttribute("editForm") LecturerForm form,
+    @PreAuthorize("hasAuthority('USER_UPDATE') and hasAuthority('USER_ROLE_ASSIGN')")
+    public String update(@PathVariable Long id, @Valid @ModelAttribute("editForm") StudentForm form,
             BindingResult bindingResult, RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Please correct the lecturer details.");
-            return "redirect:/admin/lecturers";
+            redirectAttributes.addFlashAttribute("errorMessage", "Please correct the student details.");
+            return "redirect:/admin/students";
         }
         try {
             form.setRoleIds(service.getUser(id).getRoleIds());
-            service.updateUser(id, form.getFullName(), form.getEmailOrCode(), form.getPassword(), form.getRoleIds());
-            redirectAttributes.addFlashAttribute("successMessage", "Lecturer account updated successfully.");
+            service.updateUser(id, form.getFullName(), form.getEmailOrCode(), form.getPassword(),
+                    form.getRoleIds(), form.getDepartmentId());
+            redirectAttributes.addFlashAttribute("successMessage", "Student account updated successfully.");
         } catch (UserManagementService.UserValidationException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
         }
-        return "redirect:/admin/lecturers";
+        return "redirect:/admin/students";
     }
 
     private void populateDirectory(Model model, UserManagementService.UserDirectoryPage directory, String search) {
         List<UserSummary> users = directory.getContent();
         users.forEach(user -> model.addAttribute("editForm" + user.getId(), toForm(service.getUser(user.getId()))));
-        model.addAttribute("pageTitle", "Manage lecturers");
-        model.addAttribute("userDirectoryTitle", "Lecturer accounts");
-        model.addAttribute("userDirectoryDescription", "View and update lecturer accounts.");
+        model.addAttribute("pageTitle", "Manage students");
+        model.addAttribute("userDirectoryTitle", "Student accounts");
+        model.addAttribute("userDirectoryDescription", "Create and manage student accounts.");
         model.addAttribute("users", users);
         model.addAttribute("activeUserCount", directory.getActiveCount());
         model.addAttribute("lockedUserCount", directory.getLockedCount());
@@ -150,19 +157,22 @@ public class LecturerManagementController {
         model.addAttribute("directorySearch", search == null ? "" : search);
         model.addAttribute("roles", service.listAssignableRoles());
         model.addAttribute("createRoles", service.listAccountCreationRoles());
-        model.addAttribute("createStudentAccount", false);
-        model.addAttribute("createAccountType", "LECTURER");
-        model.addAttribute("statusBasePath", "/admin/lecturers");
-        model.addAttribute("editBasePath", "/admin/lecturers");
-        model.addAttribute("deleteBasePath", "/admin/lecturers");
+        model.addAttribute("createStudentAccount", true);
+        model.addAttribute("createAccountType", "STUDENT");
+        model.addAttribute("departments", departmentService.listDepartmentsForAssignment());
+        model.addAttribute("statusBasePath", "/admin/students");
+        model.addAttribute("editBasePath", "/admin/students");
+        model.addAttribute("deleteBasePath", "/admin/students");
     }
 
-    private static LecturerForm toForm(UserEditorData user) {
-        LecturerForm form = new LecturerForm();
+    private static StudentForm toForm(UserEditorData user) {
+        StudentForm form = new StudentForm();
         form.setLoginIdentifier(user.getLoginIdentifier());
         form.setFullName(user.getFullName());
         form.setEmailOrCode(user.getEmailOrCode());
         form.setRoleIds(user.getRoleIds());
+        form.setStudentCode(user.getStudentCode());
+        form.setDepartmentId(user.getDepartmentId());
         return form;
     }
 }

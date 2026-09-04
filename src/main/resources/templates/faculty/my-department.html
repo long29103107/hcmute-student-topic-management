@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head><title>My department</title></head>
+<body>
+<main layout:fragment="content" class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+    <section aria-labelledby="page-title">
+        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <div>
+                <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Faculty workflow / Department</p>
+                <h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">My department</h1>
+                <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500">View the active lecturers and students assigned to your department.</p>
+            </div>
+            <span class="inline-flex w-fit items-center rounded-lg bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
+                <span class="me-1.5 h-2 w-2 rounded-full bg-blue-500"></span>Read only
+            </span>
+        </div>
+
+        <div class="flex items-start rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800"
+             th:unless="${department.assigned}" role="alert">
+            <svg class="me-3 mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9 5h2v6H9V5Zm0 8h2v2H9v-2Z"/>
+            </svg>
+            <span>Your account is not assigned to a department yet. Please contact an administrator.</span>
+        </div>
+
+        <th:block th:if="${department.assigned}">
+            <div class="mb-6 grid gap-4 sm:grid-cols-3">
+                <div class="rounded-lg border border-blue-100 bg-blue-50 p-5 shadow-sm">
+                    <span class="text-sm font-medium text-blue-700">Department code</span>
+                    <strong class="mt-2 block text-2xl font-bold text-blue-950" th:text="${department.code}">CNTT</strong>
+                </div>
+                <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm sm:col-span-2">
+                    <span class="text-sm font-medium text-gray-500">Department name</span>
+                    <strong class="mt-2 block text-2xl font-bold text-gray-900" th:text="${department.name}">Information Technology</strong>
+                </div>
+            </div>
+
+            <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm" aria-labelledby="members-heading">
+                <div class="flex flex-col justify-between gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:p-6">
+                    <div>
+                        <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Directory</p>
+                        <h2 id="members-heading" class="text-xl font-semibold text-gray-900">Department members</h2>
+                    </div>
+                    <span class="text-sm text-gray-500" th:text="${#lists.size(department.members) + ' active members'}">0 active members</span>
+                </div>
+                <div class="overflow-x-auto" th:if="${!#lists.isEmpty(department.members)}">
+                    <table class="w-full min-w-[760px] text-left text-sm text-gray-500">
+                        <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Name</th>
+                            <th scope="col" class="px-6 py-3">Account</th>
+                            <th scope="col" class="px-6 py-3">Email</th>
+                            <th scope="col" class="px-6 py-3">Role</th>
+                            <th scope="col" class="px-6 py-3">Status</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="border-b border-gray-100 hover:bg-gray-50" th:each="member : ${department.members}">
+                            <td class="whitespace-nowrap px-6 py-4 font-semibold text-gray-900" th:text="${member.fullName}">Nguyễn Thanh Bình</td>
+                            <td class="whitespace-nowrap px-6 py-4 font-mono text-xs text-gray-600" th:text="${member.loginIdentifier}">nguyen.thanh.binh</td>
+                            <td class="whitespace-nowrap px-6 py-4" th:text="${member.emailOrCode}">lecturer@lecturer.hcmute.edu.vn</td>
+                            <td class="px-6 py-4" th:text="${member.roleNames ?: '—'}">Lecturer</td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800">
+                                    <span class="me-1.5 h-2 w-2 rounded-full bg-green-500"></span>Active
+                                </span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="px-6 py-12 text-center text-sm text-gray-500" th:if="${#lists.isEmpty(department.members)}">No active members are assigned to this department.</p>
+            </section>
+        </th:block>
+    </section>
+</main>
+</body>
+</html>

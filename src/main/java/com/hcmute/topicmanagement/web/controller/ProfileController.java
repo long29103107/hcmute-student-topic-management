@@ -1,4 +1,4 @@
-package com.hcmute.topicmanagement.web;
+package com.hcmute.topicmanagement.web.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

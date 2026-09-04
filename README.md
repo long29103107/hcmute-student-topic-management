@@ -107,18 +107,22 @@ POST /api/seed/ddl
 POST /api/seed/permissions
 POST /api/seed/roles
 POST /api/seed/role-permissions
+POST /api/seed/departments
 POST /api/seed/users
 ```
 
-Các API seed fixture có thể chạy lại; chúng tạo/cập nhật roles, permissions, tài
-khoản test và Student account fixture. `POST /api/admin/seed` là API reset/reseed
-đầy đủ: truncate 17 bảng của schema revised trong một transaction, sau đó tạo lại
-4 roles, 21 permissions và 4 tài khoản fixture. Đây là thao tác destructive dành
+Các API seed fixture có thể chạy lại; chúng tạo/cập nhật roles, permissions, 15
+departments, 4 faculty-head accounts, 16 lecturer accounts và 50 student accounts.
+`POST /api/admin/seed`
+là API reset/reseed đầy đủ: truncate 17 bảng của schema revised trong một
+transaction, sau đó tạo lại 4 roles, 21 permissions, 15 departments và 71 tài
+khoản (gồm 4 faculty heads, 16 lecturers, 50 students và admin). Đây là thao
+tác destructive dành
 cho local; không gọi trên database có dữ liệu cần giữ. Khi xoá hẳn database,
 hãy chạy `POST /api/seed/ddl` trước rồi mới chạy các bước seed fixture. Khi không
 bật anonymous migration, database mới cần một bước bootstrap admin riêng trước
 khi gọi API. Tài khoản fixture dùng mật khẩu local đã được hash trong source.
-Tài khoản quản trị mặc định là email `admin@hcmute.local` /
+Tài khoản quản trị mặc định là email `admin@hcmute.edu.vn` /
 `admin123`; chỉ dùng thông tin này cho môi trường local và đổi trước khi chia
 sẻ hoặc deploy.
 

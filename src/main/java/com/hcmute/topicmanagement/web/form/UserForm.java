@@ -1,4 +1,4 @@
-package com.hcmute.topicmanagement.web;
+package com.hcmute.topicmanagement.web.form;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -26,6 +26,8 @@ public class UserForm {
 
     @Size(max = 72, message = "Password must be 72 characters or fewer.")
     private String password;
+
+    private Long departmentId;
 
     private Set<Long> roleIds = new LinkedHashSet<>();
 
@@ -75,6 +77,14 @@ public class UserForm {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Long getDepartmentId() {
+        return departmentId;
+    }
+
+    public void setDepartmentId(Long departmentId) {
+        this.departmentId = departmentId;
     }
 
     public Set<Long> getRoleIds() {

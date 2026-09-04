@@ -95,7 +95,8 @@ Trang `/seed` gọi các API theo đúng thứ tự sau:
 2. `POST /api/seed/permissions` — tạo permissions.
 3. `POST /api/seed/roles` — tạo roles.
 4. `POST /api/seed/role-permissions` — gán permissions cho roles.
-5. `POST /api/seed/users` — tạo tài khoản mẫu và role assignment.
+5. `POST /api/seed/departments` — tạo 15 departments mẫu.
+6. `POST /api/seed/users` — tạo tài khoản mẫu, phòng ban và role assignment.
 
 ### Seed không cần đăng nhập trên local
 
@@ -132,7 +133,7 @@ Sau khi seed thành công, tài khoản quản trị là:
 
 | Email đăng nhập | Password | Role |
 |---|---|---|
-| `admin@hcmute.local` | `admin123` | `ADMIN` |
+| `admin@hcmute.edu.vn` | `admin123` | `ADMIN` |
 
 Thông tin này chỉ dùng cho local development. Đổi password trước khi chia sẻ
 database hoặc triển khai ứng dụng.
@@ -156,8 +157,10 @@ Database local chuẩn thường có:
 
 - 4 roles
 - 21 permissions
-- 4 users
-- 1 Student account fixture with MSSV `24110000`
+- 15 departments
+- 71 users: 4 faculty heads, 16 lecturers, 50 students và 1 admin
+- Student accounts có MSSV từ `24110000` đến `24110049`
+- Lecturer accounts dùng domain `@lecturer.hcmute.edu.vn` và được chia đều vào 4 departments
 
 DDL hiện tại là bản revised ngày 2026-09-03, gồm 17 bảng. So với schema cũ,
 `student_groups` được scope theo `period_id`, evaluation hỗ trợ nhiều lecturer
@@ -172,13 +175,15 @@ bước `role-permissions` sẽ tạo lại các mapping role-permission theo bu
 định.
 
 Endpoint reset/reseed đầy đủ sau đây có tính destructive: endpoint truncate 17
-bảng của schema revised trước khi seed lại roles, permissions và users:
+bảng của schema revised trước khi seed lại roles, permissions, departments và users:
 
 ```text
 POST /api/admin/seed
 ```
 
-Response trả về `tablesReset: 17`, `roles: 4`, `permissions: 21` và `users: 4`.
+Response trả về `tablesReset: 17`, `roles: 4`, `permissions: 21`,
+`departments: 15`, `users: 71`, `facultyHeads: 4`, `lecturers: 16` và
+`students: 50`.
 Không gọi endpoint này trên database có dữ liệu cần giữ. Nếu đã xoá hẳn
 database, chạy `POST /api/seed/ddl` trước; endpoint reset/reseed chỉ hoạt động
 khi 17 bảng đã tồn tại.

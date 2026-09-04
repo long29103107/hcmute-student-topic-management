@@ -17,11 +17,13 @@ import jakarta.transaction.Transactional;
 
 import org.springframework.stereotype.Service;
 
+import com.hcmute.topicmanagement.model.DepartmentEntity;
 import com.hcmute.topicmanagement.model.PermissionEntity;
 import com.hcmute.topicmanagement.model.RoleEntity;
 import com.hcmute.topicmanagement.model.RolePermissionEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
+import com.hcmute.topicmanagement.repository.DepartmentRepository;
 import com.hcmute.topicmanagement.repository.PermissionRepository;
 import com.hcmute.topicmanagement.repository.RolePermissionRepository;
 import com.hcmute.topicmanagement.repository.RoleRepository;
@@ -35,6 +37,8 @@ public class DatabaseSeedService {
             "$2a$10$VI1jWffo.Jg/04uyrX73TufViz1kOmzLTa9trum0bK61bf9gwh5cq";
     private static final String ADMIN_PASSWORD_HASH =
             "$2a$10$Tib/thYqs.dQRhB17iTfIO7qY0KKHBywglurPCoADhi9VRnjep79i";
+    private static final String STUDENT_EMAIL_DOMAIN = "@student.hcmute.edu.vn";
+    private static final String LECTURER_EMAIL_DOMAIN = "@lecturer.hcmute.edu.vn";
 
     private static final List<String> TABLES = List.of(
             "registration_results",
@@ -56,7 +60,7 @@ public class DatabaseSeedService {
             "roles");
 
     private static final List<RoleSeed> ROLES = List.of(
-            new RoleSeed("ADMIN", "Administrator", "Manage system accounts, roles, and permissions."),
+            new RoleSeed("ADMIN", "Administrator", "Full access to all role capabilities and system administration."),
             new RoleSeed("FACULTY_HEAD", "Faculty Head",
                     "Lecturer capabilities plus faculty workflow and registration management."),
             new RoleSeed("LECTURER", "Lecturer", "Propose topics, supervise students, and submit evaluations."),
@@ -101,18 +105,137 @@ public class DatabaseSeedService {
             "TOPIC_PROPOSE", "TOPIC_VIEW", "EVALUATION_SUBMIT", "RESULT_VIEW");
 
     private static final Map<String, List<String>> ROLE_PERMISSIONS = Map.of(
-            "ADMIN", List.of("DASHBOARD_VIEW", "USER_READ", "USER_CREATE", "USER_UPDATE", "USER_LOCK",
-                    "USER_DELETE", "USER_ROLE_ASSIGN", "ROLE_READ", "ROLE_UPDATE", "PERMISSION_ASSIGN"),
+            "ADMIN", allPermissionCodes(),
             "FACULTY_HEAD", withLecturerPermissions(
-                    "DEPARTMENT_MANAGE", "PERIOD_MANAGE", "TOPIC_REVIEW", "REGISTRATION_REVIEW"),
+                    "PERIOD_MANAGE", "TOPIC_REVIEW", "REGISTRATION_REVIEW"),
             "LECTURER", LECTURER_PERMISSIONS,
             "STUDENT", List.of("TOPIC_VIEW", "GROUP_MANAGE", "REGISTRATION_SUBMIT", "REPORT_SUBMIT", "RESULT_VIEW"));
 
-    private static final List<UserSeed> USERS = List.of(
-            new UserSeed("admin", "System Administrator", "admin@hcmute.local", "ADMIN"),
-            new UserSeed("faculty.head.test", "Faculty Head Test", "faculty.head.test@hcmute.local", "FACULTY_HEAD"),
-            new UserSeed("lecturer.test", "Lecturer Test", "lecturer.test@hcmute.local", "LECTURER"),
-            new UserSeed("24110000", "Student Test", "24110000@student.hcmute.edu.vn", "STUDENT"));
+    private static final List<DepartmentSeed> DEPARTMENTS = List.of(
+            new DepartmentSeed("CNTT", "Công nghệ thông tin"),
+            new DepartmentSeed("KHMT", "Khoa học máy tính"),
+            new DepartmentSeed("CNPM", "Công nghệ phần mềm"),
+            new DepartmentSeed("HTTT", "Hệ thống thông tin"),
+            new DepartmentSeed("KTMT", "Kỹ thuật máy tính"),
+            new DepartmentSeed("MMT", "Mạng máy tính và truyền thông"),
+            new DepartmentSeed("ATTT", "An toàn thông tin"),
+            new DepartmentSeed("KHDL", "Khoa học dữ liệu"),
+            new DepartmentSeed("AI", "Trí tuệ nhân tạo"),
+            new DepartmentSeed("IOT", "Internet vạn vật"),
+            new DepartmentSeed("WEB", "Công nghệ Web"),
+            new DepartmentSeed("MOBILE", "Công nghệ di động"),
+            new DepartmentSeed("HTN", "Hệ thống nhúng"),
+            new DepartmentSeed("CDS", "Chuyển đổi số"),
+            new DepartmentSeed("QLCNTT", "Quản lý công nghệ thông tin"));
+
+    private static final List<UserSeed> FACULTY_HEADS = List.of(
+            facultyHead("nguyen.van.khang", "PGS. TS. Nguyễn Văn Khang", "CNTT"),
+            facultyHead("tran.thi.hong.gam", "TS. Trần Thị Hồng Gấm", "KHMT"),
+            facultyHead("le.quang.huy", "TS. Lê Quang Huy", "CNPM"),
+            facultyHead("pham.minh.tuan", "PGS. TS. Phạm Minh Tuấn", "HTTT"));
+
+    private static final List<UserSeed> LECTURERS = List.of(
+            lecturer("nguyen.thanh.binh", "Nguyễn Thanh Bình", "CNTT"),
+            lecturer("vo.hoang.nam", "Võ Hoàng Nam", "CNTT"),
+            lecturer("dang.minh.tri", "Đặng Minh Trí", "CNTT"),
+            lecturer("bui.thanh.ha", "Bùi Thanh Hà", "CNTT"),
+            lecturer("nguyen.quoc.viet", "Nguyễn Quốc Việt", "KHMT"),
+            lecturer("doan.thi.ngoc", "Đoàn Thị Ngọc", "KHMT"),
+            lecturer("truong.gia.huy", "Trương Gia Huy", "KHMT"),
+            lecturer("ly.minh.kiet", "Lý Minh Kiệt", "KHMT"),
+            lecturer("phan.tuan.anh", "Phan Tuấn Anh", "CNPM"),
+            lecturer("huynh.thi.my.linh", "Huỳnh Thị Mỹ Linh", "CNPM"),
+            lecturer("ngo.duy.khanh", "Ngô Duy Khánh", "CNPM"),
+            lecturer("mai.quoc.thang", "Mai Quốc Thắng", "CNPM"),
+            lecturer("hoang.duc.long", "Hoàng Đức Long", "HTTT"),
+            lecturer("nguyen.thi.thu", "Nguyễn Thị Thu", "HTTT"),
+            lecturer("ta.minh.quan", "Tạ Minh Quân", "HTTT"),
+            lecturer("cao.ngoc.han", "Cao Ngọc Hân", "HTTT"));
+
+    private static final List<UserSeed> STUDENTS = List.of(
+            student("24110000", "Nguyễn Minh Anh", "CNTT"),
+            student("24110001", "Trần Hoàng Nam", "CNTT"),
+            student("24110002", "Lê Gia Hân", "CNTT"),
+            student("24110003", "Phạm Đức Anh", "CNTT"),
+            student("24110004", "Võ Thanh Tùng", "CNTT"),
+            student("24110005", "Đặng Ngọc Mai", "CNTT"),
+            student("24110006", "Bùi Quang Huy", "CNTT"),
+            student("24110007", "Nguyễn Khánh Linh", "CNTT"),
+            student("24110008", "Hồ Minh Khoa", "CNTT"),
+            student("24110009", "Phan Thùy Dương", "CNTT"),
+            student("24110010", "Huỳnh Quốc Bảo", "CNTT"),
+            student("24110011", "Trương Nhật Minh", "CNTT"),
+            student("24110012", "Lý Hải Yến", "CNTT"),
+            student("24110013", "Nguyễn Thành Đạt", "KHMT"),
+            student("24110014", "Trần Ngọc Hân", "KHMT"),
+            student("24110015", "Lê Minh Khôi", "KHMT"),
+            student("24110016", "Phạm Thảo Vy", "KHMT"),
+            student("24110017", "Võ Gia Bảo", "KHMT"),
+            student("24110018", "Đặng Tuấn Kiệt", "KHMT"),
+            student("24110019", "Bùi Phương Nhi", "KHMT"),
+            student("24110020", "Hồ Hoàng Long", "KHMT"),
+            student("24110021", "Phan Minh Châu", "KHMT"),
+            student("24110022", "Huỳnh Anh Quân", "KHMT"),
+            student("24110023", "Trương Khả Hân", "KHMT"),
+            student("24110024", "Lý Đức Tài", "KHMT"),
+            student("24110025", "Nguyễn Bảo Ngọc", "KHMT"),
+            student("24110026", "Trần Minh Quân", "CNPM"),
+            student("24110027", "Lê Hoài An", "CNPM"),
+            student("24110028", "Phạm Quốc Hưng", "CNPM"),
+            student("24110029", "Võ Mỹ Duyên", "CNPM"),
+            student("24110030", "Đặng Anh Tú", "CNPM"),
+            student("24110031", "Bùi Ngọc Anh", "CNPM"),
+            student("24110032", "Hồ Gia Minh", "CNPM"),
+            student("24110033", "Phan Nhật Nam", "CNPM"),
+            student("24110034", "Huỳnh Minh Thư", "CNPM"),
+            student("24110035", "Trương Đức Minh", "CNPM"),
+            student("24110036", "Lý Thanh Trúc", "CNPM"),
+            student("24110037", "Nguyễn Hoàng Phúc", "CNPM"),
+            student("24110038", "Trần Gia Bảo", "HTTT"),
+            student("24110039", "Lê Ngọc Diệp", "HTTT"),
+            student("24110040", "Phạm Minh Nhật", "HTTT"),
+            student("24110041", "Võ Thanh Vân", "HTTT"),
+            student("24110042", "Đặng Quốc Khải", "HTTT"),
+            student("24110043", "Bùi Khánh Vy", "HTTT"),
+            student("24110044", "Hồ Anh Duy", "HTTT"),
+            student("24110045", "Phan Thảo Nguyên", "HTTT"),
+            student("24110046", "Huỳnh Quốc Trung", "HTTT"),
+            student("24110047", "Trương Minh Tâm", "HTTT"),
+            student("24110048", "Lý Ngọc Huyền", "HTTT"),
+            student("24110049", "Nguyễn Đức Toàn", "HTTT"));
+
+    private static final List<UserSeed> USERS = buildUsers();
+
+    private static List<UserSeed> buildUsers() {
+        List<UserSeed> users = new ArrayList<>();
+        users.add(new UserSeed("admin", "System Administrator", "admin@hcmute.edu.vn", "ADMIN", null));
+        users.addAll(FACULTY_HEADS);
+        users.addAll(LECTURERS);
+        users.addAll(STUDENTS);
+        return List.copyOf(users);
+    }
+
+    private static UserSeed facultyHead(String localPart, String fullName, String departmentCode) {
+        return staff(localPart, fullName, "FACULTY_HEAD", departmentCode);
+    }
+
+    private static UserSeed lecturer(String localPart, String fullName, String departmentCode) {
+        return staff(localPart, fullName, "LECTURER", departmentCode);
+    }
+
+    private static UserSeed staff(String localPart, String fullName, String roleCode, String departmentCode) {
+        String email = localPart + LECTURER_EMAIL_DOMAIN;
+        return new UserSeed(email, fullName, email, roleCode, departmentCode);
+    }
+
+    private static UserSeed student(String studentCode, String fullName, String departmentCode) {
+        return new UserSeed(
+                studentCode,
+                fullName,
+                studentCode + STUDENT_EMAIL_DOMAIN,
+                "STUDENT",
+                departmentCode);
+    }
 
     private static List<String> withLecturerPermissions(String... additionalPermissions) {
         List<String> permissions = new ArrayList<>(LECTURER_PERMISSIONS);
@@ -120,10 +243,15 @@ public class DatabaseSeedService {
         return List.copyOf(permissions);
     }
 
+    private static List<String> allPermissionCodes() {
+        return PERMISSIONS.stream().map(PermissionSeed::code).toList();
+    }
+
     private final DataSource dataSource;
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
     private final RolePermissionRepository rolePermissionRepository;
+    private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     @PersistenceContext
@@ -134,12 +262,14 @@ public class DatabaseSeedService {
             RoleRepository roleRepository,
             PermissionRepository permissionRepository,
             RolePermissionRepository rolePermissionRepository,
+            DepartmentRepository departmentRepository,
             UserRepository userRepository,
             UserRoleRepository userRoleRepository) {
         this.dataSource = dataSource;
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
         this.rolePermissionRepository = rolePermissionRepository;
+        this.departmentRepository = departmentRepository;
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
     }
@@ -151,6 +281,7 @@ public class DatabaseSeedService {
         Map<String, RoleEntity> roles = seedRoles();
         Map<String, PermissionEntity> permissions = seedPermissions();
         seedRolePermissions(roles, permissions);
+        seedDepartments();
         seedUsers(roles);
         entityManager.clear();
 
@@ -158,7 +289,11 @@ public class DatabaseSeedService {
                 TABLES.size(),
                 ROLES.size(),
                 PERMISSIONS.size(),
+                DEPARTMENTS.size(),
                 USERS.size(),
+                countUsersWithRole("FACULTY_HEAD"),
+                countUsersWithRole("LECTURER"),
+                countUsersWithRole("STUDENT"),
                 LocalDateTime.now());
     }
 
@@ -211,12 +346,22 @@ public class DatabaseSeedService {
         if (!roles.keySet().containsAll(USERS.stream().map(UserSeed::roleCode).toList())) {
             throw new IllegalStateException("Seed roles before users.");
         }
+        Map<String, DepartmentEntity> departments = departmentsByCode();
 
         List<UserEntity> users = USERS.stream()
-                .map(user -> upsertUser(user, roles.get(user.roleCode())))
+                .map(user -> upsertUser(
+                        user,
+                        roles.get(user.roleCode()),
+                        departmentFor(user, departments)))
                 .toList();
         userRepository.saveAllAndFlush(users);
         return new SeedStepResult("users", users.size(), LocalDateTime.now());
+    }
+
+    @Transactional
+    public SeedStepResult seedDepartmentsStep() {
+        List<DepartmentEntity> departments = seedDepartments();
+        return new SeedStepResult("departments", departments.size(), LocalDateTime.now());
     }
 
     private void truncateAllTables() {
@@ -296,12 +441,51 @@ public class DatabaseSeedService {
         rolePermissionRepository.saveAllAndFlush(rolePermissions);
     }
 
+    private List<DepartmentEntity> seedDepartments() {
+        List<DepartmentEntity> departments = DEPARTMENTS.stream()
+                .map(this::upsertDepartment)
+                .toList();
+        departmentRepository.saveAllAndFlush(departments);
+        return departments;
+    }
+
+    private Map<String, DepartmentEntity> departmentsByCode() {
+        return departmentRepository.findAll().stream()
+                .collect(Collectors.toMap(
+                        department -> department.getCode().toUpperCase(Locale.ROOT),
+                        Function.identity()));
+    }
+
+    private DepartmentEntity departmentFor(
+            UserSeed user,
+            Map<String, DepartmentEntity> departments) {
+        if (user.departmentCode() == null) {
+            return null;
+        }
+        DepartmentEntity department = departments.get(user.departmentCode().toUpperCase(Locale.ROOT));
+        if (department == null) {
+            throw new IllegalStateException("Seed department before users: " + user.departmentCode());
+        }
+        return department;
+    }
+
+    private DepartmentEntity upsertDepartment(DepartmentSeed department) {
+        DepartmentEntity entity = departmentRepository.findByCodeIgnoreCase(department.code())
+                .orElseGet(() -> new DepartmentEntity(department.code(), department.name()));
+        entity.setCode(department.code());
+        entity.setName(department.name());
+        entity.setActive(true);
+        return entity;
+    }
+
     private Map<String, UserEntity> seedUsers(Map<String, RoleEntity> roles) {
+        Map<String, DepartmentEntity> departments = departmentsByCode();
         List<UserEntity> savedUsers = userRepository.saveAllAndFlush(USERS.stream()
                 .map(user -> {
                     UserEntity entity = new UserEntity(
                             user.loginIdentifier(), user.fullName(), passwordHashFor(user));
                     entity.setEmailOrCode(user.emailOrCode());
+                    entity.setDepartment(departmentFor(user, departments));
                     return entity;
                 })
                 .toList());
@@ -317,13 +501,14 @@ public class DatabaseSeedService {
         return savedUsers.stream().collect(Collectors.toMap(UserEntity::getLoginIdentifier, Function.identity()));
     }
 
-    private UserEntity upsertUser(UserSeed user, RoleEntity role) {
+    private UserEntity upsertUser(UserSeed user, RoleEntity role, DepartmentEntity department) {
         UserEntity entity = userRepository.findByLoginIdentifier(user.loginIdentifier())
                 .orElseGet(() -> new UserEntity(
                         user.loginIdentifier(), user.fullName(), passwordHashFor(user)));
         entity.setLoginIdentifier(user.loginIdentifier());
         entity.setFullName(user.fullName());
         entity.setEmailOrCode(user.emailOrCode());
+        entity.setDepartment(department);
         entity.setPasswordHash(passwordHashFor(user));
         entity.setActive(true);
 
@@ -338,14 +523,24 @@ public class DatabaseSeedService {
     }
 
     private String passwordHashFor(UserSeed user) {
-        return "admin".equals(user.loginIdentifier()) ? ADMIN_PASSWORD_HASH : LOCAL_PASSWORD_HASH;
+        return "ADMIN".equals(user.roleCode()) ? ADMIN_PASSWORD_HASH : LOCAL_PASSWORD_HASH;
+    }
+
+    private static int countUsersWithRole(String roleCode) {
+        return (int) USERS.stream()
+                .filter(user -> roleCode.equals(user.roleCode()))
+                .count();
     }
 
     public record SeedResult(
             int tablesReset,
             int roles,
             int permissions,
+            int departments,
             int users,
+            int facultyHeads,
+            int lecturers,
+            int students,
             LocalDateTime completedAt) {
     }
 
@@ -355,6 +550,14 @@ public class DatabaseSeedService {
     private record PermissionSeed(String code, String name, String permissionGroup, String description) {
     }
 
-    private record UserSeed(String loginIdentifier, String fullName, String emailOrCode, String roleCode) {
+    private record DepartmentSeed(String code, String name) {
+    }
+
+    private record UserSeed(
+            String loginIdentifier,
+            String fullName,
+            String emailOrCode,
+            String roleCode,
+            String departmentCode) {
     }
 }
