@@ -3,7 +3,7 @@ phase: 001
 title: Identity and Access — Users, Roles, Permissions and Login
 status: complete
 created_at: 2026-08-20
-updated_at: 2026-08-30
+updated_at: 2026-09-04
 current_task: 001_006
 task_count: 6
 done_count: 6
@@ -54,6 +54,29 @@ server-side authorization, as one usable identity-and-access foundation.
   production deployments must disable it and require an authenticated admin.
   The API truncates the fixed application table set before reseeding.
 - Relevant tests and `mvn test` pass; skipped environment checks are recorded.
+
+## Delivered outcome
+
+After completing Phase 001, the application has a usable, server-authorized
+identity-and-access foundation:
+
+- Users can sign in, sign out and use protected routes with session-aware
+  access-denied behavior.
+- The system provides the `ADMIN`, `FACULTY_HEAD`, `LECTURER` and `STUDENT`
+  role model, with seed-managed permissions and full operational capability
+  for Admin.
+- Administrators can manage user accounts, including creation, editing,
+  activation/deactivation, safe deletion and explicit credential reset.
+- Student accounts use an immutable MSSV login identifier and generated
+  `@student.hcmute.edu.vn` email; lecturer-capability accounts are available in
+  the lecturer directory, including Faculty Head accounts.
+- Server-side validation, authorization, CSRF protection, password hashing and
+  reproducible local identity seeding are in place and covered by verification.
+
+This phase intentionally provides the access foundation only. Departments,
+registration periods, topics, groups, registrations, reports, evaluations,
+results, announcements and dashboards belong to later academic-workflow
+phases.
 
 ## Scope
 

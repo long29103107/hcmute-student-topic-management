@@ -222,7 +222,7 @@ Không bắt buộc cho phiên bản đầu:
 | BR-01 | Mỗi đề tài thuộc đúng một bộ môn. |
 | BR-02 | Mỗi đề tài có từ 1 đến 2 GVHD. |
 | BR-03 | Mỗi nhóm có tối đa 3 sinh viên và đúng 1 nhóm trưởng. |
-| BR-04 | Mỗi sinh viên chỉ tham gia duy nhất 1 nhóm trong quá trình thực hiện đề tài. |
+| BR-04 | Mỗi sinh viên chỉ tham gia duy nhất 1 nhóm ACTIVE trong cùng một đợt đăng ký; việc tham gia qua nhiều đợt sẽ theo policy được chốt riêng. |
 | BR-05 | Mỗi nhóm chỉ đăng ký duy nhất 1 đề tài. |
 | BR-06 | Chỉ nhóm trưởng được đăng ký đề tài và nộp báo cáo. |
 | BR-07 | Chỉ được đăng ký trong thời gian quy định. |
@@ -271,7 +271,7 @@ cần thiết.
 | `Department` - `Topic` | 1 - N | Mỗi đề tài thuộc đúng một bộ môn. |
 | `RegistrationPeriod` - `Topic` | 1 - N | Mỗi đề tài thuộc đúng một đợt đăng ký. |
 | `Topic` - `User` (giảng viên hướng dẫn) | N - N | Mỗi đề tài có từ 1 đến 2 GVHD. |
-| `User` (sinh viên) - `StudentGroup` | N - N | Nhóm tối đa 3 SV, đúng 1 nhóm trưởng; một SV không tham gia trùng nhóm. |
+| `User` (sinh viên) - `StudentGroup` | N - N | Nhóm tối đa 3 SV, đúng 1 nhóm trưởng; một SV không thuộc nhiều nhóm ACTIVE trong cùng đợt đăng ký. |
 | `StudentGroup` - `TopicRegistration` | 1 - N theo lịch sử | Mỗi nhóm chỉ có một đăng ký hiện hành trong cùng ngữ cảnh. |
 | `RegistrationPeriod` - `StudentGroup` | 1 - N | Mỗi nhóm thuộc đúng một đợt đăng ký qua `period_id`. |
 | `Topic` - `TopicRegistration` | 1 - N | Chỉ đề tài đã công bố và đúng đợt mới được đăng ký. |

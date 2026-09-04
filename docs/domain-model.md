@@ -30,21 +30,28 @@ revised schema does not have a separate Student Profile entity.
   as `DRAFT`, and permits edits only for owned `DRAFT` or `REJECTED` topics.
   Updating a rejected proposal returns it to `DRAFT`. `topic_supervisors`
   supports multiple lecturers; Service rules limit a topic to one or two
-  supervisors in the later assignment flow.
+  supervisors in the later assignment flow. Topic review currently uses only
+  the `topics.status` transition to `APPROVED` or `REJECTED`; the revised schema
+  has no approval audit columns/history, so detailed review history is deferred.
 
 ## Student workflow
 
 - `StudentGroupEntity` is scoped to one `RegistrationPeriodEntity` through the
   required `period_id`, and references its creator and leader.
 - `group_members` maps student users to groups. The Service layer enforces at
-  most three active members and exactly one leader, plus the configured rule
-  for a student joining groups across periods.
+  most three active members and exactly one leader. A student may belong to at
+  most one active group within the same registration period; cross-period
+  membership remains a separately configured policy. Invite/confirm workflow
+  is not part of the revised MVP contract.
 - `TopicRegistrationEntity` links a group, topic, period and submitter. It
   keeps `PENDING`, `APPROVED`, `REJECTED` and `CANCELLED` history. The revised
   schema deliberately does not use a unique `(group_id, period_id)` key; the
   Service layer prevents more than one active registration.
 - `ReportEntity` stores report metadata and uploader information. File bytes
-  stay outside the database in configured non-public storage.
+  stay outside the database in configured non-public storage. Upload is allowed
+  only for the leader of an approved registration; file policy is configurable
+  and storage must succeed before report metadata is committed. Download and
+  metadata access are separately protected by resource relationships.
 
 ## Evaluation and result
 

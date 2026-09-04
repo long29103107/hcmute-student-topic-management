@@ -25,9 +25,16 @@ The revised schema contains 17 tables:
   account whose password has not been configured and is rejected by login.
 - `student_groups.period_id` is required, so group membership is scoped to a
   registration period.
+- `topics.status` is the current review decision field. The revised schema has
+  no approval actor/timestamp/reason columns or topic review-history table;
+  those audit details are deferred.
 - `topic_registrations` intentionally has no database unique constraint on
   `(group_id, period_id)`. Rejected/cancelled rows remain history; Service code
   must prevent more than one active registration for a group and period.
+- `reports` stores file metadata only; file bytes use configured external
+  storage. The schema has no dedicated report deadline field, so report access
+  and resubmission policy must not infer one from the student registration
+  window.
 - `evaluations` are lecturer-level rows. The unique key is
   `(registration_id, lecturer_id)`, `board_id` is nullable, and aggregate data
   belongs in `registration_results`.

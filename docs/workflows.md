@@ -91,6 +91,30 @@ avoid two concurrent submissions passing the same uniqueness check.
 - Re-submission before deadline is a Should Have and must not be implemented as
   a mandatory behavior until selected.
 
+## Backlog contract alignment (Issues #6, #9, #12, #13)
+
+The backlog tickets are aligned with the revised schema and the current MVP
+boundary as follows:
+
+- Issue #6 uses `topics.status` as the review decision contract:
+  `DRAFT -> PENDING_APPROVAL -> APPROVED` or `REJECTED`. The revised `topics`
+  table has no approval actor/timestamp/reason columns or review-history table;
+  detailed audit history is deferred.
+- Issue #9 scopes group membership by `student_groups.period_id`. An active
+  group has at most three members and exactly one leader, and a student may
+  belong to at most one active group in the same period. Invite/confirm flows
+  are outside this ticket.
+- Issue #12 allows report upload only by the leader of an approved
+  registration. The `reports` table stores metadata while file bytes remain in
+  configured external storage; validation and storage policy are configurable,
+  and storage must succeed before metadata is committed.
+- Issue #13 protects report metadata and downloads with resource authorization
+  for group members, supervisors, evaluators and Faculty Head according to the
+  relationship policy. A report deadline is not inferred from the student
+  window because the schema has no dedicated field; resubmission rules remain
+  deferred. `REPORT_VIEW` is planned for implementation and must be added to
+  the permission catalog/seed then.
+
 ## Evaluation gates
 
 For the MVP:

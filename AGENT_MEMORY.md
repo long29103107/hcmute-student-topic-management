@@ -181,6 +181,40 @@ factual and free of secrets. Update this file after every code or UI update.
 - Verification: focused Issue #3 tests pass 26/26; full `mvn test` passes
   81/81; `mvn package -DskipTests` passes.
 
+## 2026-09-04 — Backlog contract alignment (#6, #9, #12, #13)
+
+- Updated GitHub issue bodies for #6, #9, #12 and #13 to match the revised
+  database schema and the current MVP boundary. All four issues remain in
+  Backlog; issue #5 was intentionally left unchanged for discussion.
+- #6 is status-only topic review (`DRAFT -> PENDING_APPROVAL -> APPROVED` or
+  `REJECTED`); approval audit columns/history are deferred.
+- #9 is period-scoped group membership using `student_groups.period_id`, with
+  one active group per student per period, at most three members and exactly
+  one leader.
+- #12 restricts report upload to the leader of an approved registration and
+  keeps report bytes outside the database while persisting metadata only after
+  storage succeeds.
+- #13 defines relationship-based report access/download. Report deadline and
+  resubmission remain deferred because the schema has no dedicated deadline
+  field or finalized policy. `REPORT_VIEW` is planned but not yet seeded.
+- Documents updated: `REQUEST.md`, `docs/workflows.md`,
+  `docs/domain-model.md`, `docs/database-design.md`,
+  `docs/authorization-matrix.md` and `AGENT_MEMORY.md`.
+- Verification: GitHub issue bodies were confirmed in the browser; no
+  application tests were run because this update changes requirements/docs,
+  not application code or seed data.
+
+## 2026-09-04 — Phase 001 outcome summary
+
+- Added a `Delivered outcome` section to `.okf/phase/001/PHASE_SUMMARY.md` so
+  the completed phase explicitly records the user-facing identity/access
+  capabilities and its boundary with later academic-workflow phases.
+- Updated the phase summary metadata date to `2026-09-04`; task completion dates
+  and verification evidence remain unchanged.
+- No application code, permission catalog or seed data changed in this update.
+- Verification: `git diff --check` passed; no application tests were run for
+  this documentation-only change.
+
 ## Entry template
 
 ### YYYY-MM-DD — Short update title

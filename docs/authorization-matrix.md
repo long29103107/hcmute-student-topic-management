@@ -49,3 +49,7 @@ does not silently impersonate another user's ownership relationship.
   or remain relationship-scoped.
 - The exact approver model when giáo vụ/trưởng bộ môn exists is open; do not add
   those roles until `REQUEST.md` is confirmed.
+- Issue #13 introduces the planned `REPORT_VIEW` capability for report
+  metadata/download checks. It is not in the current permission catalog yet;
+  when implemented, add it to the permission seed and still enforce the
+  group/supervisor/evaluator/Faculty Head resource relationship on the server.
