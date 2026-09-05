@@ -3,6 +3,38 @@
 Durable project context for future coding-agent sessions. Keep entries concise,
 factual and free of secrets. Update this file after every code or UI update.
 
+## 2026-09-05 — Result publication and student view (Issue #16 / 004_005)
+
+- Implemented Faculty Head/Admin result publication at `/faculty/results` and
+  `/api/faculty/results`, requiring an approved registration, at least one
+  assigned evaluator and submitted scores for every evaluation.
+- Publication stores average score, `PUBLISHED` status, publisher and timestamp;
+  repeat publication is rejected without an audited correction action.
+- Implemented `/student/results` and `/api/student/results`; only published
+  results for groups containing the authenticated student are returned.
+- Added result publication/student privacy/sidebar docs and
+  `ResultPublicationControllerTest` with 5 focused cases. Its test database is
+  isolated from the shared H2 context so full-suite context teardown cannot
+  remove another test's schema. Phase 004 is now complete through `004_005`.
+- Verification: focused suite passes 5/5; full `mvn test` passes 148/148;
+  package succeeds; `git diff --check` passes with only normal LF/CRLF
+  conversion warnings.
+
+## 2026-09-05 — Scoring and average calculation (Issue #15 / 004_004)
+
+- Implemented assigned evaluator score/comment entry at `/lecturer/scoring`,
+  REST `GET/PUT /api/lecturer/scoring` and the `/api/faculty/scores` alias.
+- `EVALUATION_SUBMIT` plus row-level assignment checks restrict scoring to the
+  assigned active evaluator. Scores default to configurable `0`–`10`, enforce
+  the reviewer deadline and published-result lock, and calculate a two-decimal
+  average from submitted/published scores without creating duplicate rows.
+- Added `EvaluationScoringControllerTest` with assignment, range, deadline,
+  publication, average, duplicate and SSR/API coverage. Result publication and
+  the student result view remain `004_005`.
+- Verification: focused suite passes 4/4; full `mvn test` passes 143/143,
+  `mvn package -DskipTests` succeeds and `git diff --check` passes with only
+  normal LF/CRLF conversion warnings.
+
 ## 2026-09-05 — Evaluator assignment (Issue #14 / 004_003)
 
 - Implemented the Admin/Faculty Head evaluator queue at

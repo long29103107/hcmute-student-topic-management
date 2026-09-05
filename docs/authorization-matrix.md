@@ -71,3 +71,15 @@ does not silently impersonate another user's ownership relationship.
   for approved registrations in their own department. Candidate evaluators
   must have an active Lecturer or Faculty Head role and cannot be a supervisor
   of the registration's topic.
+- Issue #15 uses `EVALUATION_SUBMIT` for score entry. The Service checks that
+  the authenticated active Lecturer/Faculty Head/Admin is the evaluator on the
+  target `evaluations` row, validates the configured score range, rejects
+  changes after `reviewer_score_deadline` or a published result, and calculates
+  the average from submitted/published evaluation rows. The existing evaluation
+  row is updated, so retries do not create duplicate scores.
+- Issue #16 reuses `REGISTRATION_REVIEW` for Admin/Faculty Head result
+  publication and `RESULT_VIEW` for the student result view. Publication is
+  department-scoped for Faculty Heads, requires every assigned evaluation to
+  have a submitted score, records publisher/time/status, and cannot be repeated
+  without an audited action. Student queries are relationship-scoped through
+  group membership and return only `PUBLISHED` results.

@@ -172,6 +172,31 @@ For the MVP:
 - The final score is the average of the configured evaluation score values;
   keep the grading scale and rounding configurable.
 
+Issue #15 implements the MVP score-entry boundary:
+
+- An assigned evaluator submits or updates the existing `evaluations` row with
+  a score and optional comment; another lecturer cannot submit against it.
+- The default configurable scale is `0`–`10` with up to two decimal places;
+  deployments can override `EVALUATION_SCORE_MIN` and `EVALUATION_SCORE_MAX`.
+- The `reviewer_score_deadline` is enforced server-side. A published
+  `registration_results` row also makes the evaluation read-only.
+- The average is calculated from non-null `SUBMITTED`/`PUBLISHED` scores and
+  rounded to two decimal places with `HALF_UP`. Score entry does not publish or
+  write the final result.
+
+Issue #16 completes the MVP result-release boundary:
+
+- Admin or a Faculty Head publishes an approved registration only when at least
+  one evaluation exists and every assigned evaluation has a non-null score with
+  `SUBMITTED` or `PUBLISHED` status.
+- Publication writes the aggregate `average_score`, `PUBLISHED` status,
+  publisher and timestamp audit fields on `registration_results`.
+- A published result is immutable through the normal workflow; a repeated
+  publish request is rejected because no audited correction action exists.
+- Students receive only published results for groups returned by the server's
+  group-membership relationship query. Draft, incomplete and other-group
+  results are not exposed.
+
 ## Extended board and score gates
 
 - The extended board cannot be saved unless it has 3–5 members, exactly one

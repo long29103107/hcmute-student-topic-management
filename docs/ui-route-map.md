@@ -62,7 +62,7 @@ Have unless explicitly selected.
 | GET/POST | `/faculty/registrations/review` | `TopicRegistrationReviewController` → Faculty Head/Admin pending-registration queue, approve/reject with required rejection reason |
 | GET/POST | `/faculty/registrations/evaluators`, `/faculty/registrations/{id}/evaluator` | `EvaluatorAssignmentController` → approved-registration evaluator queue and modal assignment/change flow |
 | GET/POST | `/faculty/boards` | `ReviewBoardController` → full board/member/topic assignment (Should Have) |
-| GET/POST | `/faculty/results` | `ResultController` → aggregate/publish |
+| GET/POST | `/faculty/results`, `/faculty/results/{id}/publish` | `ResultController` → scoped result publication queue and final publish action |
 | GET/POST | `/announcements/manage` | `AnnouncementController` → advanced create/edit/hide/publish (Should Have) |
 
 ## Lecturer
@@ -72,7 +72,7 @@ Have unless explicitly selected.
 | GET | `/lecturer/topics` | `TopicProposalController` → list the authenticated Lecturer's own proposals and render compact `max-w-2xl` create/edit modals; Faculty Head access is limited to the same own-proposal capability |
 | POST | `/lecturer/topics`, `/lecturer/topics/{id}/edit` | `TopicProposalController` → create or update an owned proposal through PRG; the Service requires an active department, an open lecturer registration window and an editable `DRAFT`/`REJECTED` status |
 | GET | `/lecturer/assignments` | `AssignmentController` → supervised/reviewer assignments |
-| GET/POST | `/lecturer/scoring` | `ScoreController` → score/comment |
+| GET/POST | `/lecturer/scoring`, `/lecturer/scoring/{id}` | `EvaluationScoringController` → assigned evaluation queue and score/comment modal; score changes use PRG |
 | GET | `/reports/view?id=...` | `ReportViewController` → relationship-authorized report download |
 
 ## Student/group
@@ -83,7 +83,7 @@ Have unless explicitly selected.
 | POST | `/student/groups`, `/student/groups/join`, `/student/groups/{id}/join`, `/student/groups/{id}/leave`, `/student/groups/{id}/leader` | `StudentGroupController` → create, join by shared group ID, join/leave an active group and transfer leadership to another member; server enforces Student role, one active group per period, max three members and leader membership |
 | GET/POST | `/student/groups/register-topic` | `TopicRegistrationController` → leader registration form and submit |
 | GET | `/student/registrations` | `TopicRegistrationController` → own group registration history/status |
-| GET | `/student/results` | `ResultController` → own group result |
+| GET | `/student/results` | `ResultController` → published results for the student's own groups only |
 
 ## RESTful API in the same monolith
 
@@ -128,8 +128,11 @@ not replace the Thymeleaf flow or duplicate Service rules.
 | PUT | `/api/faculty/registrations/{id}/evaluator` | assign or replace `{ evaluatorId }`; only approved registrations, active Lecturer/Faculty Head candidates and non-supervisors are accepted | `REGISTRATION_REVIEW` + Admin/Faculty Head + CSRF |
 | GET | `/api/reports/{id}` | relationship-authorized report metadata | `REPORT_VIEW` + resource relationship |
 | GET | `/api/reports/{id}/download` | relationship-authorized report file download | `REPORT_VIEW` + resource relationship |
-| POST | `/api/faculty/scores/{topicId}` | submit score/comment | assigned lecturer |
-| POST | `/api/faculty/results/{id}/publish` | publish final result | Faculty Head |
+| GET | `/api/lecturer/scoring`, `/api/faculty/scores` | assigned evaluator queue, configured score range and calculated averages | `EVALUATION_SUBMIT` + assigned evaluator |
+| PUT | `/api/lecturer/scoring/{evaluationId}`, `/api/faculty/scores/{evaluationId}` | update the existing evaluation score/comment; returns the calculated average | `EVALUATION_SUBMIT` + assigned evaluator + CSRF |
+| GET | `/api/faculty/results` | scoped approved-registration result publication queue | `REGISTRATION_REVIEW` + Admin/Faculty Head |
+| POST | `/api/faculty/results/{id}/publish` | publish final result after all assigned evaluations have scores | `REGISTRATION_REVIEW` + Admin/Faculty Head + CSRF |
+| GET | `/api/student/results` | published results for groups containing the authenticated student | `RESULT_VIEW` + Student |
 
 REST request/response DTOs, status codes and field errors must be documented in
 the owning task before implementation. `@RestController` methods must never

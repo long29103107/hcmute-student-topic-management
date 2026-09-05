@@ -117,6 +117,18 @@
                   <span class="ms-3" data-sidebar-label>My registrations</span>
                 </a>
               </li>
+              <li sec:authorize="hasAuthority('RESULT_VIEW')">
+                <a
+                  th:href="@{/student/results}"
+                  th:aria-current="${pageTitle == 'My results' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'My results' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'My results' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 4h14v16H5zM8 8h8m-8 4h8m-8 4h5"/></svg>
+                  <span class="ms-3" data-sidebar-label>My results</span>
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -232,9 +244,9 @@
               Lecturer workspace
             </p>
             <ul class="space-y-1.5">
-              <li>
-                <a
-                  th:href="@{/lecturer/topics}"
+                <li>
+                  <a
+                    th:href="@{/lecturer/topics}"
                   th:aria-current="${pageTitle == 'My topic proposals' ? 'page' : null}"
                   class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
                   data-sidebar-link
@@ -257,6 +269,28 @@
                     />
                   </svg>
                   <span class="ms-3" data-sidebar-label>My topic proposals</span>
+                </a>
+              </li>
+              <li sec:authorize="hasAuthority('EVALUATION_SUBMIT')">
+                <a
+                  th:href="@{/lecturer/scoring}"
+                  th:aria-current="${pageTitle == 'My evaluations' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'My evaluations' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'My evaluations' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5m0-15v15M8 7h8m-8 4h8m-8 4h5"/>
+                  </svg>
+                  <span class="ms-3" data-sidebar-label>My evaluations</span>
                 </a>
               </li>
             </ul>
@@ -364,6 +398,18 @@
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/>
                   </svg>
                   <span class="ms-3" data-sidebar-label>Publish topics</span>
+                </a>
+              </li>
+              <li sec:authorize="hasAuthority('REGISTRATION_REVIEW')">
+                <a
+                  th:href="@{/faculty/results}"
+                  th:aria-current="${pageTitle == 'Result publication' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'Result publication' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Result publication' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 19h16M6 17V5h12v12M9 8h6m-6 4h6"/></svg>
+                  <span class="ms-3" data-sidebar-label>Result publication</span>
                 </a>
               </li>
             </ul>

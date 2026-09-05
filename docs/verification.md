@@ -254,3 +254,33 @@ When REST endpoints are implemented, verify at least:
 - the same role/resource authorization as the SSR route;
 - no REST endpoint exposes domain entities, passwords, stack traces or SQL;
 - repeated calls do not create duplicate registrations or scores.
+
+## Issue #15 — Scoring and average calculation
+
+- The assigned evaluator can open `/lecturer/scoring` and submit/update a
+  score/comment through the modal.
+- `GET /api/lecturer/scoring` lists only the authenticated evaluator's approved
+  assignments and returns the configured score bounds and current average.
+- `PUT /api/lecturer/scoring/{evaluationId}` and its
+  `/api/faculty/scores/{evaluationId}` compatibility alias enforce
+  `EVALUATION_SUBMIT`, assignment ownership, score bounds, CSRF, the reviewer
+  deadline and the published-result lock.
+- Repeating the update changes one evaluation row and does not create a second
+  score; averages include only valid submitted/published scores.
+- Focused, full regression, package and `git diff --check` results are recorded
+  in the Phase 004 task note.
+
+## Issue #16 — Result publication and student view
+
+- `/faculty/results` and `GET /api/faculty/results` show only approved
+  registrations in the Admin/Faculty Head publication scope.
+- Publication rejects missing evaluator data, incomplete/draft scores and
+  cross-department Faculty Head requests; it stores average, `PUBLISHED`
+  status, publisher and timestamp.
+- A second publish is rejected as an audited-action requirement, and evaluator
+  deactivation does not remove the historical evaluation used by the result.
+- `/student/results` and `GET /api/student/results` return only published
+  results for groups containing the authenticated student; unpublished and
+  other-group results remain hidden.
+- Focused, full regression, package and `git diff --check` results are recorded
+  in the Phase 004 task note.

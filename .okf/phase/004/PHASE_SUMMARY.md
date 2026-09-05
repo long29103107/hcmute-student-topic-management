@@ -1,12 +1,12 @@
 ---
 phase: 004
 title: Student Report Submission and Evaluation Flow
-status: in_progress
+status: completed
 created_at: 2026-09-05
 updated_at: 2026-09-05
 current_task: null
-task_count: 3
-done_count: 3
+task_count: 5
+done_count: 5
 depends_on: [002, 003]
 ---
 
@@ -58,21 +58,26 @@ Out:
 | 004_001 | Report Upload & Metadata | completed | 2026-09-05 |
 | 004_002 | Report Access, Deadline & Resubmission | completed | 2026-09-05 |
 | 004_003 | Evaluator Assignment | completed | 2026-09-05 |
+| 004_004 | Scoring & Average Calculation | completed | 2026-09-05 |
+| 004_005 | Result Publication & Student View | completed | 2026-09-05 |
 
 ## Current Task
 
 No task is active. `004_001` delivered the leader-only report upload and
 external-storage metadata boundary; `004_002` delivered relationship-scoped
-report metadata and download access.
+report metadata and download access; `004_003` delivered evaluator assignment;
+`004_004` delivered evaluator score entry and average calculation; `004_005`
+delivered final result publication and the privacy-scoped student result view.
 
 ## Completed Notes
 
-`004_001`, `004_002` and `004_003` are complete. The remaining Phase 004 tasks
-are still backlog work.
+`004_001`, `004_002`, `004_003`, `004_004` and `004_005` are complete. The
+selected Phase 004 backlog is complete.
 
 ## Next Task Proposal
 
-Next, implement `004_004` for score entry and average calculation.
+The selected Phase 004 backlog is complete. Any further work should be a new
+user-selected task or a follow-up hardening issue.
 
 ## Task Notes
 
@@ -253,12 +258,58 @@ Out:
 #### Verification
 
 - `mvn -q -Dtest=EvaluatorAssignmentControllerTest test` — passed, 4 tests.
-- `mvn -q test` — passed, 139 tests, 0 failures, 0 errors.
+
+### 004_004 - Scoring & Average Calculation
+
+#### Step Goal
+
+Allow assigned evaluators to enter/update score and comment for approved
+registrations, calculate the valid evaluation average and enforce score and
+publication gates.
+
+#### Acceptance Criteria
+
+- Only the assigned evaluator can submit the target evaluation.
+- Scores are validated against the configurable default `0`–`10` scale.
+- The reviewer deadline and published-result state make scoring read-only.
+- Updating a score reuses the existing evaluation row and average calculation
+  includes only non-null submitted/published scores.
+- SSR and REST routes use the same Service rules and permission.
+
+#### Verification
+
+- `mvn -q -Dtest=EvaluationScoringControllerTest test` — passed, 4 tests.
+- Full `mvn -q test` — passed, 143 tests, 0 failures, 0 errors.
+- `mvn -q package -DskipTests` — passed; executable JAR packaged.
+- `git diff --check` — passed with only normal LF/CRLF conversion warnings.
+
+### 004_005 - Result Publication & Student View
+
+#### Step Goal
+
+Publish a complete approved registration result for the Faculty Head/Admin
+scope and expose only published results for the authenticated student's groups.
+
+#### Acceptance Criteria
+
+- Faculty Head publishes only in their department; Admin can publish across
+  departments.
+- Publication requires at least one assigned evaluator and a submitted score
+  for every assigned evaluation.
+- Publication persists average score, `PUBLISHED` status, publisher and time.
+- Published results cannot be changed through the normal workflow.
+- Students see only published results for groups to which they belong.
+- Evaluator history remains valid when the evaluator is deactivated.
+
+#### Verification
+
+- `mvn -q -Dtest=ResultPublicationControllerTest test` — passed, 5 tests.
+- Full `mvn -q test` — passed, 148 tests, 0 failures, 0 errors.
 - `mvn -q package -DskipTests` — passed; executable JAR packaged.
 - `git diff --check` — passed; only normal LF/CRLF conversion warnings.
 
 #### Done Notes
 
-Completed on 2026-09-05 after focused evaluator assignment, role validation,
-scope, supervisor conflict, duplicate-row and SSR queue tests, full regression,
+Completed on 2026-09-05 after focused publication, privacy, completeness,
+scope, immutability, evaluator-history and SSR/API tests, full regression,
 package and diff verification.

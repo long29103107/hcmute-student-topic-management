@@ -14,6 +14,8 @@ public interface EvaluationRepository extends JpaRepository<EvaluationEntity, Lo
 
     Optional<EvaluationEntity> findFirstByTopicRegistration_IdOrderByCreatedAtAsc(Long registrationId);
 
+    List<EvaluationEntity> findByLecturer_IdOrderByUpdatedAtDesc(Long lecturerId);
+
     Optional<EvaluationEntity> findByTopicRegistration_IdAndLecturer_Id(Long registrationId, Long lecturerId);
 
     boolean existsByTopicRegistration_IdAndLecturer_Id(Long registrationId, Long lecturerId);
