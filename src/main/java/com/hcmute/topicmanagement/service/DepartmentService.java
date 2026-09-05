@@ -146,6 +146,39 @@ public class DepartmentService {
         return new DepartmentOverview(department.getId(), department.getCode(), department.getName(), members);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY_HEAD')")
+    public DepartmentOverview getDepartmentForFacultyHeadPage(
+            String email, String search, int page, int size, String sort, String direction) {
+        UserEntity facultyHead = userRepository.findByEmailIgnoreCaseWithDepartment(email).orElse(null);
+        DepartmentEntity department = facultyHead == null ? null : facultyHead.getDepartment();
+        String normalizedSearch = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
+        String normalizedSort = normalizeMemberSort(sort);
+        String normalizedDirection = normalizeDirection(direction);
+        int safeSize = Math.min(Math.max(size, 5), 100);
+        if (department == null) {
+            return new DepartmentOverview(
+                    null, null, null, List.of(), 0, safeSize, 0, 1,
+                    normalizedSearch, normalizedSort, normalizedDirection);
+        }
+
+        List<DepartmentMember> filtered = userRepository
+                .findActiveByDepartmentIdWithRolesOrderByFullNameAsc(department.getId())
+                .stream()
+                .map(DepartmentService::toDepartmentMember)
+                .filter(member -> matchesMemberSearch(member, normalizedSearch))
+                .sorted(memberComparator(normalizedSort, normalizedDirection))
+                .toList();
+        int totalItems = filtered.size();
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / safeSize));
+        int safePage = Math.min(Math.max(page, 0), totalPages - 1);
+        int from = Math.min(safePage * safeSize, totalItems);
+        int to = Math.min(from + safeSize, totalItems);
+        return new DepartmentOverview(
+                department.getId(), department.getCode(), department.getName(), filtered.subList(from, to),
+                safePage, safeSize, totalItems, totalPages,
+                normalizedSearch, normalizedSort, normalizedDirection);
+    }
+
     private static DepartmentMember toDepartmentMember(UserEntity user) {
         String roleNames = user.getUserRoles().stream()
                 .filter(UserRoleEntity::isActive)
@@ -160,6 +193,53 @@ public class DepartmentService {
                 user.getEmailOrCode(),
                 roleNames,
                 user.isActive());
+    }
+
+    private static boolean matchesMemberSearch(DepartmentMember member, String search) {
+        return search.isBlank()
+                || containsIgnoreCase(member.getFullName(), search)
+                || containsIgnoreCase(member.getLoginIdentifier(), search)
+                || containsIgnoreCase(member.getEmailOrCode(), search)
+                || containsIgnoreCase(member.getRoleNames(), search)
+                || containsIgnoreCase(member.isActive() ? "active" : "inactive", search);
+    }
+
+    private static boolean containsIgnoreCase(String value, String search) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(search);
+    }
+
+    private static Comparator<DepartmentMember> memberComparator(String sort, String direction) {
+        Comparator<DepartmentMember> comparator = switch (sort) {
+            case "account" -> Comparator.comparing(
+                    DepartmentMember::getLoginIdentifier,
+                    Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                    .thenComparing(DepartmentMember::getFullName, String.CASE_INSENSITIVE_ORDER);
+            case "email" -> Comparator.comparing(
+                    DepartmentMember::getEmailOrCode,
+                    Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                    .thenComparing(DepartmentMember::getFullName, String.CASE_INSENSITIVE_ORDER);
+            case "role" -> Comparator.comparing(
+                    DepartmentMember::getRoleNames,
+                    Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                    .thenComparing(DepartmentMember::getFullName, String.CASE_INSENSITIVE_ORDER);
+            case "status" -> Comparator.comparing(DepartmentMember::isActive)
+                    .reversed()
+                    .thenComparing(DepartmentMember::getFullName, String.CASE_INSENSITIVE_ORDER);
+            default -> Comparator.comparing(
+                    DepartmentMember::getFullName, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(DepartmentMember::getLoginIdentifier, String.CASE_INSENSITIVE_ORDER);
+        };
+        if ("desc".equals(direction)) {
+            comparator = comparator.reversed();
+        }
+        return comparator;
+    }
+
+    private static String normalizeMemberSort(String sort) {
+        return switch (sort == null ? "" : sort.trim().toLowerCase(Locale.ROOT)) {
+            case "account", "email", "role", "status" -> sort.trim().toLowerCase(Locale.ROOT);
+            default -> "name";
+        };
     }
 
     @Transactional
@@ -350,12 +430,33 @@ public class DepartmentService {
         private final String code;
         private final String name;
         private final List<DepartmentMember> members;
+        private final int page;
+        private final int size;
+        private final int totalItems;
+        private final int totalPages;
+        private final String search;
+        private final String sort;
+        private final String direction;
 
         public DepartmentOverview(Long id, String code, String name, List<DepartmentMember> members) {
+            this(id, code, name, members, 0, Math.max(5, members.size()), members.size(), 1, "", "name", "asc");
+        }
+
+        public DepartmentOverview(
+                Long id, String code, String name, List<DepartmentMember> members,
+                int page, int size, int totalItems, int totalPages,
+                String search, String sort, String direction) {
             this.id = id;
             this.code = code;
             this.name = name;
             this.members = members;
+            this.page = page;
+            this.size = size;
+            this.totalItems = totalItems;
+            this.totalPages = totalPages;
+            this.search = search;
+            this.sort = sort;
+            this.direction = direction;
         }
 
         public boolean isAssigned() {
@@ -377,6 +478,24 @@ public class DepartmentService {
         public List<DepartmentMember> getMembers() {
             return members;
         }
+
+        public int getPage() { return page; }
+
+        public int getSize() { return size; }
+
+        public int getTotalItems() { return totalItems; }
+
+        public int getTotalPages() { return totalPages; }
+
+        public String getSearch() { return search; }
+
+        public String getSort() { return sort; }
+
+        public String getDirection() { return direction; }
+
+        public boolean isHasPrevious() { return page > 0; }
+
+        public boolean isHasNext() { return page + 1 < totalPages; }
     }
 
     public static final class DepartmentMember {

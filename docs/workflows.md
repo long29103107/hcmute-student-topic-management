@@ -66,8 +66,8 @@ DRAFT -> PENDING_APPROVAL -> APPROVED -> PUBLISHED
 ```
 
 - Lecturer owns creation while the lecturer window is open.
-- Faculty Head owns approval/rejection and publication.
-- Student registration checks `PUBLISHED` plus matching period.
+- Admin/Faculty Head owns approval/rejection; Admin can publish across departments and Faculty Head publication is department-scoped.
+- Student catalog/query checks `PUBLISHED`, an `OPEN` period and the inclusive student registration window; registration later rechecks the same gates.
 - Rejection reason is optional for Must Have and useful for Should Have; keep
   the data field available without requiring a particular UI until confirmed.
 
@@ -114,7 +114,11 @@ boundary as follows:
 - Issue #6 uses `topics.status` as the review decision contract:
   `DRAFT -> PENDING_APPROVAL -> APPROVED` or `REJECTED`. The revised `topics`
   table has no approval actor/timestamp/reason columns or review-history table;
-  detailed audit history is deferred.
+  detailed audit history is deferred. `TOPIC_REVIEW` is required on the
+  server; Admin reviews all pending proposals, Faculty Head reviews pending
+  proposals in the assigned department, and the proposer cannot review their
+  own proposal. The review API accepts `APPROVE` or `REJECT` only while the
+  current status is `PENDING_APPROVAL`.
 - Issue #9 scopes group membership by `student_groups.period_id`. An active
   group has at most three members and exactly one leader, and a student may
   belong to at most one active group in the same period. Invite/confirm flows

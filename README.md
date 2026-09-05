@@ -90,7 +90,9 @@ mvn spring-boot:run
 ### Seed dữ liệu local qua API
 
 Mặc định, sau khi có một tài khoản `ADMIN` đang đăng nhập, mở `/seed` và bấm
-**Run seed pipeline**. Nếu cần bootstrap database local trước khi có tài khoản,
+**Run seed pipeline**. Mỗi lần chạy pipeline sẽ xoá toàn bộ 17 bảng của schema
+revised, chạy lại `database/1.ddl.sql` và tạo lại toàn bộ fixture local. Nếu cần
+bootstrap database local trước khi có tài khoản,
 có thể bật tạm migration anonymous bằng biến môi trường:
 
 ```powershell
@@ -111,7 +113,8 @@ POST /api/seed/departments
 POST /api/seed/users
 ```
 
-Các API seed fixture có thể chạy lại; chúng tạo/cập nhật roles, permissions, 15
+Các API seed fixture có thể chạy lại; riêng `/api/seed/ddl` là bước destructive
+drop/recreate schema. Các bước còn lại tạo/cập nhật roles, permissions, 15
 departments, 4 faculty-head accounts, 16 lecturer accounts và 50 student accounts.
 `POST /api/admin/seed`
 là API reset/reseed đầy đủ: truncate 17 bảng của schema revised trong một
@@ -140,7 +143,9 @@ password trước khi Student có thể đăng nhập bằng email.
   được cấp trong hệ thống.
 
 Schema revised được quản lý explicit bằng `database/1.ddl.sql`; Hibernate để
-`ddl-auto=none` và Flyway được tắt cho đến khi project có migration riêng.
+`ddl-auto=none` và Flyway được tắt cho đến khi project có migration riêng. App
+không tự reset schema khi khởi động; thao tác drop/recreate chỉ chạy khi Admin
+chủ động bấm seed pipeline.
 Schema hiện có 17 bảng, bao gồm `review_boards`, `review_board_members`,
 `evaluations` theo lecturer và `registration_results`.
 

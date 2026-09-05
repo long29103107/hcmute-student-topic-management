@@ -95,7 +95,7 @@ public class DatabaseSeedService {
             new PermissionSeed("SUPERVISOR_MANAGE", "Manage topic supervisors", "Topics",
                     "Assign one or two lecturer-capability supervisors to a topic."),
             new PermissionSeed("TOPIC_REVIEW", "Review topics", "Topics",
-                    "Review, approve, reject, and publish topic proposals."),
+                    "Review, approve, reject, and publish topic proposals for Admin/Faculty Head workflows."),
             new PermissionSeed("TOPIC_VIEW", "View published topics", "Topics",
                     "View topics published for registration."),
             new PermissionSeed("GROUP_MANAGE", "Manage student groups", "Student groups",

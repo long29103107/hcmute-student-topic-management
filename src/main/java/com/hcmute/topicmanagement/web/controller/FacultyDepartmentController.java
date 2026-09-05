@@ -6,6 +6,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.hcmute.topicmanagement.service.DepartmentService;
 
@@ -21,10 +22,17 @@ public class FacultyDepartmentController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY_HEAD')")
-    public String viewMyDepartment(Authentication authentication, Model model) {
+    public String viewMyDepartment(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "name") String sort,
+            @RequestParam(defaultValue = "asc") String direction,
+            Model model) {
         model.addAttribute("pageTitle", "My department");
         model.addAttribute("department", departmentService
-                .getDepartmentForFacultyHead(authentication.getName()));
+                .getDepartmentForFacultyHeadPage(authentication.getName(), search, page, size, sort, direction));
         return "faculty/my-department";
     }
 }

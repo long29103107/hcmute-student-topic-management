@@ -15,7 +15,8 @@ do not create extra authorization paths for it unless selected.
 | View own department members | yes | yes | no | no | no |
 | Create/manage registration periods | yes | yes | no | no | no |
 | Propose topics | yes | yes, via Lecturer permissions | yes | no | no |
-| Approve/reject/publish topics | yes | yes | no | no | no |
+| Approve/reject topics | yes | yes | no | no | no |
+| Publish approved topics | yes | yes | no | no | no |
 | View published topics | yes | yes | yes | yes | yes |
 | Create/join group | yes | no | no | yes | yes |
 | Submit topic registration | yes | no | no | no | yes |
@@ -31,9 +32,12 @@ do not create extra authorization paths for it unless selected.
 | Manage announcements | yes | yes if granted | no | no | no |
 | View published announcements | yes | yes | yes | yes | yes |
 
-Admin is a full-capability system role: the seed assigns every current
-permission to `ADMIN`, route gates accept Admin for every role workspace, and
-the sidebar exposes available role workspaces. Faculty Head receives the
+Admin is a full-capability system role for operational surfaces: the seed
+assigns every current permission to `ADMIN`, route gates accept Admin for
+every role workspace, and the sidebar exposes available role workspaces.
+Resource-specific actor rules still apply; Admin can publish across
+departments, while Faculty Head publication is limited to the assigned
+department. Faculty Head receives the
 Lecturer permission bundle explicitly through `role_permissions`, then
 receives additional faculty workflow permissions such as `PERIOD_MANAGE`,
 `SUPERVISOR_MANAGE`, `TOPIC_REVIEW` and `REGISTRATION_REVIEW`. Resource-specific rules still apply
@@ -45,9 +49,10 @@ does not silently impersonate another user's ownership relationship.
 - Use an authentication filter for unauthenticated route protection and a
   Service authorization check for resource ownership/assignment.
 - UI visibility is not a security boundary.
-- Admin has full operational capability across current role surfaces; future
-  own/group views must document whether they are Admin-wide operational views
-  or remain relationship-scoped.
+- Admin has full operational capability across current role surfaces except
+  explicitly documented actor-only transitions; future own/group views must
+  document whether they are Admin-wide operational views or remain
+  relationship-scoped.
 - The exact approver model when giáo vụ/trưởng bộ môn exists is open; do not add
   those roles until `REQUEST.md` is confirmed.
 - Issue #13 introduces the planned `REPORT_VIEW` capability for report

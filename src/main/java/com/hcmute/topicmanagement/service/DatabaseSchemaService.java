@@ -18,6 +18,24 @@ import org.springframework.stereotype.Service;
 public class DatabaseSchemaService {
 
     private static final String DDL_RESOURCE = "database/1.ddl.sql";
+    private static final List<String> SCHEMA_TABLES = List.of(
+            "registration_results",
+            "evaluations",
+            "review_board_members",
+            "review_boards",
+            "reports",
+            "topic_registrations",
+            "group_members",
+            "topic_supervisors",
+            "student_groups",
+            "topics",
+            "registration_periods",
+            "departments",
+            "user_roles",
+            "role_permissions",
+            "users",
+            "permissions",
+            "roles");
 
     private final DataSource dataSource;
 
@@ -25,18 +43,33 @@ public class DatabaseSchemaService {
         this.dataSource = dataSource;
     }
 
-    public SeedStepResult createSchema() {
+    public SeedStepResult recreateSchema() {
         try (Connection connection = dataSource.getConnection()) {
             if (connection.getMetaData().getDatabaseProductName().toLowerCase().contains("h2")) {
                 return new SeedStepResult("ddl", 0, LocalDateTime.now());
             }
 
+            dropSchemaTables(connection);
             String script = new ClassPathResource(DDL_RESOURCE)
                     .getContentAsString(StandardCharsets.UTF_8);
-            int executedStatements = executeStatements(connection, script);
-            return new SeedStepResult("ddl", executedStatements, LocalDateTime.now());
+            executeStatements(connection, script);
+            return new SeedStepResult("ddl", SCHEMA_TABLES.size(), LocalDateTime.now());
         } catch (IOException | SQLException exception) {
-            throw new IllegalStateException("Cannot create the database schema from " + DDL_RESOURCE + ".", exception);
+            throw new IllegalStateException("Cannot recreate the database schema from " + DDL_RESOURCE + ".", exception);
+        }
+    }
+
+    private void dropSchemaTables(Connection connection) throws SQLException {
+        String tables = String.join(", ", SCHEMA_TABLES.stream()
+                .map(table -> "`" + table + "`")
+                .toList());
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("SET FOREIGN_KEY_CHECKS = 0");
+            try {
+                statement.execute("DROP TABLE IF EXISTS " + tables);
+            } finally {
+                statement.execute("SET FOREIGN_KEY_CHECKS = 1");
+            }
         }
     }
 

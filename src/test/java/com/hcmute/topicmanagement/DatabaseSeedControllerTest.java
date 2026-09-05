@@ -128,6 +128,22 @@ class DatabaseSeedControllerTest {
                 .hasSize(8)
                 .allSatisfy(topic -> org.assertj.core.api.Assertions.assertThat(topic.getSupervisors())
                         .hasSizeBetween(1, 2));
+        var topicReviewPermission = permissionRepository.findByCode("TOPIC_REVIEW").orElseThrow();
+        org.assertj.core.api.Assertions.assertThat(topicRepository
+                .findByStatusOrderByCreatedAtDesc(com.hcmute.topicmanagement.model.enums.TopicStatus.PENDING_APPROVAL))
+                .hasSize(3);
+        var adminRole = roleRepository.findByCode("ADMIN").orElseThrow();
+        var facultyHeadRole = roleRepository.findByCode("FACULTY_HEAD").orElseThrow();
+        var lecturerRole = roleRepository.findByCode("LECTURER").orElseThrow();
+        org.assertj.core.api.Assertions.assertThat(rolePermissionRepository
+                .existsByRole_IdAndPermission_IdAndActiveTrue(adminRole.getId(), topicReviewPermission.getId()))
+                .isTrue();
+        org.assertj.core.api.Assertions.assertThat(rolePermissionRepository
+                .existsByRole_IdAndPermission_IdAndActiveTrue(facultyHeadRole.getId(), topicReviewPermission.getId()))
+                .isTrue();
+        org.assertj.core.api.Assertions.assertThat(rolePermissionRepository
+                .existsByRole_IdAndPermission_IdAndActiveTrue(lecturerRole.getId(), topicReviewPermission.getId()))
+                .isFalse();
         topicRepository.findAllForSupervisorManagement().forEach(topic ->
                 org.assertj.core.api.Assertions.assertThat(topic.getSupervisors())
                         .allSatisfy(supervisor -> org.assertj.core.api.Assertions.assertThat(

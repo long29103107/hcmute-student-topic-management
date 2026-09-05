@@ -87,5 +87,7 @@ Run the DDL on a new MySQL schema:
 mysql -u root -p < database/1.ddl.sql
 ```
 
-The local seed pipeline truncates the new tables in dependency order before
-recreating identity fixtures. It does not migrate arbitrary legacy data.
+The local seed pipeline drops all 17 revised-schema tables with foreign-key
+checks disabled, recreates the schema from `database/1.ddl.sql`, and then
+recreates identity and academic fixtures. It does not migrate arbitrary legacy
+data. The application does not perform this destructive reset on startup.

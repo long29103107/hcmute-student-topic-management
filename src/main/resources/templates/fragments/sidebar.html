@@ -64,6 +64,25 @@
             </a>
           </div>
 
+          <div sec:authorize="hasAuthority('TOPIC_VIEW')">
+            <ul class="space-y-1.5">
+              <li>
+                <a
+                  th:href="@{/topics}"
+                  th:aria-current="${pageTitle == 'Published topics' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'Published topics' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Published topics' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5m0-15v15M8 7h8m-8 4h8m-8 4h5"/>
+                  </svg>
+                  <span class="ms-3" data-sidebar-label>Published topics</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+
           <div sec:authorize="hasRole('ADMIN')">
             <p
               class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400"
@@ -214,7 +233,7 @@
               Faculty workflow
             </p>
             <ul class="space-y-1.5">
-              <li>
+              <li sec:authorize="hasRole('FACULTY_HEAD')">
                 <a
                   th:href="@{/faculty/departments}"
                   th:aria-current="${pageTitle == 'My department' ? 'page' : null}"
@@ -254,6 +273,34 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m7-8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm9-3v6m3-3h-6"/>
                   </svg>
                   <span class="ms-3" data-sidebar-label>Supervisor assignments</span>
+                </a>
+              </li>
+              <li sec:authorize="hasAuthority('TOPIC_REVIEW')">
+                <a
+                  th:href="@{/faculty/topics/review}"
+                  th:aria-current="${pageTitle == 'Topic review' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'Topic review' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Topic review' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m9 12 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                  </svg>
+                  <span class="ms-3" data-sidebar-label>Topic review</span>
+                </a>
+              </li>
+              <li sec:authorize="hasAnyRole('ADMIN', 'FACULTY_HEAD') and hasAuthority('TOPIC_REVIEW')">
+                <a
+                  th:href="@{/faculty/topics/publish}"
+                  th:aria-current="${pageTitle == 'Publish topics' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'Publish topics' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Publish topics' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/>
+                  </svg>
+                  <span class="ms-3" data-sidebar-label>Publish topics</span>
                 </a>
               </li>
             </ul>

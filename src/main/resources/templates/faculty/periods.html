@@ -41,17 +41,48 @@
                     <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Academic setup</p>
                     <h2 id="periods-heading" class="text-xl font-semibold text-gray-900">Registration periods</h2>
                 </div>
-                <span class="text-sm text-gray-500" th:text="${#lists.size(periods) + ' periods'}">0 periods</span>
+                <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+                    <span class="text-sm text-gray-500" th:text="${periodPage.totalItems + ' periods'}">0 periods</span>
+                    <form class="flex w-full gap-2 sm:w-80" th:action="@{/faculty/periods}" method="get">
+                        <input type="hidden" name="page" value="0">
+                        <input type="hidden" name="size" th:value="${periodPage.size}">
+                        <input type="hidden" name="sort" th:value="${periodPage.sort}">
+                        <input type="hidden" name="direction" th:value="${periodPage.direction}">
+                        <label class="relative block min-w-0 flex-1" for="period-search">
+                            <span class="sr-only">Search registration periods</span>
+                            <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
+                                   id="period-search" name="search" type="search" placeholder="Search periods"
+                                   autocomplete="off" th:value="${periodSearch}">
+                        </label>
+                        <button class="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800"
+                                type="submit">Search</button>
+                    </form>
+                </div>
             </div>
             <div class="overflow-x-auto" th:if="${!#lists.isEmpty(periods)}">
                 <table class="w-full min-w-[1100px] text-left text-sm text-gray-500">
                     <thead class="bg-gray-50 text-xs uppercase text-gray-700">
                     <tr>
-                        <th scope="col" class="px-6 py-3">Period</th>
-                        <th scope="col" class="px-6 py-3">Lecturer window</th>
-                        <th scope="col" class="px-6 py-3">Student window</th>
-                        <th scope="col" class="px-6 py-3">Status</th>
-                        <th scope="col" class="px-6 py-3">Created by</th>
+                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
+                                th:href="@{/faculty/periods(page=0,size=${periodPage.size},search=${periodSearch},sort='period',direction=${periodSort == 'period' and periodDirection == 'asc' ? 'desc' : 'asc'})}">
+                            Period <span th:text="${periodSort == 'period' ? (periodDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                        </a></th>
+                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
+                                th:href="@{/faculty/periods(page=0,size=${periodPage.size},search=${periodSearch},sort='lecturer',direction=${periodSort == 'lecturer' and periodDirection == 'asc' ? 'desc' : 'asc'})}">
+                            Lecturer window <span th:text="${periodSort == 'lecturer' ? (periodDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                        </a></th>
+                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
+                                th:href="@{/faculty/periods(page=0,size=${periodPage.size},search=${periodSearch},sort='student',direction=${periodSort == 'student' and periodDirection == 'asc' ? 'desc' : 'asc'})}">
+                            Student window <span th:text="${periodSort == 'student' ? (periodDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                        </a></th>
+                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
+                                th:href="@{/faculty/periods(page=0,size=${periodPage.size},search=${periodSearch},sort='status',direction=${periodSort == 'status' and periodDirection == 'asc' ? 'desc' : 'asc'})}">
+                            Status <span th:text="${periodSort == 'status' ? (periodDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                        </a></th>
+                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
+                                th:href="@{/faculty/periods(page=0,size=${periodPage.size},search=${periodSearch},sort='creator',direction=${periodSort == 'creator' and periodDirection == 'asc' ? 'desc' : 'asc'})}">
+                            Created by <span th:text="${periodSort == 'creator' ? (periodDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                        </a></th>
                         <th scope="col" class="px-6 py-3"><span class="sr-only">Actions</span></th>
                     </tr>
                     </thead>
@@ -105,7 +136,49 @@
                     </tbody>
                 </table>
             </div>
-            <p class="px-6 py-12 text-center text-sm text-gray-500" th:if="${#lists.isEmpty(periods)}">No registration periods are available.</p>
+            <div class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between"
+                 th:if="${periodPage.totalItems > 0}">
+                <p class="text-gray-500">Showing <span class="font-medium text-gray-900" th:text="${periodPage.page * periodPage.size + 1}">1</span>–<span
+                        class="font-medium text-gray-900" th:text="${periodPage.page * periodPage.size + #lists.size(periods)}">10</span> of <span
+                        class="font-medium text-gray-900" th:text="${periodPage.totalItems}">15</span></p>
+                <nav aria-label="Registration period pagination">
+                    <ul class="inline-flex -space-x-px">
+                        <li>
+                            <a class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                               th:classappend="${!periodPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
+                               th:attr="aria-disabled=${!periodPage.hasPrevious}"
+                               th:href="@{/faculty/periods(page=${periodPage.page - 1},size=${periodPage.size},sort=${periodPage.sort},direction=${periodPage.direction},search=${periodSearch})}">Previous</a>
+                        </li>
+                        <li th:each="pageNumber : ${#numbers.sequence(0, periodPage.totalPages - 1)}">
+                            <a class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                               th:classappend="${pageNumber == periodPage.page ? 'bg-blue-50 text-blue-700' : ''}"
+                               th:attr="aria-current=${pageNumber == periodPage.page ? 'page' : null}"
+                               th:href="@{/faculty/periods(page=${pageNumber},size=${periodPage.size},sort=${periodPage.sort},direction=${periodPage.direction},search=${periodSearch})}"
+                               th:text="${pageNumber + 1}">1</a>
+                        </li>
+                        <li>
+                            <a class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                               th:classappend="${!periodPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
+                               th:attr="aria-disabled=${!periodPage.hasNext}"
+                               th:href="@{/faculty/periods(page=${periodPage.page + 1},size=${periodPage.size},sort=${periodPage.sort},direction=${periodPage.direction},search=${periodSearch})}">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="flex flex-col items-center justify-center border-t border-gray-100 px-6 py-14 text-center" th:if="${#lists.isEmpty(periods)}">
+                <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400">
+                    <svg class="h-7 w-7" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M7 3v3m10-3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/></svg>
+                </div>
+                <h3 class="text-base font-semibold text-gray-900"
+                    th:text="${#strings.isEmpty(periodSearch) ? 'No registration periods' : 'No matching periods'}">No registration periods</h3>
+                <p class="mt-1 max-w-sm text-sm leading-6 text-gray-500"
+                   th:text="${#strings.isEmpty(periodSearch) ? 'There are no registration periods to display right now.' : 'Try a different keyword or clear the search to see more periods.'}">
+                    There are no registration periods to display right now.
+                </p>
+                <a class="mt-4 text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline"
+                   th:if="${!#strings.isEmpty(periodSearch)}"
+                   th:href="@{/faculty/periods(page=0,size=${periodPage.size},sort=${periodPage.sort},direction=${periodPage.direction})}">Clear search</a>
+            </div>
         </section>
     </section>
 

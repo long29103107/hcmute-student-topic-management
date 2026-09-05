@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head><title>Topic review</title></head>
+<body>
+<main layout:fragment="content" class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+    <section aria-labelledby="page-title">
+        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <div>
+                <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Faculty workflow / Topics</p>
+                <h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Topic review</h1>
+                <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500">Review proposals waiting for a faculty decision.</p>
+            </div>
+            <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+                <span class="inline-flex w-fit items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800"
+                      th:text="${topicPage.totalItems + ' pending proposals'}">0 pending proposals</span>
+                <form class="flex w-full gap-2 sm:w-80" th:action="@{/faculty/topics/review}" method="get">
+                    <input type="hidden" name="page" value="0">
+                    <input type="hidden" name="size" th:value="${topicPage.size}">
+                    <input type="hidden" name="sort" th:value="${topicPage.sort}">
+                    <input type="hidden" name="direction" th:value="${topicPage.direction}">
+                    <label class="relative block min-w-0 flex-1" for="topic-review-search">
+                        <span class="sr-only">Search pending topic proposals</span>
+                        <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
+                               id="topic-review-search" name="search" type="search" placeholder="Search proposals"
+                               autocomplete="off" th:value="${topicSearch}">
+                    </label>
+                    <button class="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800"
+                            type="submit">Search</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="mb-6 flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-5 text-blue-900" role="status">
+            <svg class="mt-0.5 h-5 w-5 shrink-0 text-blue-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 1a9 9 0 1 0 9 9 9.01 9.01 0 0 0-9-9Zm0 4a1 1 0 1 1 1 1 1 1 0 0 1-1-1Zm1 10H9v-6h2v6Z"/>
+            </svg>
+            <span>Only proposals in PENDING_APPROVAL can be approved or rejected. Decisions are enforced on the server.</span>
+        </div>
+
+        <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm" aria-labelledby="review-heading">
+            <div class="flex flex-col justify-between gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:p-6">
+                <div>
+                    <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Review queue</p>
+                    <h2 id="review-heading" class="text-xl font-semibold text-gray-900">Pending topic proposals</h2>
+                </div>
+                <span class="text-sm text-gray-500" th:text="${topicPage.totalItems + ' proposals'}">0 proposals</span>
+            </div>
+            <div class="overflow-x-auto" th:if="${!#lists.isEmpty(topics)}">
+                <table class="w-full min-w-[1050px] text-left text-sm text-gray-500">
+                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                    <tr>
+                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
+                                th:href="@{/faculty/topics/review(page=0,size=${topicPage.size},search=${topicSearch},sort='topic',direction=${topicSort == 'topic' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
+                            Topic <span th:text="${topicSort == 'topic' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                        </a></th>
+                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
+                                th:href="@{/faculty/topics/review(page=0,size=${topicPage.size},search=${topicSearch},sort='proposer',direction=${topicSort == 'proposer' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
+                            Proposed by <span th:text="${topicSort == 'proposer' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                        </a></th>
+                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
+                                th:href="@{/faculty/topics/review(page=0,size=${topicPage.size},search=${topicSearch},sort='department',direction=${topicSort == 'department' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
+                            Department <span th:text="${topicSort == 'department' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                        </a></th>
+                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
+                                th:href="@{/faculty/topics/review(page=0,size=${topicPage.size},search=${topicSearch},sort='period',direction=${topicSort == 'period' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
+                            Registration period <span th:text="${topicSort == 'period' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                        </a></th>
+                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
+                                th:href="@{/faculty/topics/review(page=0,size=${topicPage.size},search=${topicSearch},sort='status',direction=${topicSort == 'status' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
+                            Status <span th:text="${topicSort == 'status' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                        </a></th>
+                        <th scope="col" class="px-6 py-3"><span class="sr-only">Actions</span></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="border-b border-gray-100 align-top hover:bg-gray-50" th:each="topic : ${topics}">
+                        <td class="max-w-sm px-6 py-4">
+                            <strong class="block font-semibold text-gray-900" th:text="${topic.title}">Smart campus platform</strong>
+                            <span class="mt-1 block line-clamp-3 text-xs leading-5 text-gray-500" th:text="${topic.description}">Topic description</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="block font-medium text-gray-900" th:text="${topic.proposedByName}">Nguyễn Thanh Bình</span>
+                            <span class="block text-xs text-gray-500" th:text="${topic.proposedByEmail}">lecturer@hcmute.edu.vn</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="block font-medium text-gray-900" th:text="${topic.departmentCode}">CNTT</span>
+                            <span class="block text-xs text-gray-500" th:text="${topic.departmentName}">Công nghệ thông tin</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="block font-medium text-gray-900" th:text="${topic.periodName}">Semester 1</span>
+                            <span class="block text-xs text-gray-500" th:text="${topic.periodType}">COURSE</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-medium text-yellow-800"
+                                  th:text="${topic.statusLabel}">Pending approval</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex justify-end gap-2">
+                                <form class="m-0" data-review-form th:action="@{/faculty/topics/review}" method="post">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <input type="hidden" name="topicId" th:value="${topic.id}">
+                                    <input type="hidden" name="decision" value="approve">
+                                    <button type="submit" data-review-decision="approve" th:attr="data-review-topic-title=${topic.title}"
+                                            aria-label="Approve topic" title="Approve topic"
+                                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200">
+                                        <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m4 9 3 3 7-7"/></svg>
+                                    </button>
+                                </form>
+                                <form class="m-0" data-review-form th:action="@{/faculty/topics/review}" method="post">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <input type="hidden" name="topicId" th:value="${topic.id}">
+                                    <input type="hidden" name="decision" value="reject">
+                                    <button type="submit" data-review-decision="reject" th:attr="data-review-topic-title=${topic.title}"
+                                            aria-label="Reject topic" title="Reject topic"
+                                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-rose-700 transition hover:bg-rose-100 focus:outline-none focus:ring-4 focus:ring-rose-100">
+                                        <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 5 8 8M13 5l-8 8"/></svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between"
+                 th:if="${topicPage.totalItems > 0}">
+                <p class="text-gray-500">Showing <span class="font-medium text-gray-900" th:text="${topicPage.page * topicPage.size + 1}">1</span>–<span
+                        class="font-medium text-gray-900" th:text="${topicPage.page * topicPage.size + #lists.size(topics)}">10</span> of <span
+                        class="font-medium text-gray-900" th:text="${topicPage.totalItems}">15</span></p>
+                <nav aria-label="Topic review pagination">
+                    <ul class="inline-flex -space-x-px">
+                        <li>
+                            <a class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                               th:classappend="${!topicPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
+                               th:attr="aria-disabled=${!topicPage.hasPrevious}"
+                               th:href="@{/faculty/topics/review(page=${topicPage.page - 1},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch})}">Previous</a>
+                        </li>
+                        <li th:each="pageNumber : ${#numbers.sequence(0, topicPage.totalPages - 1)}">
+                            <a class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                               th:classappend="${pageNumber == topicPage.page ? 'bg-blue-50 text-blue-700' : ''}"
+                               th:attr="aria-current=${pageNumber == topicPage.page ? 'page' : null}"
+                               th:href="@{/faculty/topics/review(page=${pageNumber},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch})}"
+                               th:text="${pageNumber + 1}">1</a>
+                        </li>
+                        <li>
+                            <a class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                               th:classappend="${!topicPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
+                               th:attr="aria-disabled=${!topicPage.hasNext}"
+                               th:href="@{/faculty/topics/review(page=${topicPage.page + 1},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch})}">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="flex flex-col items-center justify-center border-t border-gray-100 px-6 py-14 text-center" th:if="${#lists.isEmpty(topics)}">
+                <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400">
+                    <svg class="h-7 w-7" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M8 8h8m-8 4h5m-8 8h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
+                </div>
+                <h3 class="text-base font-semibold text-gray-900"
+                    th:text="${#strings.isEmpty(topicSearch) ? 'No pending proposals' : 'No matching proposals'}">No pending proposals</h3>
+                <p class="mt-1 max-w-sm text-sm leading-6 text-gray-500"
+                   th:text="${#strings.isEmpty(topicSearch) ? 'There are no topic proposals waiting for review right now.' : 'Try a different keyword or clear the search to see more proposals.'}">
+                    There are no topic proposals waiting for review right now.
+                </p>
+                <a class="mt-4 text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline"
+                   th:if="${!#strings.isEmpty(topicSearch)}"
+                   th:href="@{/faculty/topics/review(page=0,size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction})}">Clear search</a>
+            </div>
+        </section>
+    </section>
+
+    <div id="review-confirm-modal" class="fixed inset-0 z-[70] hidden overflow-y-auto" tabindex="-1"
+         aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="review-confirm-title"
+         aria-describedby="review-confirm-description" data-review-confirm-modal>
+        <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" data-review-modal-close></div>
+        <div class="relative flex min-h-full items-center justify-center p-4">
+            <div class="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+                <div class="flex items-start gap-4 px-6 pb-5 pt-6">
+                    <div data-review-modal-icon="approve" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                        <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 10 3 3 7-7"/></svg>
+                    </div>
+                    <div data-review-modal-icon="reject" class="hidden h-11 w-11 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-700">
+                        <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 6 8 8M14 6l-8 8"/></svg>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h2 id="review-confirm-title" class="text-lg font-semibold text-gray-900" data-review-modal-title>Approve topic proposal?</h2>
+                        <p id="review-confirm-description" class="mt-2 text-sm leading-6 text-gray-500" data-review-modal-description>
+                            Are you sure you want to approve this topic proposal?
+                        </p>
+                        <p class="mt-2 truncate text-sm font-semibold text-gray-800" data-review-modal-topic-title></p>
+                    </div>
+                    <button type="button" class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-900"
+                            aria-label="Close confirmation dialog" data-review-modal-close>
+                        <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 12 12M13 1 1 13"/></svg>
+                    </button>
+                </div>
+                <div class="flex justify-end gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">
+                    <button type="button" class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100"
+                            data-review-modal-cancel>Cancel</button>
+                    <button type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200"
+                            data-review-modal-confirm>Approve topic</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

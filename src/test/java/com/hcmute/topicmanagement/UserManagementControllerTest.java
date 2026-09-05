@@ -24,9 +24,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.hcmute.topicmanagement.model.RoleEntity;
+import com.hcmute.topicmanagement.model.DepartmentEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
 import com.hcmute.topicmanagement.repository.RoleRepository;
+import com.hcmute.topicmanagement.repository.DepartmentRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
 import com.hcmute.topicmanagement.repository.UserRoleRepository;
 import com.hcmute.topicmanagement.security.DatabaseUserPrincipal;
@@ -48,6 +50,9 @@ class UserManagementControllerTest {
     private RoleRepository roleRepository;
 
     @Autowired
+    private DepartmentRepository departmentRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Test
@@ -59,6 +64,7 @@ class UserManagementControllerTest {
                 .andExpect(view().name("admin/users"))
                 .andExpect(content().string(containsString("User management")))
                 .andExpect(content().string(containsString("Directory User")))
+                .andExpect(content().string(not(containsString(">My department</span>"))))
                 .andExpect(content().string(not(containsString("Password123"))))
                 .andExpect(content().string(not(containsString("$2a$"))));
     }
@@ -108,6 +114,36 @@ class UserManagementControllerTest {
                 .andExpect(content().string(not(containsString("Student Route"))))
                 .andExpect(content().string(not(containsString("Use at least 8 characters."))))
                 .andExpect(content().string(not(containsString(">MSSV<"))));
+    }
+
+    @Test
+    void lecturerDirectoryCanSortByDepartment() throws Exception {
+        String suffix = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        DepartmentEntity firstDepartment = departmentRepository.saveAndFlush(
+                new DepartmentEntity("AAA-SORT-" + suffix, "AAA Sort Department " + suffix));
+        DepartmentEntity secondDepartment = departmentRepository.saveAndFlush(
+                new DepartmentEntity("ZZZ-SORT-" + suffix, "ZZZ Sort Department " + suffix));
+        UserEntity firstLecturer = saveUser("department-sort-first-" + suffix,
+                "Department Sort First " + suffix, "LECTURER", "Password123");
+        firstLecturer.setDepartment(secondDepartment);
+        userRepository.saveAndFlush(firstLecturer);
+        UserEntity secondLecturer = saveUser("department-sort-second-" + suffix,
+                "Department Sort Second " + suffix, "LECTURER", "Password123");
+        secondLecturer.setDepartment(firstDepartment);
+        userRepository.saveAndFlush(secondLecturer);
+
+        String html = mockMvc.perform(get("/admin/lecturers")
+                        .with(user(admin("USER_READ")))
+                        .param("size", "100")
+                        .param("sort", "department")
+                        .param("direction", "asc"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("sort=department")))
+                .andExpect(content().string(containsString("direction=asc")))
+                .andReturn().getResponse().getContentAsString();
+
+        org.junit.jupiter.api.Assertions.assertTrue(
+                html.indexOf("Department Sort Second " + suffix) < html.indexOf("Department Sort First " + suffix));
     }
 
     @Test

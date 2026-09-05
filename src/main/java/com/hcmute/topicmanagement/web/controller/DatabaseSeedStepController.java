@@ -24,7 +24,7 @@ public class DatabaseSeedStepController {
 
     @PostMapping("/ddl")
     public SeedStepResult createSchema() {
-        return databaseSchemaService.createSchema();
+        return databaseSchemaService.recreateSchema();
     }
 
     @PostMapping("/permissions")

@@ -43,17 +43,48 @@
                         <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Directory</p>
                         <h2 id="members-heading" class="text-xl font-semibold text-gray-900">Department members</h2>
                     </div>
-                    <span class="text-sm text-gray-500" th:text="${#lists.size(department.members) + ' active members'}">0 active members</span>
+                    <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+                        <span class="text-sm text-gray-500" th:text="${department.totalItems + ' active members'}">0 active members</span>
+                        <form class="flex w-full gap-2 sm:w-80" th:action="@{/faculty/departments}" method="get">
+                            <input type="hidden" name="page" value="0">
+                            <input type="hidden" name="size" th:value="${department.size}">
+                            <input type="hidden" name="sort" th:value="${department.sort}">
+                            <input type="hidden" name="direction" th:value="${department.direction}">
+                            <label class="relative block min-w-0 flex-1" for="member-search">
+                                <span class="sr-only">Search department members</span>
+                                <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
+                                       id="member-search" name="search" type="search" placeholder="Search members"
+                                       autocomplete="off" th:value="${department.search}">
+                            </label>
+                            <button class="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800"
+                                    type="submit">Search</button>
+                        </form>
+                    </div>
                 </div>
                 <div class="overflow-x-auto" th:if="${!#lists.isEmpty(department.members)}">
                     <table class="w-full min-w-[760px] text-left text-sm text-gray-500">
                         <thead class="bg-gray-50 text-xs uppercase text-gray-700">
                         <tr>
-                            <th scope="col" class="px-6 py-3">Name</th>
-                            <th scope="col" class="px-6 py-3">Account</th>
-                            <th scope="col" class="px-6 py-3">Email</th>
-                            <th scope="col" class="px-6 py-3">Role</th>
-                            <th scope="col" class="px-6 py-3">Status</th>
+                            <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
+                                    th:href="@{/faculty/departments(page=0,size=${department.size},search=${department.search},sort='name',direction=${department.sort == 'name' and department.direction == 'asc' ? 'desc' : 'asc'})}">
+                                Name <span th:text="${department.sort == 'name' ? (department.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                            </a></th>
+                            <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
+                                    th:href="@{/faculty/departments(page=0,size=${department.size},search=${department.search},sort='account',direction=${department.sort == 'account' and department.direction == 'asc' ? 'desc' : 'asc'})}">
+                                Account <span th:text="${department.sort == 'account' ? (department.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                            </a></th>
+                            <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
+                                    th:href="@{/faculty/departments(page=0,size=${department.size},search=${department.search},sort='email',direction=${department.sort == 'email' and department.direction == 'asc' ? 'desc' : 'asc'})}">
+                                Email <span th:text="${department.sort == 'email' ? (department.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                            </a></th>
+                            <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
+                                    th:href="@{/faculty/departments(page=0,size=${department.size},search=${department.search},sort='role',direction=${department.sort == 'role' and department.direction == 'asc' ? 'desc' : 'asc'})}">
+                                Role <span th:text="${department.sort == 'role' ? (department.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                            </a></th>
+                            <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
+                                    th:href="@{/faculty/departments(page=0,size=${department.size},search=${department.search},sort='status',direction=${department.sort == 'status' and department.direction == 'asc' ? 'desc' : 'asc'})}">
+                                Status <span th:text="${department.sort == 'status' ? (department.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                            </a></th>
                         </tr>
                         </thead>
                         <tbody>
@@ -71,7 +102,49 @@
                         </tbody>
                     </table>
                 </div>
-                <p class="px-6 py-12 text-center text-sm text-gray-500" th:if="${#lists.isEmpty(department.members)}">No active members are assigned to this department.</p>
+                <div class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between"
+                     th:if="${department.totalItems > 0}">
+                    <p class="text-gray-500">Showing <span class="font-medium text-gray-900" th:text="${department.page * department.size + 1}">1</span>–<span
+                            class="font-medium text-gray-900" th:text="${department.page * department.size + #lists.size(department.members)}">10</span> of <span
+                            class="font-medium text-gray-900" th:text="${department.totalItems}">15</span></p>
+                    <nav aria-label="Department member pagination">
+                        <ul class="inline-flex -space-x-px">
+                            <li>
+                                <a class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                                   th:classappend="${!department.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
+                                   th:attr="aria-disabled=${!department.hasPrevious}"
+                                   th:href="@{/faculty/departments(page=${department.page - 1},size=${department.size},sort=${department.sort},direction=${department.direction},search=${department.search})}">Previous</a>
+                            </li>
+                            <li th:each="pageNumber : ${#numbers.sequence(0, department.totalPages - 1)}">
+                                <a class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                                   th:classappend="${pageNumber == department.page ? 'bg-blue-50 text-blue-700' : ''}"
+                                   th:attr="aria-current=${pageNumber == department.page ? 'page' : null}"
+                                   th:href="@{/faculty/departments(page=${pageNumber},size=${department.size},sort=${department.sort},direction=${department.direction},search=${department.search})}"
+                                   th:text="${pageNumber + 1}">1</a>
+                            </li>
+                            <li>
+                                <a class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                                   th:classappend="${!department.hasNext ? 'pointer-events-none opacity-50' : ''}"
+                                   th:attr="aria-disabled=${!department.hasNext}"
+                                   th:href="@{/faculty/departments(page=${department.page + 1},size=${department.size},sort=${department.sort},direction=${department.direction},search=${department.search})}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                <div class="flex flex-col items-center justify-center border-t border-gray-100 px-6 py-14 text-center" th:if="${#lists.isEmpty(department.members)}">
+                    <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400">
+                        <svg class="h-7 w-7" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M16 19h4a1 1 0 0 0 1-1v-1a4 4 0 0 0-4-4h-1m-2-7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Zm-4 8a6 6 0 0 0-6 6h12a6 6 0 0 0-6-6Zm7-8a3 3 0 1 1 0 6"/></svg>
+                    </div>
+                    <h3 class="text-base font-semibold text-gray-900"
+                        th:text="${#strings.isEmpty(department.search) ? 'No department members' : 'No matching members'}">No department members</h3>
+                    <p class="mt-1 max-w-sm text-sm leading-6 text-gray-500"
+                       th:text="${#strings.isEmpty(department.search) ? 'No active members are assigned to this department right now.' : 'Try a different keyword or clear the search to see more members.'}">
+                        No active members are assigned to this department right now.
+                    </p>
+                    <a class="mt-4 text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline"
+                       th:if="${!#strings.isEmpty(department.search)}"
+                       th:href="@{/faculty/departments(page=0,size=${department.size},sort=${department.sort},direction=${department.direction})}">Clear search</a>
+                </div>
             </section>
         </th:block>
     </section>

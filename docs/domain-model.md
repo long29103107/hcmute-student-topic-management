@@ -35,7 +35,10 @@ revised schema does not have a separate Student Profile entity.
   scopes management to all topics for Admin or the Faculty Head's own
   department. Topic review currently uses only the `topics.status`
   transition to `APPROVED` or `REJECTED`; the revised schema has no approval
-  audit columns/history, so detailed review history is deferred.
+  audit columns/history, so detailed review history is deferred. The review
+  Service limits Faculty Heads to their department, gives Admin an all-topic
+  operational scope, and rejects self-review and any transition from a status
+  other than `PENDING_APPROVAL`.
 
 ## Student workflow
 

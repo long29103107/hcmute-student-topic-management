@@ -93,7 +93,9 @@ public class UserManagementService {
         String query = search.trim().toLowerCase(Locale.ROOT);
         return String.join(" ", user.getFullName(), user.getLoginIdentifier(),
                 user.getEmailOrCode() == null ? "" : user.getEmailOrCode(),
-                user.getStudentCode() == null ? "" : user.getStudentCode()).toLowerCase(Locale.ROOT)
+                user.getStudentCode() == null ? "" : user.getStudentCode(),
+                user.getDepartmentCode() == null ? "" : user.getDepartmentCode(),
+                user.getDepartmentName() == null ? "" : user.getDepartmentName()).toLowerCase(Locale.ROOT)
                 .contains(query);
     }
 
@@ -102,6 +104,10 @@ public class UserManagementService {
         Comparator<UserSummary> comparator = switch (normalizeSort(sort)) {
             case "studentCode" -> Comparator.comparing(UserSummary::getStudentCode, text);
             case "email" -> Comparator.comparing(UserSummary::getEmailOrCode, text);
+            case "department" -> Comparator.comparing(UserSummary::getDepartmentCode, text)
+                    .thenComparing(UserSummary::getDepartmentName, text)
+                    .thenComparing(UserSummary::getFullName, text)
+                    .thenComparing(UserSummary::getLoginIdentifier, text);
             case "roles" -> Comparator.comparing(user -> user.getRoles().stream()
                     .map(RoleBadge::getName).sorted(String.CASE_INSENSITIVE_ORDER).findFirst().orElse(null), text);
             case "status" -> Comparator.comparing(UserSummary::isActive).reversed();
@@ -112,7 +118,7 @@ public class UserManagementService {
     }
 
     private static String normalizeSort(String sort) {
-        return Set.of("account", "studentCode", "email", "roles", "status")
+        return Set.of("account", "studentCode", "email", "department", "roles", "status")
                 .contains(sort) ? sort : "account";
     }
 

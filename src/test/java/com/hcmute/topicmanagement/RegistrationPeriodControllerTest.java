@@ -1,6 +1,7 @@
 package com.hcmute.topicmanagement;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -126,6 +127,43 @@ class RegistrationPeriodControllerTest {
                 .andExpect(content().string(containsString("Updated thesis period " + suffix)))
                 .andExpect(content().string(containsString("CLOSED")))
                 .andExpect(content().string(containsString("Period Head " + suffix)));
+    }
+
+    @Test
+    void facultyHeadCanSearchSortAndPaginateRegistrationPeriods() throws Exception {
+        String suffix = suffix();
+        String email = "period.page." + suffix.toLowerCase(Locale.ROOT) + "@lecturer.hcmute.edu.vn";
+        saveUser("period-page-" + suffix, "Period Page User " + suffix, email);
+        LocalDateTime start = LocalDateTime.of(2026, 9, 1, 8, 0);
+        LocalDateTime end = LocalDateTime.of(2026, 9, 30, 23, 59);
+        for (int index = 0; index < 12; index++) {
+            registrationPeriodRepository.saveAndFlush(new RegistrationPeriodEntity(
+                    String.format("Period page %02d %s", index, suffix), PeriodType.COURSE,
+                    start, end, start, end));
+        }
+
+        mockMvc.perform(get("/faculty/periods")
+                        .with(user(facultyHead(email)))
+                        .param("page", "1")
+                        .param("size", "5")
+                        .param("search", suffix)
+                        .param("sort", "period")
+                        .param("direction", "desc"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("faculty/periods"))
+                .andExpect(content().string(containsString("Showing")))
+                .andExpect(content().string(containsString("Period page 06 " + suffix)))
+                .andExpect(content().string(not(containsString("Period page 11 " + suffix))))
+                .andExpect(content().string(containsString("size=5")))
+                .andExpect(content().string(containsString("sort=period")))
+                .andExpect(content().string(containsString("direction=desc")));
+
+        mockMvc.perform(get("/faculty/periods")
+                        .with(user(facultyHead(email)))
+                        .param("search", "page 01 " + suffix))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Period page 01 " + suffix)))
+                .andExpect(content().string(not(containsString("Period page 02 " + suffix))));
     }
 
     @Test

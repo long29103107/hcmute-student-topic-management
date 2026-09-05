@@ -34,7 +34,7 @@ Have unless explicitly selected.
 | GET | `/` | `HomeController` → `home.html`, redirects to the dashboard |
 | GET | `/dashboard` | `HomeController` → `home.html`, first-look MVP dashboard |
 | GET | `/announcements` | published announcements |
-| GET | `/topics` | published topic list and filters when available |
+| GET | `/topics` | `TopicCatalogController` → published topic list filtered by keyword, department and valid student registration period |
 | GET | `/topics/view?id=...` | topic detail |
 
 ## Admin/faculty-head management
@@ -42,7 +42,7 @@ Have unless explicitly selected.
 | Method | Route | Purpose |
 |---|---|---|
 | GET | `/admin/students` | `StudentManagementController` → student directory, search, status summary and department display |
-| GET | `/admin/lecturers` | `LecturerManagementController` → lecturer-capability directory (`LECTURER` or `FACULTY_HEAD`), search, status summary and department display |
+| GET | `/admin/lecturers` | `LecturerManagementController` → lecturer-capability directory (`LECTURER` or `FACULTY_HEAD`), search, status summary, department display and sortable department column |
 | POST | `/admin/students`, `/admin/students/{id}/edit`, `/admin/students/{id}/status`, `/admin/students/{id}/delete` | `StudentManagementController` → student create, update, lock/unlock and safe delete |
 | POST | `/admin/lecturers`, `/admin/lecturers/{id}/edit`, `/admin/lecturers/{id}/status`, `/admin/lecturers/{id}/delete` | `LecturerManagementController` → lecturer create, update, lock/unlock and safe delete |
 | GET | `/admin/users` | `UserManagementController` → legacy combined account directory |
@@ -57,7 +57,8 @@ Have unless explicitly selected.
 | GET/POST | `/faculty/periods`, `/faculty/periods/{id}/edit` | `RegistrationPeriodController` → Faculty Head/Admin registration-period CRUD with lecturer/student windows, status and creator tracking |
 | GET | `/faculty/topics/supervisors` | `TopicSupervisorController` → Admin/Faculty Head topic list scoped by authorization, with search (`search`), pagination (`page`, `size`), column sort (`sort=topic|department|period|status|proposer|supervisors`, `direction=asc|desc`) and supervisor-assignment modals (`SUPERVISOR_MANAGE`) |
 | POST | `/faculty/topics/{id}/supervisors` | `TopicSupervisorController` → replace one or two active Lecturer/Faculty Head supervisors through the shared Service validation |
-| GET/POST | `/faculty/topics/review` | `TopicReviewController` → approve/reject/publish |
+| GET/POST | `/faculty/topics/review` | `TopicReviewController` → list pending proposals and approve/reject |
+| GET/POST | `/faculty/topics/publish` | `TopicPublicationController` → list approved topics in the Faculty Head's department and publish them |
 | GET/POST | `/faculty/registrations/review` | `RegistrationReviewController` → approve/reject |
 | GET/POST | `/faculty/boards` | `ReviewBoardController` → full board/member/topic assignment (Should Have) |
 | GET/POST | `/faculty/results` | `ResultController` → aggregate/publish |
@@ -92,7 +93,7 @@ not replace the Thymeleaf flow or duplicate Service rules.
 |---|---|---|---|
 | POST | `/api/auth/login` | authenticate and create session | anonymous |
 | POST | `/api/auth/logout` | invalidate session | authenticated |
-| POST | `/api/seed/ddl` | create the MySQL schema from `database/1.ddl.sql` | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
+| POST | `/api/seed/ddl` | drop the 17 revised-schema tables, then recreate the MySQL schema from `database/1.ddl.sql` | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true`; destructive local operation |
 | POST | `/api/seed/permissions` | create or update local permission fixtures | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
 | POST | `/api/seed/roles` | create or update local role fixtures | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
 | POST | `/api/seed/role-permissions` | recreate role-permission fixture assignments | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
@@ -101,13 +102,15 @@ not replace the Thymeleaf flow or duplicate Service rules.
 | POST | `/api/seed/topics` | create or update eight local topic fixtures and their one-to-two supervisor assignments | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
 | POST | `/api/admin/seed` | truncate all 17 revised-schema tables and recreate local identity, academic topic and supervisor fixtures; response includes `tablesReset`, `roles`, `permissions`, `users`, `topics` and `topicSupervisors` | ADMIN only + CSRF; local destructive operation |
 | GET | `/api/announcements` | published announcements | authenticated |
-| GET | `/api/topics` | published topics with period/department/status filters | authenticated |
+| GET | `/api/topics` | published topics filtered by keyword, period or department; the server only returns PUBLISHED topics in an OPEN period with an active student window | `TOPIC_VIEW` |
+| POST | `/api/faculty/topics/{id}/publish`, `/api/topics/{id}/publish` | publish an APPROVED topic; Admin can publish across departments and Faculty Head is scoped to their department | `TOPIC_REVIEW` + Admin/Faculty Head role + CSRF |
 | GET/POST | `/api/faculty/periods` | planned REST adapter; current registration-period CRUD is available through `/faculty/periods` | Faculty Head/Admin |
 | GET | `/api/faculty/topics/supervisors` | list manageable topics with search, pagination metadata, column sort (`sort=topic|department|period|status|proposer|supervisors`, `direction=asc|desc`) and active lecturer-capability supervisor options filtered to each topic's department | `SUPERVISOR_MANAGE` |
 | PUT | `/api/faculty/topics/{id}/supervisors` | replace a topic's supervisor IDs; accepts one or two IDs and returns the updated assignment | `SUPERVISOR_MANAGE` + CSRF |
 | GET/POST | `/api/lecturer/topics` | list or create the authenticated user's own topic proposals; create validates the active department and inclusive lecturer registration window | `TOPIC_PROPOSE` |
 | PUT | `/api/lecturer/topics/{id}` | update an owned `DRAFT`/`REJECTED` proposal; a rejected proposal returns to `DRAFT` after a valid update | `TOPIC_PROPOSE` |
-| POST | `/api/topics/{id}/approve` | approve/reject/publish topic action | Faculty Head |
+| GET | `/api/faculty/topics/review`, `/api/topics/review` | list pending topic proposals in the actor's review scope | `TOPIC_REVIEW` |
+| POST | `/api/topics/{id}/approve` | approve/reject a `PENDING_APPROVAL` topic with `{ "decision": "APPROVE" | "REJECT" }` | `TOPIC_REVIEW` + CSRF |
 | GET/POST | `/api/student/groups` | group/member operations | Student |
 | POST | `/api/student/groups/{groupId}/registrations` | leader submits registration | Group leader |
 | POST | `/api/student/reports` | leader uploads report metadata/file | Group leader |

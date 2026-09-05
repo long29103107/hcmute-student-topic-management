@@ -326,6 +326,95 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    const reviewModal = document.querySelector('[data-review-confirm-modal]');
+    const reviewForms = [...document.querySelectorAll('[data-review-form]')];
+    if (reviewModal && reviewForms.length > 0) {
+        const reviewModalTitle = reviewModal.querySelector('[data-review-modal-title]');
+        const reviewModalDescription = reviewModal.querySelector('[data-review-modal-description]');
+        const reviewModalTopicTitle = reviewModal.querySelector('[data-review-modal-topic-title]');
+        const reviewModalConfirm = reviewModal.querySelector('[data-review-modal-confirm]');
+        const reviewModalCancel = reviewModal.querySelector('[data-review-modal-cancel]');
+        const reviewModalIcons = [...reviewModal.querySelectorAll('[data-review-modal-icon]')];
+        let pendingReviewForm;
+        let lastFocusedReviewButton;
+
+        const closeReviewModal = () => {
+            reviewModal.classList.add('hidden');
+            reviewModal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('overflow-hidden');
+            pendingReviewForm = undefined;
+            lastFocusedReviewButton?.focus();
+        };
+
+        const openReviewModal = (form, button) => {
+            const decision = button.dataset.reviewDecision === 'reject' ? 'reject' : 'approve';
+            const topicTitle = button.dataset.reviewTopicTitle || 'this topic proposal';
+            const approving = decision === 'approve';
+
+            pendingReviewForm = form;
+            lastFocusedReviewButton = button;
+            if (reviewModalTitle) {
+                reviewModalTitle.textContent = approving ? 'Approve topic proposal?' : 'Reject topic proposal?';
+            }
+            if (reviewModalDescription) {
+                reviewModalDescription.textContent = approving
+                    ? 'The proposal will move forward in the topic workflow.'
+                    : 'The proposal will be returned to the proposer for revision.';
+            }
+            if (reviewModalTopicTitle) {
+                reviewModalTopicTitle.textContent = topicTitle;
+            }
+            if (reviewModalConfirm) {
+                reviewModalConfirm.textContent = approving ? 'Approve topic' : 'Reject topic';
+                reviewModalConfirm.classList.remove(
+                    'bg-emerald-600', 'hover:bg-emerald-700', 'focus:ring-emerald-200',
+                    'bg-rose-600', 'hover:bg-rose-700', 'focus:ring-rose-200');
+                reviewModalConfirm.classList.add(
+                    approving ? 'bg-emerald-600' : 'bg-rose-600',
+                    approving ? 'hover:bg-emerald-700' : 'hover:bg-rose-700',
+                    approving ? 'focus:ring-emerald-200' : 'focus:ring-rose-200');
+            }
+            reviewModalIcons.forEach((icon) => {
+                icon.classList.toggle('hidden', icon.dataset.reviewModalIcon !== decision);
+                icon.classList.toggle('flex', icon.dataset.reviewModalIcon === decision);
+            });
+            reviewModal.classList.remove('hidden');
+            reviewModal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('overflow-hidden');
+            window.setTimeout(() => reviewModalCancel?.focus(), 0);
+        };
+
+        reviewForms.forEach((form) => {
+            form.addEventListener('submit', (event) => {
+                if (form.dataset.reviewConfirmed === 'true') {
+                    delete form.dataset.reviewConfirmed;
+                    return;
+                }
+                event.preventDefault();
+                openReviewModal(form, form.querySelector('[data-review-decision]'));
+            });
+        });
+
+        reviewModal.querySelectorAll('[data-review-modal-close]').forEach((closeButton) => {
+            closeButton.addEventListener('click', closeReviewModal);
+        });
+        reviewModalCancel?.addEventListener('click', closeReviewModal);
+        reviewModalConfirm?.addEventListener('click', () => {
+            if (!pendingReviewForm) {
+                return;
+            }
+            const formToSubmit = pendingReviewForm;
+            formToSubmit.dataset.reviewConfirmed = 'true';
+            closeReviewModal();
+            formToSubmit.requestSubmit();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !reviewModal.classList.contains('hidden')) {
+                closeReviewModal();
+            }
+        });
+    }
+
     document.querySelectorAll('[data-seed-page]').forEach((page) => {
         const csrfInput = page.querySelector('[data-seed-csrf]');
         const runButton = page.querySelector('[data-seed-run]');
@@ -427,7 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (status) {
                     status.textContent = 'Seed pipeline completed';
                 }
-                setFeedback('Schema and seed data were created successfully.', true);
+                setFeedback('Database schema was recreated and seed data was restored successfully.', true);
                 if (output) {
                     output.hidden = false;
                     output.classList.remove('hidden');

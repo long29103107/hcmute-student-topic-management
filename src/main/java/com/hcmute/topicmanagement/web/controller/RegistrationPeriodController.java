@@ -1,7 +1,5 @@
 package com.hcmute.topicmanagement.web.controller;
 
-import java.util.List;
-
 import jakarta.validation.Valid;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,6 +12,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.hcmute.topicmanagement.model.enums.PeriodType;
@@ -34,8 +33,14 @@ public class RegistrationPeriodController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('PERIOD_MANAGE')")
-    public String list(Model model) {
-        populatePage(model);
+    public String list(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "period") String sort,
+            @RequestParam(defaultValue = "asc") String direction,
+            Model model) {
+        populatePage(model, search, page, size, sort, direction);
         return "faculty/periods";
     }
 
@@ -45,10 +50,10 @@ public class RegistrationPeriodController {
             Authentication authentication,
             @Valid @ModelAttribute("createForm") RegistrationPeriodForm form,
             BindingResult bindingResult,
-            Model model,
+        Model model,
             RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            populatePage(model);
+            populatePage(model, "", 0, 10, "period", "asc");
             model.addAttribute("createForm", form);
             return "faculty/periods";
         }
@@ -92,9 +97,16 @@ public class RegistrationPeriodController {
         return "redirect:/faculty/periods";
     }
 
-    private void populatePage(Model model) {
-        List<PeriodSummary> periods = registrationPeriodService.listPeriods();
+    private void populatePage(Model model, String search, int page, int size, String sort, String direction) {
+        String normalizedSearch = search == null ? "" : search.trim();
+        RegistrationPeriodService.PeriodPage periodPage = registrationPeriodService.listPeriodsPage(
+                normalizedSearch, page, size, sort, direction);
+        var periods = periodPage.getPeriods();
         model.addAttribute("pageTitle", "Registration period management");
+        model.addAttribute("periodPage", periodPage);
+        model.addAttribute("periodSearch", periodPage.getSearch());
+        model.addAttribute("periodSort", periodPage.getSort());
+        model.addAttribute("periodDirection", periodPage.getDirection());
         model.addAttribute("periods", periods);
         model.addAttribute("periodTypes", PeriodType.values());
         model.addAttribute("periodStatuses", RegistrationPeriodStatus.values());

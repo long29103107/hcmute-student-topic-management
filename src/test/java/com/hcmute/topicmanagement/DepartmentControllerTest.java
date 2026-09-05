@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -321,6 +322,52 @@ class DepartmentControllerTest {
                 .andExpect(content().string(containsString("Own Department " + suffix)))
                 .andExpect(content().string(containsString("Own Member " + suffix)))
                 .andExpect(content().string(not(containsString("Other Member " + suffix))));
+    }
+
+    @Test
+    void facultyHeadCanSearchSortAndPaginateDepartmentMembers() throws Exception {
+        String suffix = suffix();
+        DepartmentEntity department = departmentRepository.saveAndFlush(
+                new DepartmentEntity("PAGE-" + suffix, "Page Department " + suffix));
+        String headEmail = "page-head." + suffix.toLowerCase(Locale.ROOT) + "@lecturer.hcmute.edu.vn";
+        UserEntity head = new UserEntity("page-head-" + suffix, "Page Department Head " + suffix,
+                "test-password-hash");
+        head.setEmailOrCode(headEmail);
+        head.setDepartment(department);
+        userRepository.saveAndFlush(head);
+        for (int index = 0; index < 12; index++) {
+            UserEntity member = new UserEntity(
+                    String.format("page-member-%02d-%s", index, suffix),
+                    String.format("Page Department Member %02d %s", index, suffix),
+                    "test-password-hash");
+            member.setEmailOrCode(String.format(
+                    "page-member-%02d-%s@lecturer.hcmute.edu.vn", index, suffix.toLowerCase(Locale.ROOT)));
+            member.setDepartment(department);
+            userRepository.saveAndFlush(member);
+        }
+
+        mockMvc.perform(get("/faculty/departments")
+                        .with(user(facultyHead(headEmail)))
+                        .param("page", "1")
+                        .param("size", "5")
+                        .param("search", suffix)
+                        .param("sort", "account")
+                        .param("direction", "asc"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("faculty/my-department"))
+                .andExpect(content().string(containsString("Showing")))
+                .andExpect(content().string(containsString("Page Department Member 04 " + suffix)))
+                .andExpect(content().string(not(containsString("Page Department Member 00 " + suffix))))
+                .andExpect(content().string(containsString("size=5")))
+                .andExpect(content().string(containsString("sort=account")))
+                .andExpect(content().string(containsString("direction=asc")));
+
+        mockMvc.perform(get("/faculty/departments")
+                        .with(user(facultyHead(headEmail)))
+                        .param("search", "member 01 " + suffix))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Page Department Member 01 " + suffix)))
+                .andExpect(content().string(not(containsString("Page Department Member 02 " + suffix))));
     }
 
     @Test

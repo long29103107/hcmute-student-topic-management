@@ -10,6 +10,16 @@
 }
 
 @layer components {
+    body.app-layout [data-app-shell] {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    body.app-layout [data-app-shell] > main {
+        flex: 1 1 auto;
+    }
+
     main.max-w-7xl {
         max-width: none;
         width: 100%;

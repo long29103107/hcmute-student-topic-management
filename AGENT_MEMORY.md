@@ -282,6 +282,27 @@ factual and free of secrets. Update this file after every code or UI update.
   `mvn test` passes 87/87; `mvn package -DskipTests` succeeds and
   `git diff --check` passes with only normal LF/CRLF warnings.
 
+## 2026-09-05 — Topic Review, Approve and Reject (002_003)
+
+- Implemented the Admin/Faculty Head pending topic-review queue at
+  `/faculty/topics/review` and matching REST list/action endpoints.
+- Enforced `TOPIC_REVIEW`, Admin all-department scope, Faculty Head own-
+  department scope, proposer self-review rejection, and the only valid
+  `PENDING_APPROVAL -> APPROVED|REJECTED` transitions.
+- Added `TopicReviewControllerTest` coverage for queue visibility, approve,
+  reject, invalid transitions/decisions, self-review, unauthorized access and
+  CSRF; updated route, workflow, domain and verification documents plus the
+  Phase 002 task note.
+- Verification: focused `TopicReviewControllerTest` passes 5/5; full
+  `mvn test` passes 92/92; `mvn package -DskipTests` succeeds and
+  `git diff --check` passes with only normal LF/CRLF warnings.
+- Seed verification now explicitly covers the `TOPIC_REVIEW` permission,
+  Admin/Faculty Head mapping, Lecturer exclusion and three pending review
+  fixtures.
+- The `/seed` pipeline's `/api/seed/ddl` step now drops all 17 revised-schema
+  tables, recreates the DDL and requires an explicit destructive confirmation;
+  app startup remains non-destructive with `ddl-auto=none`.
+
 ## Entry template
 
 ### YYYY-MM-DD — Short update title

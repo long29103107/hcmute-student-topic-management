@@ -1,7 +1,9 @@
 package com.hcmute.topicmanagement.service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -39,6 +41,26 @@ public class RegistrationPeriodService {
         return registrationPeriodRepository.findAllByOrderByLecturerRegistrationStartDesc().stream()
                 .map(RegistrationPeriodService::toSummary)
                 .toList();
+    }
+
+    @PreAuthorize("hasAuthority('PERIOD_MANAGE')")
+    public PeriodPage listPeriodsPage(String search, int page, int size, String sort, String direction) {
+        String normalizedSearch = normalizeSearch(search);
+        String normalizedSort = normalizeSort(sort);
+        String normalizedDirection = normalizeDirection(direction);
+        int safeSize = Math.min(Math.max(size, 5), 100);
+        List<PeriodSummary> filtered = listPeriods().stream()
+                .filter(period -> matchesSearch(period, normalizedSearch))
+                .sorted(periodComparator(normalizedSort, normalizedDirection))
+                .toList();
+        int totalItems = filtered.size();
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / safeSize));
+        int safePage = Math.min(Math.max(page, 0), totalPages - 1);
+        int from = Math.min(safePage * safeSize, totalItems);
+        int to = Math.min(from + safeSize, totalItems);
+        return new PeriodPage(
+                filtered.subList(from, to), safePage, safeSize, totalItems, totalPages,
+                normalizedSearch, normalizedSort, normalizedDirection);
     }
 
     /** Read-only contract for topic and topic-registration modules. */
@@ -263,6 +285,68 @@ public class RegistrationPeriodService {
                 period.getCreatedBy() == null ? null : period.getCreatedBy().getFullName());
     }
 
+    private static boolean matchesSearch(PeriodSummary period, String search) {
+        if (search.isBlank()) {
+            return true;
+        }
+        return containsIgnoreCase(period.getName(), search)
+                || containsIgnoreCase(period.getType() == null ? null : period.getType().name(), search)
+                || containsIgnoreCase(period.getStatus() == null ? null : period.getStatus().name(), search)
+                || containsIgnoreCase(period.getCreatedByName(), search);
+    }
+
+    private static boolean containsIgnoreCase(String value, String search) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(search);
+    }
+
+    private static Comparator<PeriodSummary> periodComparator(String sort, String direction) {
+        Comparator<PeriodSummary> comparator = switch (sort) {
+            case "lecturer" -> Comparator.comparing(
+                    PeriodSummary::getLecturerRegistrationStart,
+                    Comparator.nullsLast(Comparator.naturalOrder()))
+                    .thenComparing(PeriodSummary::getName, String.CASE_INSENSITIVE_ORDER);
+            case "student" -> Comparator.comparing(
+                    PeriodSummary::getStudentRegistrationStart,
+                    Comparator.nullsLast(Comparator.naturalOrder()))
+                    .thenComparing(PeriodSummary::getName, String.CASE_INSENSITIVE_ORDER);
+            case "status" -> Comparator.comparing(
+                    RegistrationPeriodService::statusName,
+                    String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(PeriodSummary::getName, String.CASE_INSENSITIVE_ORDER);
+            case "creator" -> Comparator.comparing(
+                    PeriodSummary::getCreatedByName,
+                    Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                    .thenComparing(PeriodSummary::getName, String.CASE_INSENSITIVE_ORDER);
+            default -> Comparator.comparing(
+                    PeriodSummary::getName, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(PeriodSummary::getLecturerRegistrationStart,
+                            Comparator.nullsLast(Comparator.naturalOrder()));
+        };
+        if ("desc".equals(direction)) {
+            comparator = comparator.reversed();
+        }
+        return comparator;
+    }
+
+    private static String statusName(PeriodSummary period) {
+        return period.getStatus() == null ? "" : period.getStatus().name();
+    }
+
+    private static String normalizeSearch(String search) {
+        return search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static String normalizeSort(String sort) {
+        return switch (sort == null ? "" : sort.trim().toLowerCase(Locale.ROOT)) {
+            case "lecturer", "student", "status", "creator" -> sort.trim().toLowerCase(Locale.ROOT);
+            default -> "period";
+        };
+    }
+
+    private static String normalizeDirection(String direction) {
+        return "desc".equalsIgnoreCase(direction == null ? "" : direction.trim()) ? "desc" : "asc";
+    }
+
     public static final class PeriodSummary {
         private final Long id;
         private final String name;
@@ -312,6 +396,41 @@ public class RegistrationPeriodService {
         public LocalDateTime getReviewerScoreDeadline() { return reviewerScoreDeadline; }
         public LocalDateTime getCouncilReportDate() { return councilReportDate; }
         public String getCreatedByName() { return createdByName; }
+    }
+
+    public static final class PeriodPage {
+        private final List<PeriodSummary> periods;
+        private final int page;
+        private final int size;
+        private final int totalItems;
+        private final int totalPages;
+        private final String search;
+        private final String sort;
+        private final String direction;
+
+        public PeriodPage(
+                List<PeriodSummary> periods, int page, int size, int totalItems, int totalPages,
+                String search, String sort, String direction) {
+            this.periods = List.copyOf(periods);
+            this.page = page;
+            this.size = size;
+            this.totalItems = totalItems;
+            this.totalPages = totalPages;
+            this.search = search;
+            this.sort = sort;
+            this.direction = direction;
+        }
+
+        public List<PeriodSummary> getPeriods() { return periods; }
+        public int getPage() { return page; }
+        public int getSize() { return size; }
+        public int getTotalItems() { return totalItems; }
+        public int getTotalPages() { return totalPages; }
+        public String getSearch() { return search; }
+        public String getSort() { return sort; }
+        public String getDirection() { return direction; }
+        public boolean isHasPrevious() { return page > 0; }
+        public boolean isHasNext() { return page + 1 < totalPages; }
     }
 
     /** Stable read-only period/timeline contract for downstream modules. */
