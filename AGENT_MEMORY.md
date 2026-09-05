@@ -3,6 +3,21 @@
 Durable project context for future coding-agent sessions. Keep entries concise,
 factual and free of secrets. Update this file after every code or UI update.
 
+## 2026-09-05 — Report upload and metadata (Issue #12 / 004_001)
+
+- Started Phase 004 task `[004_001] Report Upload & Metadata` after the user
+  explicitly selected it from Project #5; the missing local Phase 003 record
+  was not recreated.
+- Added leader-only upload for approved registrations through SSR and
+  multipart REST. The service checks registration/group/period alignment,
+  current leader membership, configured content-type/size policy and the
+  existing `REPORT_SUBMIT` permission.
+- Added generated-key local external storage with temporary-file cleanup and
+  metadata-after-storage persistence into the revised `reports` table.
+- Added focused upload, invalid-file, relationship, CSRF and storage-failure
+  tests. Verification: focused tests pass; full `mvn test` passes 133/133 and
+  `mvn package -DskipTests` succeeds.
+
 ## 2026-09-05 — Topic registration submission (Issue #10)
 
 - Implemented leader-only topic registration through a shared transaction-safe

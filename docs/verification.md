@@ -156,6 +156,26 @@ review slice to SSR/REST request-level assertions:
 - the SSR review form, REST review endpoint, invalid reason handling, CSRF and
   role/scope authorization are covered.
 
+## Report Upload & Metadata checklist (Issue #12 / 004_001)
+
+The `ReportControllerTest` and `ReportServiceStorageFailureTest` suites map the
+report-upload slice to SSR/REST and storage-boundary assertions:
+
+- only the current leader of an `APPROVED` registration can upload; the
+  registration, group and period identifiers must refer to the same relationship;
+- configured content-type allowlist and maximum byte size reject invalid files
+  before storage or metadata persistence;
+- original name, generated storage name, content type, byte size, uploader and
+  submission time are persisted in `reports`, while file bytes stay outside the
+  database;
+- the SSR registration history renders an upload form only after approval, and
+  the REST endpoint returns a metadata DTO after successful storage;
+- storage failures do not call the metadata repository, generated names never
+  use the user-provided path/name, and state-changing requests require CSRF.
+
+Download authorization, report deadlines, resubmission policy, evaluator
+assignment and scoring remain outside Issue #12.
+
 ## Topic Supervisor Assignment checklist (Issue #5 / 002_002)
 
 The `TopicSupervisorControllerTest` suite maps the task acceptance criteria to

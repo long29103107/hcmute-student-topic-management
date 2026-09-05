@@ -48,6 +48,14 @@ public class ReportEntity extends BaseEntity {
         this.submittedAt = LocalDateTime.now();
     }
 
+    public ReportEntity(TopicRegistrationEntity topicRegistration, String storedName,
+                        String originalName, String contentType, Long fileSize,
+                        UserEntity uploader) {
+        this(topicRegistration, storedName, originalName, uploader);
+        this.contentType = contentType;
+        this.fileSize = fileSize;
+    }
+
     public TopicRegistrationEntity getTopicRegistration() {
         return topicRegistration;
     }

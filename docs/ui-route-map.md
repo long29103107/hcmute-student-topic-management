@@ -120,9 +120,10 @@ not replace the Thymeleaf flow or duplicate Service rules.
 | PUT | `/api/student/groups/{groupId}/leader` | transfer leadership to an active student who is already in the group; Admin/another `GROUP_MANAGE` actor may perform the operation, while Student is limited to the current group leader | `GROUP_MANAGE` + CSRF |
 | GET | `/api/student/registrations` | current student's group registration history/status | Student + `REGISTRATION_SUBMIT` |
 | POST | `/api/student/groups/{groupId}/registrations` | leader submits `{ topicId, periodId? }`; returns the pending registration | Student + `REGISTRATION_SUBMIT` + CSRF + current group leader |
+| POST | `/student/registrations/{registrationId}/report` | group leader uploads a report through the SSR form with `groupId`, `periodId` and multipart `file` | Student + `REPORT_SUBMIT` + CSRF + current group leader of an approved registration |
+| POST | `/api/student/groups/{groupId}/registrations/{registrationId}/reports` | group leader uploads multipart `file` with `periodId`; returns report metadata after external storage succeeds | Student + `REPORT_SUBMIT` + CSRF + current group leader of an approved registration |
 | GET | `/api/faculty/registrations/review`, `/api/registrations/review` | pending topic registrations in the reviewer's department scope | `REGISTRATION_REVIEW` + Admin/Faculty Head |
 | POST | `/api/registrations/{id}/review`, `/api/faculty/registrations/{id}/review` | review `{ decision: "APPROVE" | "REJECT", rejectionReason? }`; reject requires a non-blank reason and only `PENDING` rows can transition | `REGISTRATION_REVIEW` + Admin/Faculty Head + CSRF |
-| POST | `/api/student/reports` | leader uploads report metadata/file | Group leader |
 | GET | `/api/reports/{id}` | permitted report metadata/download | permitted user |
 | POST | `/api/faculty/scores/{topicId}` | submit score/comment | assigned lecturer |
 | POST | `/api/faculty/results/{id}/publish` | publish final result | Faculty Head |
