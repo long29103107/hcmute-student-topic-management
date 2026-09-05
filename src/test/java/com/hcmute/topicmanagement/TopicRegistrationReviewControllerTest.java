@@ -106,6 +106,8 @@ class TopicRegistrationReviewControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("faculty/registration-review"))
                 .andExpect(content().string(containsString(ownPending.getTopic().getTitle())))
+                .andExpect(content().string(containsString("data-registration-reject-open")))
+                .andExpect(content().string(containsString("id=\"registration-reject-modal\"")))
                 .andExpect(content().string(not(containsString(otherPending.getTopic().getTitle()))))
                 .andExpect(content().string(not(containsString("Already approved " + suffix))));
 

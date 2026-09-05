@@ -109,7 +109,11 @@ class StudentGroupControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("student/groups"))
                 .andExpect(content().string(containsString("Alpha Team " + suffix)))
-                .andExpect(content().string(containsString("My groups")));
+                .andExpect(content().string(containsString("My groups")))
+                .andExpect(content().string(containsString("data-group-modal-open=\"create-group-modal\"")))
+                .andExpect(content().string(containsString("data-group-modal-open=\"join-group-modal\"")))
+                .andExpect(content().string(containsString("id=\"create-group-modal\"")))
+                .andExpect(content().string(containsString("id=\"join-group-modal\"")));
     }
 
     @Test

@@ -415,6 +415,66 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    document.querySelectorAll('[data-group-modal]').forEach((modal) => {
+        const openButtons = document.querySelectorAll(`[data-group-modal-open="${modal.id}"]`);
+        const closeButtons = modal.querySelectorAll('[data-group-modal-close]');
+        let lastFocusedElement;
+
+        const closeModal = () => {
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('overflow-hidden');
+            lastFocusedElement?.focus();
+        };
+
+        const openModal = (event) => {
+            lastFocusedElement = event.currentTarget;
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('overflow-hidden');
+            const firstField = modal.querySelector('input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea');
+            window.setTimeout(() => firstField?.focus(), 0);
+        };
+
+        openButtons.forEach((button) => button.addEventListener('click', openModal));
+        closeButtons.forEach((button) => button.addEventListener('click', closeModal));
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+    });
+
+    const registrationRejectModal = document.querySelector('[data-registration-reject-modal]');
+    if (registrationRejectModal) {
+        const registrationIdInput = registrationRejectModal.querySelector('[data-registration-rejection-id]');
+        const topicLabel = registrationRejectModal.querySelector('[data-registration-reject-topic]');
+        const groupLabel = registrationRejectModal.querySelector('[data-registration-reject-group]');
+        const reasonInput = registrationRejectModal.querySelector('[name="rejectionReason"]');
+
+        document.querySelectorAll('[data-registration-reject-open]').forEach((button) => {
+            button.addEventListener('click', () => {
+                if (registrationIdInput) {
+                    registrationIdInput.value = button.dataset.registrationId || '';
+                }
+                if (topicLabel) {
+                    topicLabel.textContent = button.dataset.registrationTopic || '';
+                }
+                if (groupLabel) {
+                    groupLabel.textContent = button.dataset.registrationGroup || '';
+                }
+                if (reasonInput) {
+                    reasonInput.value = '';
+                }
+            });
+        });
+    }
+
     document.querySelectorAll('[data-seed-page]').forEach((page) => {
         const csrfInput = page.querySelector('[data-seed-csrf]');
         const runButton = page.querySelector('[data-seed-run]');
