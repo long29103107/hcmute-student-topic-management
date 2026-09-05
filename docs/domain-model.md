@@ -45,8 +45,10 @@ revised schema does not have a separate Student Profile entity.
 - `StudentGroupEntity` is scoped to one `RegistrationPeriodEntity` through the
   required `period_id`, and references its creator and leader.
 - `group_members` maps student users to groups. The Service layer enforces at
-  most three active members and exactly one leader. A student may belong to at
-  most one active group within the same registration period; cross-period
+  most three active members and exactly one leader who is always a member.
+  Leadership can be transferred to another active student in the same group;
+  a current leader cannot leave before that transfer. A student may belong to
+  at most one active group within the same registration period; cross-period
   membership remains a separately configured policy. Invite/confirm workflow
   is not part of the revised MVP contract.
 - `TopicRegistrationEntity` links a group, topic, period and submitter. It

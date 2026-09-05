@@ -89,14 +89,19 @@ DRAFT -> PENDING_APPROVAL -> APPROVED -> PUBLISHED
 ## Group registration gates
 
 1. Authenticated student creates or joins a group.
-2. Service checks max three members, one leader and no duplicate membership.
-3. Only leader can submit a registration.
-4. Service checks student window, topic published status, matching period and
+2. Service checks max three members, one leader who is also a member, and no duplicate membership.
+3. The current group leader can transfer leadership to another active member;
+   the leader cannot leave before transferring leadership. An active
+   `GROUP_MANAGE` actor can perform the transfer as an operational action.
+4. Only leader can submit a registration.
+5. Service checks student window, topic published status, matching period and
    no existing registration for the group.
-5. Faculty Head approves/rejects; reject reason may be stored.
+6. Faculty Head approves/rejects; reject reason may be stored.
 
 The service must perform the check and insert/update in one transaction to
-avoid two concurrent submissions passing the same uniqueness check.
+avoid two concurrent membership or registration requests passing the same
+uniqueness check. Group mutations lock the target group and registration
+period rows before rechecking the rules.
 
 ## Report gates
 
@@ -120,9 +125,11 @@ boundary as follows:
   own proposal. The review API accepts `APPROVE` or `REJECT` only while the
   current status is `PENDING_APPROVAL`.
 - Issue #9 scopes group membership by `student_groups.period_id`. An active
-  group has at most three members and exactly one leader, and a student may
-  belong to at most one active group in the same period. Invite/confirm flows
-  are outside this ticket.
+  group has at most three members and exactly one leader who is a member;
+  leadership can transfer only to another active member, and a student may
+  belong to at most one active group in the same period. Completed/inactive
+  groups reject membership changes, while invite/confirm flows are outside
+  this ticket.
 - Issue #12 allows report upload only by the leader of an approved
   registration. The `reports` table stores metadata while file bytes remain in
   configured external storage; validation and storage policy are configurable,

@@ -112,4 +112,25 @@ public class StudentGroupController {
         }
         return "redirect:/student/groups";
     }
+
+    @PostMapping("/{id}/leader")
+    @PreAuthorize("hasRole('STUDENT') and hasAuthority('GROUP_MANAGE')")
+    public String transferLeader(
+            Authentication authentication,
+            @PathVariable Long id,
+            @RequestParam Long newLeaderId,
+            RedirectAttributes redirectAttributes) {
+        try {
+            StudentGroupSummary group = studentGroupService.transferLeader(
+                    authentication.getName(), id, newLeaderId);
+            redirectAttributes.addFlashAttribute(
+                    "successMessage", "Leadership of group " + group.getName() + " was transferred.");
+        } catch (StudentGroupService.StudentGroupAccessException exception) {
+            return "redirect:/forbidden";
+        } catch (StudentGroupService.StudentGroupNotFoundException
+                | StudentGroupService.StudentGroupValidationException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        }
+        return "redirect:/student/groups";
+    }
 }

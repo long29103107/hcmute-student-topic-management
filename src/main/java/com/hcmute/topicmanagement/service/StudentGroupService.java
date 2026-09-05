@@ -15,6 +15,7 @@ import com.hcmute.topicmanagement.model.StudentGroupEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
 import com.hcmute.topicmanagement.model.enums.GroupStatus;
+import com.hcmute.topicmanagement.repository.RegistrationPeriodRepository;
 import com.hcmute.topicmanagement.repository.StudentGroupRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
 
@@ -26,14 +27,17 @@ public class StudentGroupService {
 
     private final StudentGroupRepository studentGroupRepository;
     private final UserRepository userRepository;
+    private final RegistrationPeriodRepository registrationPeriodRepository;
     private final RegistrationPeriodService registrationPeriodService;
 
     public StudentGroupService(
             StudentGroupRepository studentGroupRepository,
             UserRepository userRepository,
+            RegistrationPeriodRepository registrationPeriodRepository,
             RegistrationPeriodService registrationPeriodService) {
         this.studentGroupRepository = studentGroupRepository;
         this.userRepository = userRepository;
+        this.registrationPeriodRepository = registrationPeriodRepository;
         this.registrationPeriodService = registrationPeriodService;
     }
 
@@ -89,6 +93,7 @@ public class StudentGroupService {
         StudentGroupEntity group = findGroup(groupId);
         ensureActive(group);
         requireOpenStudentPeriod(group.getRegistrationPeriod().getId());
+        ensureLeaderInvariant(group);
 
         if (isMember(group, student.getId())) {
             throw new StudentGroupValidationException("You are already a member of this group.");
@@ -108,6 +113,8 @@ public class StudentGroupService {
         UserEntity student = findActiveStudent(studentEmail);
         StudentGroupEntity group = findGroup(groupId);
         ensureActive(group);
+        lockPeriod(group.getRegistrationPeriod().getId());
+        ensureLeaderInvariant(group);
         if (!isMember(group, student.getId())) {
             throw new StudentGroupAccessException("You can only leave a group that you belong to.");
         }
@@ -120,6 +127,45 @@ public class StudentGroupService {
         return toSummary(studentGroupRepository.saveAndFlush(group), student.getId());
     }
 
+    @Transactional
+    @PreAuthorize("hasAuthority('GROUP_MANAGE')")
+    public StudentGroupSummary transferLeader(String actorEmail, Long groupId, Long newLeaderId) {
+        UserEntity actor = findActiveActor(actorEmail);
+        StudentGroupEntity group = findGroup(groupId);
+        ensureActive(group);
+        lockPeriod(group.getRegistrationPeriod().getId());
+        ensureLeaderInvariant(group);
+
+        if (newLeaderId == null) {
+            throw new StudentGroupValidationException("Select a group member as the new leader.");
+        }
+        UserEntity newLeader = group.getMembers().stream()
+                .filter(member -> newLeaderId.equals(member.getId()))
+                .findFirst()
+                .orElseThrow(() -> new StudentGroupValidationException(
+                        "The new leader must be a member of this group."));
+        if (!isActiveStudent(newLeader)) {
+            throw new StudentGroupValidationException(
+                    "The new leader must be an active student in this group.");
+        }
+        if (group.getLeader() != null && newLeaderId.equals(group.getLeader().getId())) {
+            throw new StudentGroupValidationException("The selected student is already the group leader.");
+        }
+        if (hasActiveRole(actor, "STUDENT")) {
+            if (!isMember(group, actor.getId())) {
+                throw new StudentGroupAccessException("You can only manage a group that you belong to.");
+            }
+            if (group.getLeader() == null || !actor.getId().equals(group.getLeader().getId())) {
+                throw new StudentGroupAccessException("Only the current group leader can transfer leadership.");
+            }
+        }
+
+        group.setLeader(newLeader);
+        return toSummary(
+                studentGroupRepository.saveAndFlush(group),
+                hasActiveRole(actor, "STUDENT") ? actor.getId() : null);
+    }
+
     private UserEntity findActiveStudent(String email) {
         UserEntity student = userRepository.findByEmailIgnoreCaseWithRolesAndDepartment(email)
                 .filter(UserEntity::isActive)
@@ -130,12 +176,27 @@ public class StudentGroupService {
         return student;
     }
 
+    private UserEntity findActiveActor(String email) {
+        UserEntity actor = userRepository.findByEmailIgnoreCaseWithRolesAndDepartment(email)
+                .filter(UserEntity::isActive)
+                .orElseThrow(() -> new StudentGroupAccessException("The group management account is unavailable."));
+        if (actor.getUserRoles().stream()
+                .filter(UserRoleEntity::isActive)
+                .map(UserRoleEntity::getRole)
+                .noneMatch(role -> role != null && role.isActive())) {
+            throw new StudentGroupAccessException("The group management account has no active role.");
+        }
+        return actor;
+    }
+
     private RegistrationPeriodEntity requireOpenStudentPeriod(Long periodId) {
         if (periodId == null) {
             throw new StudentGroupValidationException("Select a registration period.");
         }
+        RegistrationPeriodEntity lockedPeriod = lockPeriod(periodId);
         try {
-            return registrationPeriodService.requireOpenForStudent(periodId, LocalDateTime.now());
+            registrationPeriodService.requireOpenForStudent(lockedPeriod.getId(), LocalDateTime.now());
+            return lockedPeriod;
         } catch (RegistrationPeriodService.RegistrationPeriodNotFoundException
                 | RegistrationPeriodService.RegistrationPeriodAccessException exception) {
             throw new StudentGroupValidationException(
@@ -143,17 +204,37 @@ public class StudentGroupService {
         }
     }
 
+    private RegistrationPeriodEntity lockPeriod(Long periodId) {
+        if (periodId == null) {
+            throw new StudentGroupValidationException("Registration period is required.");
+        }
+        return registrationPeriodRepository.findByIdForGroupMutation(periodId)
+                .orElseThrow(() -> new StudentGroupValidationException(
+                        "The registration period is no longer available."));
+    }
+
     private StudentGroupEntity findGroup(Long groupId) {
         if (groupId == null) {
             throw new StudentGroupValidationException("Group id is required.");
         }
-        return studentGroupRepository.findByIdWithDetails(groupId)
+        return studentGroupRepository.findByIdForMutation(groupId)
                 .orElseThrow(() -> new StudentGroupNotFoundException(groupId));
     }
 
     private void ensureActive(StudentGroupEntity group) {
         if (group.getStatus() != GroupStatus.ACTIVE) {
-            throw new StudentGroupValidationException("Only active groups can be joined or left.");
+            throw new StudentGroupValidationException(
+                    "Only active groups can be joined, left or have their leader changed.");
+        }
+    }
+
+    private static void ensureLeaderInvariant(StudentGroupEntity group) {
+        if (group.getStatus() == GroupStatus.ACTIVE
+                && (group.getLeader() == null
+                        || !isMember(group, group.getLeader().getId())
+                        || !isActiveStudent(group.getLeader()))) {
+            throw new StudentGroupValidationException(
+                    "An active group must have one active student leader who is also a member.");
         }
     }
 
@@ -169,7 +250,11 @@ public class StudentGroupService {
     }
 
     private static boolean isMember(StudentGroupEntity group, Long studentId) {
-        return group.getMembers().stream().anyMatch(member -> studentId.equals(member.getId()));
+        return studentId != null && group.getMembers().stream().anyMatch(member -> studentId.equals(member.getId()));
+    }
+
+    private static boolean isActiveStudent(UserEntity user) {
+        return user != null && user.isActive() && hasActiveRole(user, "STUDENT");
     }
 
     private static boolean hasActiveRole(UserEntity user, String roleCode) {
@@ -256,8 +341,10 @@ public class StudentGroupService {
                         member.getId(), member.getFullName(), member.getEmailOrCode(),
                         group.getLeader() != null && member.getId().equals(group.getLeader().getId())))
                 .toList();
-        boolean currentStudentIsMember = members.stream().anyMatch(member -> currentStudentId.equals(member.id()));
+        boolean currentStudentIsMember = currentStudentId != null
+                && members.stream().anyMatch(member -> currentStudentId.equals(member.id()));
         boolean currentStudentIsLeader = group.getLeader() != null
+                && currentStudentId != null
                 && currentStudentId.equals(group.getLeader().getId());
         return new StudentGroupSummary(
                 group.getId(), group.getName(), group.getRegistrationPeriod().getId(),
@@ -369,7 +456,14 @@ public class StudentGroupService {
         public LocalDateTime getCreatedAt() { return createdAt; }
         public boolean isCurrentStudentIsMember() { return currentStudentIsMember; }
         public boolean isCurrentStudentIsLeader() { return currentStudentIsLeader; }
-        public boolean isCanLeave() { return currentStudentIsMember && !currentStudentIsLeader; }
+        public boolean isCanLeave() {
+            return GroupStatus.ACTIVE.name().equals(statusCode)
+                    && currentStudentIsMember && !currentStudentIsLeader;
+        }
+        public boolean isCanTransfer() {
+            return GroupStatus.ACTIVE.name().equals(statusCode)
+                    && currentStudentIsLeader && members.size() > 1;
+        }
     }
 
     public record MemberSummary(Long id, String fullName, String login, boolean leader) {

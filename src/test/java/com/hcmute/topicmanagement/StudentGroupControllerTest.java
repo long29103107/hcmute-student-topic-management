@@ -8,6 +8,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -19,6 +20,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -130,6 +137,132 @@ class StudentGroupControllerTest {
         org.assertj.core.api.Assertions.assertThat(studentGroupRepository.findByIdWithDetails(group.getId()).orElseThrow().getMembers())
                 .extracting(UserEntity::getId)
                 .containsExactly(leader.getId());
+    }
+
+    @Test
+    void currentLeaderCanTransferLeadershipBeforeLeaving() throws Exception {
+        String suffix = suffix();
+        UserEntity leader = student("transfer-leader-" + suffix, "Transfer Leader " + suffix);
+        UserEntity member = student("transfer-member-" + suffix, "Transfer Member " + suffix);
+        RegistrationPeriodEntity period = openPeriod(suffix);
+        StudentGroupEntity group = saveGroup("Transfer Group " + suffix, period, leader, leader);
+        join(group, member);
+
+        mockMvc.perform(put("/api/student/groups/{id}/leader", group.getId())
+                        .with(user(studentPrincipal(leader.getEmailOrCode())))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"newLeaderId\":" + member.getId() + "}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.leaderId").value(member.getId()))
+                .andExpect(jsonPath("$.memberCount").value(2));
+
+        mockMvc.perform(get("/student/groups")
+                        .with(user(studentPrincipal(member.getEmailOrCode()))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Transfer leader")));
+
+        StudentGroupEntity reloaded = studentGroupRepository.findByIdWithDetails(group.getId()).orElseThrow();
+        org.assertj.core.api.Assertions.assertThat(reloaded.getLeader().getId()).isEqualTo(member.getId());
+        org.assertj.core.api.Assertions.assertThat(reloaded.getMembers())
+                .extracting(UserEntity::getId)
+                .containsExactlyInAnyOrder(leader.getId(), member.getId());
+
+        mockMvc.perform(delete("/api/student/groups/{id}/members/me", group.getId())
+                        .with(user(studentPrincipal(leader.getEmailOrCode())))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.memberCount").value(1));
+
+        mockMvc.perform(delete("/api/student/groups/{id}/members/me", group.getId())
+                        .with(user(studentPrincipal(member.getEmailOrCode())))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(
+                        "The group leader cannot leave without a leader transition."));
+    }
+
+    @Test
+    void onlyTheCurrentLeaderCanTransferToAnActiveGroupMember() throws Exception {
+        String suffix = suffix();
+        UserEntity leader = student("transfer-owner-" + suffix, "Transfer Owner " + suffix);
+        UserEntity firstMember = student("transfer-first-" + suffix, "Transfer First " + suffix);
+        UserEntity secondMember = student("transfer-second-" + suffix, "Transfer Second " + suffix);
+        RegistrationPeriodEntity period = openPeriod(suffix);
+        StudentGroupEntity group = saveGroup("Transfer Rules " + suffix, period, leader, leader);
+        join(group, firstMember);
+        join(group, secondMember);
+
+        mockMvc.perform(put("/api/student/groups/{id}/leader", group.getId())
+                        .with(user(studentPrincipal(firstMember.getEmailOrCode())))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"newLeaderId\":" + secondMember.getId() + "}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("STUDENT_GROUP_FORBIDDEN"));
+
+        mockMvc.perform(put("/api/student/groups/{id}/leader", group.getId())
+                        .with(user(studentPrincipal(leader.getEmailOrCode())))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"newLeaderId\":999999999}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(
+                        "The new leader must be a member of this group."));
+    }
+
+    @Test
+    void groupManageActorCanTransferLeadershipWithoutBeingAGroupMember() throws Exception {
+        String suffix = suffix();
+        UserEntity leader = student("manager-transfer-leader-" + suffix, "Manager Transfer Leader " + suffix);
+        UserEntity member = student("manager-transfer-member-" + suffix, "Manager Transfer Member " + suffix);
+        UserEntity manager = account("group-manager-" + suffix, "Group Manager " + suffix, "ADMIN");
+        RegistrationPeriodEntity period = openPeriod(suffix);
+        StudentGroupEntity group = saveGroup("Manager Transfer " + suffix, period, leader, leader);
+        join(group, member);
+
+        mockMvc.perform(put("/api/student/groups/{id}/leader", group.getId())
+                        .with(user(managerPrincipal(manager.getEmailOrCode())))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"newLeaderId\":" + member.getId() + "}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.leaderId").value(member.getId()));
+    }
+
+    @Test
+    void completedAndInactiveGroupsRejectMembershipChanges() throws Exception {
+        String suffix = suffix();
+        UserEntity completedLeader = student("completed-leader-" + suffix, "Completed Leader " + suffix);
+        UserEntity completedMember = student("completed-member-" + suffix, "Completed Member " + suffix);
+        UserEntity inactiveLeader = student("inactive-leader-" + suffix, "Inactive Leader " + suffix);
+        UserEntity joiner = student("inactive-joiner-" + suffix, "Inactive Joiner " + suffix);
+        RegistrationPeriodEntity period = openPeriod(suffix);
+
+        StudentGroupEntity completedGroup = saveGroup(
+                "Completed Group " + suffix, period, completedLeader, completedLeader);
+        join(completedGroup, completedMember);
+        completedGroup.setStatus(com.hcmute.topicmanagement.model.enums.GroupStatus.COMPLETED);
+        studentGroupRepository.saveAndFlush(completedGroup);
+
+        mockMvc.perform(delete("/api/student/groups/{id}/members/me", completedGroup.getId())
+                        .with(user(studentPrincipal(completedMember.getEmailOrCode())))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(
+                        "Only active groups can be joined, left or have their leader changed."));
+
+        StudentGroupEntity inactiveGroup = saveGroup(
+                "Inactive Group " + suffix, period, inactiveLeader, inactiveLeader);
+        inactiveGroup.setStatus(com.hcmute.topicmanagement.model.enums.GroupStatus.INACTIVE);
+        studentGroupRepository.saveAndFlush(inactiveGroup);
+
+        mockMvc.perform(post("/api/student/groups/{id}/members", inactiveGroup.getId())
+                        .with(user(studentPrincipal(joiner.getEmailOrCode())))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(
+                        "Only active groups can be joined, left or have their leader changed."));
     }
 
     @Test
@@ -246,6 +379,51 @@ class StudentGroupControllerTest {
         org.assertj.core.api.Assertions.assertThat(studentGroupRepository.findByMembers_Id(student.getId())).isEmpty();
     }
 
+    @Test
+    void concurrentJoinsStillAllowOnlyOneActiveGroupPerPeriod() throws Exception {
+        String suffix = suffix();
+        UserEntity firstLeader = student("concurrent-first-" + suffix, "Concurrent First " + suffix);
+        UserEntity secondLeader = student("concurrent-second-" + suffix, "Concurrent Second " + suffix);
+        UserEntity joiner = student("concurrent-joiner-" + suffix, "Concurrent Joiner " + suffix);
+        RegistrationPeriodEntity period = openPeriod(suffix);
+        StudentGroupEntity firstGroup = saveGroup("Concurrent Group A " + suffix, period, firstLeader, firstLeader);
+        StudentGroupEntity secondGroup = saveGroup("Concurrent Group B " + suffix, period, secondLeader, secondLeader);
+
+        CountDownLatch ready = new CountDownLatch(2);
+        CountDownLatch start = new CountDownLatch(1);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Callable<Integer> firstJoin = () -> concurrentJoin(
+                    ready, start, firstGroup.getId(), joiner.getEmailOrCode());
+            Callable<Integer> secondJoin = () -> concurrentJoin(
+                    ready, start, secondGroup.getId(), joiner.getEmailOrCode());
+            Future<Integer> firstResult = executor.submit(firstJoin);
+            Future<Integer> secondResult = executor.submit(secondJoin);
+
+            org.assertj.core.api.Assertions.assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
+            start.countDown();
+
+            org.assertj.core.api.Assertions.assertThat(List.of(firstResult.get(), secondResult.get()))
+                    .containsExactlyInAnyOrder(200, 400);
+            org.assertj.core.api.Assertions.assertThat(studentGroupRepository.findByMembers_Id(joiner.getId()))
+                    .hasSize(1);
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    private int concurrentJoin(
+            CountDownLatch ready, CountDownLatch start, Long groupId, String studentEmail) throws Exception {
+        ready.countDown();
+        org.assertj.core.api.Assertions.assertThat(start.await(5, TimeUnit.SECONDS)).isTrue();
+        return mockMvc.perform(post("/api/student/groups/{id}/members", groupId)
+                        .with(user(studentPrincipal(studentEmail)))
+                        .with(csrf()))
+                .andReturn()
+                .getResponse()
+                .getStatus();
+    }
+
     private void join(StudentGroupEntity group, UserEntity student) throws Exception {
         mockMvc.perform(post("/api/student/groups/{id}/members", group.getId())
                         .with(user(studentPrincipal(student.getEmailOrCode())))
@@ -260,11 +438,16 @@ class StudentGroupControllerTest {
     }
 
     private UserEntity student(String login, String fullName) {
+        return account(login, fullName, "STUDENT");
+    }
+
+    private UserEntity account(String login, String fullName, String roleCode) {
         UserEntity student = new UserEntity(login, fullName, "test-password-hash");
-        student.setEmailOrCode(login.toLowerCase(Locale.ROOT) + "@student.hcmute.edu.vn");
+        String domain = "STUDENT".equals(roleCode) ? "@student.hcmute.edu.vn" : "@hcmute.edu.vn";
+        student.setEmailOrCode(login.toLowerCase(Locale.ROOT) + domain);
         student = userRepository.saveAndFlush(student);
-        RoleEntity role = roleRepository.findByCode("STUDENT")
-                .orElseGet(() -> roleRepository.saveAndFlush(new RoleEntity("STUDENT", "Student", "Student")));
+        RoleEntity role = roleRepository.findByCode(roleCode)
+                .orElseGet(() -> roleRepository.saveAndFlush(new RoleEntity(roleCode, roleCode, roleCode)));
         userRoleRepository.saveAndFlush(new UserRoleEntity(student, role));
         return student;
     }
@@ -282,6 +465,13 @@ class StudentGroupControllerTest {
         return new DatabaseUserPrincipal(
                 email, "", "Test student", "Student",
                 List.of(new SimpleGrantedAuthority("ROLE_STUDENT"),
+                        new SimpleGrantedAuthority("GROUP_MANAGE")));
+    }
+
+    private static DatabaseUserPrincipal managerPrincipal(String email) {
+        return new DatabaseUserPrincipal(
+                email, "", "Group Manager", "Administrator",
+                List.of(new SimpleGrantedAuthority("ROLE_ADMIN"),
                         new SimpleGrantedAuthority("GROUP_MANAGE")));
     }
 

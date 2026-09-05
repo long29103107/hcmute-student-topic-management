@@ -70,7 +70,8 @@ assignments. Service transactions must additionally enforce the business rules
 that are not expressible in this schema:
 
 - one to two supervisors per topic;
-- at most three students and exactly one leader per active group;
+- at most three students and exactly one leader per active group; leader
+  transfer is allowed only to an active student who is already a member;
 - a student belongs to at most one active group in a period;
 - at most one active topic registration per group and period;
 - a full review board has 3–5 lecturers, exactly one `CHAIR` and one

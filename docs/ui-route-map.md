@@ -79,7 +79,7 @@ Have unless explicitly selected.
 | Method | Route | Purpose |
 |---|---|---|
 | GET | `/student/groups` | `StudentGroupController` → related group list with search (`search`), pagination (`page`, `size`), column sort (`sort=group|period|leader|members|status|created`, `direction=asc|desc`), create form and join form |
-| POST | `/student/groups`, `/student/groups/join`, `/student/groups/{id}/join`, `/student/groups/{id}/leave` | `StudentGroupController` → create, join by shared group ID, join and leave an active group; server enforces Student role, one active group per period and max three members |
+| POST | `/student/groups`, `/student/groups/join`, `/student/groups/{id}/join`, `/student/groups/{id}/leave`, `/student/groups/{id}/leader` | `StudentGroupController` → create, join by shared group ID, join/leave an active group and transfer leadership to another member; server enforces Student role, one active group per period, max three members and leader membership |
 | POST | `/student/groups/register-topic` | `TopicRegistrationController` → leader submits |
 | GET | `/student/registrations` | `TopicRegistrationController` → own status |
 | GET/POST | `/student/reports` | `ReportController` → leader submits/member status |
@@ -117,6 +117,7 @@ not replace the Thymeleaf flow or duplicate Service rules.
 | POST | `/api/student/groups` | create a group; creator becomes the leader and first member | `GROUP_MANAGE` + Student + CSRF |
 | POST | `/api/student/groups/{groupId}/members` | join an active group | `GROUP_MANAGE` + Student + CSRF |
 | DELETE | `/api/student/groups/{groupId}/members/me` | leave an active group as a non-leader member | `GROUP_MANAGE` + Student + CSRF |
+| PUT | `/api/student/groups/{groupId}/leader` | transfer leadership to an active student who is already in the group; Admin/another `GROUP_MANAGE` actor may perform the operation, while Student is limited to the current group leader | `GROUP_MANAGE` + CSRF |
 | POST | `/api/student/groups/{groupId}/registrations` | leader submits registration | Group leader |
 | POST | `/api/student/reports` | leader uploads report metadata/file | Group leader |
 | GET | `/api/reports/{id}` | permitted report metadata/download | permitted user |

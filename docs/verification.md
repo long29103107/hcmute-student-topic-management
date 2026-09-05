@@ -52,8 +52,9 @@ With the executable JAR running:
 4. Faculty Head creates a period with valid windows and invalid windows fail.
 5. Lecturer proposes/Faculty Head publishes topic; student cannot select an
    unpublished topic.
-6. Student group rules, leader-only registration and duplicate registration are
-   enforced.
+6. Student group rules, leader transfer/last-leader protection, concurrent
+   one-group-per-period membership, leader-only registration and duplicate
+   registration are enforced.
 7. Leader report upload validates permission and configured file policy.
 8. Board cardinality/roles and supervisor scoring restriction are enforced when
    the extended board workflow is enabled.

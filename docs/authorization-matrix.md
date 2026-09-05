@@ -19,6 +19,7 @@ do not create extra authorization paths for it unless selected.
 | Publish approved topics | yes | yes | no | no | no |
 | View published topics | yes | yes | yes | yes | yes |
 | Create/join group | yes | no | no | yes | yes |
+| Transfer group leader | yes | no | no | no | current leader only |
 | Submit topic registration | yes | no | no | no | yes |
 | Approve/reject group registration | yes | yes | no | no | no |
 | Submit report | yes | no | no | no | group leader only |
@@ -49,6 +50,10 @@ does not silently impersonate another user's ownership relationship.
 - Use an authentication filter for unauthenticated route protection and a
   Service authorization check for resource ownership/assignment.
 - UI visibility is not a security boundary.
+- Group membership mutations and leader transfer run in a transaction with
+  pessimistic locks on the affected group and registration-period rows. This
+  serializes concurrent joins/creates for one period and concurrent updates to
+  one group before the service rechecks its invariants.
 - Admin has full operational capability across current role surfaces except
   explicitly documented actor-only transitions; future own/group views must
   document whether they are Admin-wide operational views or remain
