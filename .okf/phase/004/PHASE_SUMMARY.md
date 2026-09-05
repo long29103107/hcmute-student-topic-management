@@ -5,8 +5,8 @@ status: in_progress
 created_at: 2026-09-05
 updated_at: 2026-09-05
 current_task: null
-task_count: 1
-done_count: 1
+task_count: 2
+done_count: 2
 depends_on: [002, 003]
 ---
 
@@ -56,20 +56,22 @@ Out:
 | Task | Title | Status | Done At |
 |---|---|---|---|
 | 004_001 | Report Upload & Metadata | completed | 2026-09-05 |
+| 004_002 | Report Access, Deadline & Resubmission | completed | 2026-09-05 |
 
 ## Current Task
 
 No task is active. `004_001` delivered the leader-only report upload and
-external-storage metadata boundary.
+external-storage metadata boundary; `004_002` delivered relationship-scoped
+report metadata and download access.
 
 ## Completed Notes
 
-`004_001` is complete. The remaining Phase 004 tasks are still backlog work.
+`004_001` and `004_002` are complete. The remaining Phase 004 tasks are still
+backlog work.
 
 ## Next Task Proposal
 
-After `004_001` is verified, implement `004_002` for relationship-based report
-metadata access/download without inferring a deadline from the student window.
+Next, implement `004_003` for evaluator assignment.
 
 ## Task Notes
 
@@ -155,3 +157,54 @@ public filesystem path or changing the revised schema.
 
 Completed on 2026-09-05 after focused tests, full regression and package
 verification.
+
+### 004_002 - Report Access, Deadline & Resubmission
+
+#### Step Goal
+
+Protect report metadata and file downloads with relationship-based resource
+authorization for group members, supervisors, evaluators and Faculty Heads.
+
+#### Dependency
+
+- `004_001` report metadata and generated storage-key boundary.
+- Existing topic supervisor and review/evaluation relationship mappings.
+
+#### Scope
+
+In:
+
+- Seeded `REPORT_VIEW` permission and role-permission assignments.
+- Group-member, topic-supervisor, assigned-evaluator, Faculty Head department
+  and Admin resource checks in the Service.
+- SSR download plus REST metadata and download endpoints.
+- Cross-group, cross-department, missing-permission and download privacy tests.
+
+Out:
+
+- Report deadline and resubmission/version policy; the issue explicitly
+  defers both because no dedicated deadline field or replacement rule exists.
+- Evaluator assignment, scoring, result aggregation and publication.
+
+#### Acceptance Criteria
+
+- Only related group members, supervisors, assigned evaluators, scoped
+  Faculty Heads and Admin can read report metadata or download bytes.
+- The same Service authorization protects REST metadata, REST download and SSR
+  download; hidden links are not used as the security boundary.
+- Physical storage keys are not returned in the access metadata DTO.
+- `REPORT_VIEW` is restored by the seed pipeline for the permitted role
+  bundles.
+
+#### Verification
+
+- `mvn -q -Dtest=ReportControllerTest,ReportServiceStorageFailureTest test` —
+  passed after implementation.
+- `mvn -q test` — passed, 135 tests, 0 failures, 0 errors.
+- `mvn -q package -DskipTests` — passed; executable JAR packaged.
+- `git diff --check` — passed; only normal LF/CRLF conversion warnings.
+
+#### Done Notes
+
+Completed on 2026-09-05 after focused relationship, permission, metadata and
+download tests, full regression, package and diff verification.

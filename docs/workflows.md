@@ -145,10 +145,11 @@ boundary as follows:
   and storage must succeed before metadata is committed.
 - Issue #13 protects report metadata and downloads with resource authorization
   for group members, supervisors, evaluators and Faculty Head according to the
-  relationship policy. A report deadline is not inferred from the student
-  window because the schema has no dedicated field; resubmission rules remain
-  deferred. `REPORT_VIEW` is planned for implementation and must be added to
-  the permission catalog/seed then.
+  relationship policy. `REPORT_VIEW` is seeded for the roles that may reach a
+  report resource, while the Service still checks the group/topic/assignment
+  relationship. Admin has operational access to all report resources. A report
+  deadline is not inferred from the student window because the schema has no
+  dedicated field; resubmission rules remain deferred.
 
 ## Evaluation gates
 

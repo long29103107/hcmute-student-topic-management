@@ -72,7 +72,7 @@ Have unless explicitly selected.
 | POST | `/lecturer/topics`, `/lecturer/topics/{id}/edit` | `TopicProposalController` → create or update an owned proposal through PRG; the Service requires an active department, an open lecturer registration window and an editable `DRAFT`/`REJECTED` status |
 | GET | `/lecturer/assignments` | `AssignmentController` → supervised/reviewer assignments |
 | GET/POST | `/lecturer/scoring` | `ScoreController` → score/comment |
-| GET | `/reports/view?id=...` | `ReportController` → permitted download/view |
+| GET | `/reports/view?id=...` | `ReportViewController` → relationship-authorized report download |
 
 ## Student/group
 
@@ -82,7 +82,6 @@ Have unless explicitly selected.
 | POST | `/student/groups`, `/student/groups/join`, `/student/groups/{id}/join`, `/student/groups/{id}/leave`, `/student/groups/{id}/leader` | `StudentGroupController` → create, join by shared group ID, join/leave an active group and transfer leadership to another member; server enforces Student role, one active group per period, max three members and leader membership |
 | GET/POST | `/student/groups/register-topic` | `TopicRegistrationController` → leader registration form and submit |
 | GET | `/student/registrations` | `TopicRegistrationController` → own group registration history/status |
-| GET/POST | `/student/reports` | `ReportController` → leader submits/member status |
 | GET | `/student/results` | `ResultController` → own group result |
 
 ## RESTful API in the same monolith
@@ -124,7 +123,8 @@ not replace the Thymeleaf flow or duplicate Service rules.
 | POST | `/api/student/groups/{groupId}/registrations/{registrationId}/reports` | group leader uploads multipart `file` with `periodId`; returns report metadata after external storage succeeds | Student + `REPORT_SUBMIT` + CSRF + current group leader of an approved registration |
 | GET | `/api/faculty/registrations/review`, `/api/registrations/review` | pending topic registrations in the reviewer's department scope | `REGISTRATION_REVIEW` + Admin/Faculty Head |
 | POST | `/api/registrations/{id}/review`, `/api/faculty/registrations/{id}/review` | review `{ decision: "APPROVE" | "REJECT", rejectionReason? }`; reject requires a non-blank reason and only `PENDING` rows can transition | `REGISTRATION_REVIEW` + Admin/Faculty Head + CSRF |
-| GET | `/api/reports/{id}` | permitted report metadata/download | permitted user |
+| GET | `/api/reports/{id}` | relationship-authorized report metadata | `REPORT_VIEW` + resource relationship |
+| GET | `/api/reports/{id}/download` | relationship-authorized report file download | `REPORT_VIEW` + resource relationship |
 | POST | `/api/faculty/scores/{topicId}` | submit score/comment | assigned lecturer |
 | POST | `/api/faculty/results/{id}/publish` | publish final result | Faculty Head |
 

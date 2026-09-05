@@ -176,6 +176,30 @@ report-upload slice to SSR/REST and storage-boundary assertions:
 Download authorization, report deadlines, resubmission policy, evaluator
 assignment and scoring remain outside Issue #12.
 
+## Report Access & Download checklist (Issue #13 / 004_002)
+
+The report access tests in `ReportControllerTest` map the resource policy to
+metadata, SSR download and REST file-download requests:
+
+- `REPORT_VIEW` is present in the seed permission catalog and is assigned to
+  Student, Lecturer, Faculty Head and Admin role bundles;
+- group members can read metadata and download only reports attached to their
+  own group;
+- supervisors can read reports for topics they supervise, evaluators can read
+  reports for registrations assigned to them, and Faculty Heads can read
+  reports in their assigned department;
+- unrelated users are rejected, including cross-group students and
+  cross-department Faculty Heads; missing `REPORT_VIEW` is rejected at the
+  controller boundary;
+- both metadata and file download call the same Service authorization, and the
+  response does not expose the physical storage key to the viewer;
+- the download response preserves the stored content type, length and safe
+  original filename.
+
+Report deadline and resubmission policy remain deferred because the revised
+schema has no dedicated report deadline field and the business rules do not
+yet define replacement/version behavior.
+
 ## Topic Supervisor Assignment checklist (Issue #5 / 002_002)
 
 The `TopicSupervisorControllerTest` suite maps the task acceptance criteria to

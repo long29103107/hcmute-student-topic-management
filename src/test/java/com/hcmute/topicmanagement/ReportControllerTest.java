@@ -7,6 +7,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -31,6 +32,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import com.hcmute.topicmanagement.model.DepartmentEntity;
 import com.hcmute.topicmanagement.model.RegistrationPeriodEntity;
 import com.hcmute.topicmanagement.model.ReportEntity;
+import com.hcmute.topicmanagement.model.ReviewBoardEntity;
+import com.hcmute.topicmanagement.model.ReviewBoardMemberEntity;
 import com.hcmute.topicmanagement.model.RoleEntity;
 import com.hcmute.topicmanagement.model.StudentGroupEntity;
 import com.hcmute.topicmanagement.model.TopicEntity;
@@ -44,6 +47,8 @@ import com.hcmute.topicmanagement.model.enums.TopicStatus;
 import com.hcmute.topicmanagement.repository.DepartmentRepository;
 import com.hcmute.topicmanagement.repository.RegistrationPeriodRepository;
 import com.hcmute.topicmanagement.repository.ReportRepository;
+import com.hcmute.topicmanagement.repository.ReviewBoardMemberRepository;
+import com.hcmute.topicmanagement.repository.ReviewBoardRepository;
 import com.hcmute.topicmanagement.repository.RoleRepository;
 import com.hcmute.topicmanagement.repository.StudentGroupRepository;
 import com.hcmute.topicmanagement.repository.TopicRegistrationRepository;
@@ -92,6 +97,12 @@ class ReportControllerTest {
 
     @Autowired
     private ReportRepository reportRepository;
+
+    @Autowired
+    private ReviewBoardRepository reviewBoardRepository;
+
+    @Autowired
+    private ReviewBoardMemberRepository reviewBoardMemberRepository;
 
     @AfterEach
     void cleanStoredReports() throws Exception {
@@ -250,6 +261,108 @@ class ReportControllerTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void reportMetadataAndDownloadAreLimitedToRelatedGroupMembers() throws Exception {
+        String suffix = suffix();
+        UserEntity leader = student("report-view-leader-" + suffix, "Report View Leader " + suffix);
+        UserEntity member = student("report-view-member-" + suffix, "Report View Member " + suffix);
+        UserEntity outsider = student("report-view-outsider-" + suffix, "Report View Outsider " + suffix);
+        RegistrationPeriodEntity period = period(suffix);
+        StudentGroupEntity group = group(period, leader);
+        group.getMembers().add(member);
+        studentGroupRepository.saveAndFlush(group);
+        TopicRegistrationEntity registration = registration(period, group, leader, TopicRegistrationStatus.APPROVED);
+
+        mockMvc.perform(multipart("/api/student/groups/{groupId}/registrations/{registrationId}/reports",
+                        group.getId(), registration.getId())
+                        .file(pdf("report.pdf", "pdf-data"))
+                        .param("periodId", period.getId().toString())
+                        .with(user(studentPrincipal(leader.getEmailOrCode())))
+                        .with(csrf()))
+                .andExpect(status().isCreated());
+        ReportEntity report = reportRepository
+                .findFirstByTopicRegistration_IdOrderBySubmittedAtDesc(registration.getId())
+                .orElseThrow();
+
+        mockMvc.perform(get("/api/reports/{reportId}", report.getId())
+                        .with(user(studentViewerPrincipal(member.getEmailOrCode()))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(report.getId()))
+                .andExpect(jsonPath("$.originalName").value("report.pdf"))
+                .andExpect(jsonPath("$.storedName").doesNotExist());
+
+        mockMvc.perform(get("/api/reports/{reportId}/download", report.getId())
+                        .with(user(studentViewerPrincipal(member.getEmailOrCode()))))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_PDF))
+                .andExpect(content().bytes("pdf-data".getBytes()))
+                .andExpect(header().string("Content-Disposition", containsString("report.pdf")));
+
+        mockMvc.perform(get("/reports/view")
+                        .param("id", report.getId().toString())
+                        .with(user(studentViewerPrincipal(member.getEmailOrCode()))))
+                .andExpect(status().isOk())
+                .andExpect(content().bytes("pdf-data".getBytes()));
+
+        mockMvc.perform(get("/api/reports/{reportId}", report.getId())
+                        .with(user(studentViewerPrincipal(outsider.getEmailOrCode()))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("REPORT_FORBIDDEN"));
+
+        mockMvc.perform(get("/api/reports/{reportId}", report.getId())
+                        .with(user(studentPrincipal(member.getEmailOrCode()))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void reportViewAllowsSupervisorEvaluatorAndFacultyHeadWithinTheirScope() throws Exception {
+        String suffix = suffix();
+        UserEntity leader = student("report-scope-leader-" + suffix, "Report Scope Leader " + suffix);
+        RegistrationPeriodEntity period = period(suffix);
+        StudentGroupEntity group = group(period, leader);
+        TopicRegistrationEntity registration = registration(period, group, leader, TopicRegistrationStatus.APPROVED);
+
+        mockMvc.perform(multipart("/api/student/groups/{groupId}/registrations/{registrationId}/reports",
+                        group.getId(), registration.getId())
+                        .file(pdf("report.pdf", "pdf-data"))
+                        .param("periodId", period.getId().toString())
+                        .with(user(studentPrincipal(leader.getEmailOrCode())))
+                        .with(csrf()))
+                .andExpect(status().isCreated());
+        ReportEntity report = reportRepository
+                .findFirstByTopicRegistration_IdOrderBySubmittedAtDesc(registration.getId())
+                .orElseThrow();
+
+        UserEntity supervisor = account("report-supervisor-" + suffix, "Report Supervisor " + suffix, "LECTURER");
+        registration.getTopic().getSupervisors().add(supervisor);
+        topicRepository.saveAndFlush(registration.getTopic());
+        mockMvc.perform(get("/api/reports/{reportId}", report.getId())
+                        .with(user(lecturerViewerPrincipal(supervisor.getEmailOrCode()))))
+                .andExpect(status().isOk());
+
+        UserEntity evaluator = account("report-evaluator-" + suffix, "Report Evaluator " + suffix, "LECTURER");
+        ReviewBoardEntity board = reviewBoardRepository.saveAndFlush(new ReviewBoardEntity(registration, evaluator));
+        reviewBoardMemberRepository.saveAndFlush(new ReviewBoardMemberEntity(board, evaluator));
+        mockMvc.perform(get("/api/reports/{reportId}", report.getId())
+                        .with(user(lecturerViewerPrincipal(evaluator.getEmailOrCode()))))
+                .andExpect(status().isOk());
+
+        UserEntity facultyHead = account("report-head-" + suffix, "Report Head " + suffix, "FACULTY_HEAD");
+        facultyHead.setDepartment(registration.getTopic().getDepartment());
+        userRepository.saveAndFlush(facultyHead);
+        mockMvc.perform(get("/api/reports/{reportId}", report.getId())
+                        .with(user(facultyHeadViewerPrincipal(facultyHead.getEmailOrCode()))))
+                .andExpect(status().isOk());
+
+        UserEntity otherHead = account("report-other-head-" + suffix, "Report Other Head " + suffix, "FACULTY_HEAD");
+        otherHead.setDepartment(department("OTHER-" + suffix));
+        userRepository.saveAndFlush(otherHead);
+        mockMvc.perform(get("/api/reports/{reportId}", report.getId())
+                        .with(user(facultyHeadViewerPrincipal(otherHead.getEmailOrCode()))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("REPORT_FORBIDDEN"));
+    }
+
     private TopicRegistrationEntity registration(
             RegistrationPeriodEntity period, StudentGroupEntity group, UserEntity leader,
             TopicRegistrationStatus status) {
@@ -307,6 +420,27 @@ class ReportControllerTest {
                 List.of(new SimpleGrantedAuthority("ROLE_STUDENT"),
                         new SimpleGrantedAuthority("REPORT_SUBMIT"),
                         new SimpleGrantedAuthority("REGISTRATION_SUBMIT")));
+    }
+
+    private static DatabaseUserPrincipal studentViewerPrincipal(String email) {
+        return new DatabaseUserPrincipal(
+                email, "", "Report viewer", "Student",
+                List.of(new SimpleGrantedAuthority("ROLE_STUDENT"),
+                        new SimpleGrantedAuthority("REPORT_VIEW")));
+    }
+
+    private static DatabaseUserPrincipal lecturerViewerPrincipal(String email) {
+        return new DatabaseUserPrincipal(
+                email, "", "Lecturer viewer", "Lecturer",
+                List.of(new SimpleGrantedAuthority("ROLE_LECTURER"),
+                        new SimpleGrantedAuthority("REPORT_VIEW")));
+    }
+
+    private static DatabaseUserPrincipal facultyHeadViewerPrincipal(String email) {
+        return new DatabaseUserPrincipal(
+                email, "", "Faculty head viewer", "Faculty Head",
+                List.of(new SimpleGrantedAuthority("ROLE_FACULTY_HEAD"),
+                        new SimpleGrantedAuthority("REPORT_VIEW")));
     }
 
     private static String suffix() {

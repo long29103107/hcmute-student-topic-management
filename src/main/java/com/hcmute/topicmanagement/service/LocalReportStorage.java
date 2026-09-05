@@ -44,6 +44,21 @@ public class LocalReportStorage implements ReportStorage {
     }
 
     @Override
+    public StoredReportContent open(String storedName) {
+        Path path = resolve(storedName);
+        try {
+            if (!Files.isRegularFile(path)) {
+                throw new ReportStorageException("The stored report could not be found.");
+            }
+            return new StoredReportContent(Files.newInputStream(path), Files.size(path));
+        } catch (ReportStorageException exception) {
+            throw exception;
+        } catch (IOException exception) {
+            throw new ReportStorageException("The stored report could not be opened.", exception);
+        }
+    }
+
+    @Override
     public void delete(String storedName) {
         if (storedName == null || storedName.isBlank()) {
             return;

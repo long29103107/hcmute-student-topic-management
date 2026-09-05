@@ -3,6 +3,21 @@
 Durable project context for future coding-agent sessions. Keep entries concise,
 factual and free of secrets. Update this file after every code or UI update.
 
+## 2026-09-05 — Report access and download (Issue #13 / 004_002)
+
+- Implemented relationship-scoped `REPORT_VIEW` metadata and download access;
+  group members, topic supervisors, assigned evaluators and in-scope Faculty
+  Heads are checked in `ReportService`, while Admin has operational access.
+- Added `REPORT_VIEW` to the seed permission catalog and Student, Lecturer,
+  Faculty Head and Admin role bundles. Physical storage keys are omitted from
+  the access metadata DTO.
+- Added SSR `/reports/view?id=...`, REST `GET /api/reports/{id}` metadata and
+  `GET /api/reports/{id}/download` file access. Deadline/resubmission policy is
+  intentionally deferred per issue #13.
+- Verification: focused report tests pass; full `mvn test` passes 135/135,
+  `mvn package -DskipTests` succeeds and `git diff --check` passes with only
+  normal LF/CRLF conversion warnings.
+
 ## 2026-09-05 — Report upload and metadata (Issue #12 / 004_001)
 
 - Started Phase 004 task `[004_001] Report Upload & Metadata` after the user

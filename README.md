@@ -118,7 +118,7 @@ drop/recreate schema. Các bước còn lại tạo/cập nhật roles, permissi
 departments, 4 faculty-head accounts, 16 lecturer accounts và 50 student accounts.
 `POST /api/admin/seed`
 là API reset/reseed đầy đủ: truncate 17 bảng của schema revised trong một
-transaction, sau đó tạo lại 4 roles, 21 permissions, 15 departments và 71 tài
+transaction, sau đó tạo lại 4 roles, 23 permissions, 15 departments và 71 tài
 khoản (gồm 4 faculty heads, 16 lecturers, 50 students và admin). Đây là thao
 tác destructive dành
 cho local; không gọi trên database có dữ liệu cần giữ. Khi xoá hẳn database,

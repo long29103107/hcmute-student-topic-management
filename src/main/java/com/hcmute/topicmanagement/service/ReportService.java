@@ -2,6 +2,7 @@ package com.hcmute.topicmanagement.service;
 
 import java.time.LocalDateTime;
 import java.util.Locale;
+import java.util.Objects;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -74,6 +75,21 @@ public class ReportService {
         }
     }
 
+    @PreAuthorize("hasAuthority('REPORT_VIEW')")
+    public ReportAccessSummary metadata(String actorEmail, Long reportId) {
+        ReportEntity report = findReport(reportId);
+        authorizeView(findActiveActor(actorEmail), report);
+        return toAccessSummary(report);
+    }
+
+    @PreAuthorize("hasAuthority('REPORT_VIEW')")
+    public ReportDownload openDownload(String actorEmail, Long reportId) {
+        ReportEntity report = findReport(reportId);
+        authorizeView(findActiveActor(actorEmail), report);
+        ReportStorage.StoredReportContent content = reportStorage.open(report.getStoredName());
+        return new ReportDownload(toAccessSummary(report), content.content(), content.contentLength());
+    }
+
     private UserEntity findActiveStudent(String email) {
         UserEntity student = userRepository.findByEmailIgnoreCaseWithRolesAndDepartment(email)
                 .filter(UserEntity::isActive)
@@ -87,6 +103,86 @@ public class ReportService {
             throw new ReportAccessException("Only active students can submit reports.");
         }
         return student;
+    }
+
+    private UserEntity findActiveActor(String email) {
+        return userRepository.findByEmailIgnoreCaseWithRolesAndDepartment(email)
+                .filter(UserEntity::isActive)
+                .filter(this::hasActiveRole)
+                .orElseThrow(() -> new ReportAccessException("Report viewer account is not available."));
+    }
+
+    private ReportEntity findReport(Long reportId) {
+        if (reportId == null) {
+            throw new ReportValidationException("Report id is required.");
+        }
+        return reportRepository.findById(reportId)
+                .orElseThrow(() -> new ReportNotFoundException("Report not found: " + reportId));
+    }
+
+    private void authorizeView(UserEntity actor, ReportEntity report) {
+        TopicRegistrationEntity registration = report.getTopicRegistration();
+        StudentGroupEntity group = registration.getStudentGroup();
+
+        if (hasActiveRole(actor, "ADMIN")) {
+            return;
+        }
+        if (hasActiveRole(actor, "STUDENT") && isGroupMember(actor, group)) {
+            return;
+        }
+        if (hasActiveRole(actor, "FACULTY_HEAD") && isSameDepartment(actor, registration)) {
+            return;
+        }
+        if (hasActiveRole(actor, "LECTURER")
+                && (isTopicSupervisor(actor, registration) || isAssignedEvaluator(actor, registration))) {
+            return;
+        }
+        throw new ReportAccessException("You are not allowed to view this report.");
+    }
+
+    private boolean hasActiveRole(UserEntity actor) {
+        return actor.getUserRoles().stream()
+                .filter(UserRoleEntity::isActive)
+                .map(UserRoleEntity::getRole)
+                .anyMatch(role -> role != null && role.isActive());
+    }
+
+    private static boolean hasActiveRole(UserEntity actor, String roleCode) {
+        return actor.getUserRoles().stream()
+                .filter(UserRoleEntity::isActive)
+                .map(UserRoleEntity::getRole)
+                .anyMatch(role -> role != null && role.isActive()
+                        && roleCode.equalsIgnoreCase(role.getCode()));
+    }
+
+    private static boolean isGroupMember(UserEntity actor, StudentGroupEntity group) {
+        return actor.getId() != null && group.getMembers().stream()
+                .anyMatch(member -> Objects.equals(actor.getId(), member.getId()));
+    }
+
+    private static boolean isSameDepartment(UserEntity actor, TopicRegistrationEntity registration) {
+        return actor.getDepartment() != null
+                && registration.getTopic().getDepartment() != null
+                && Objects.equals(actor.getDepartment().getId(), registration.getTopic().getDepartment().getId());
+    }
+
+    private static boolean isTopicSupervisor(UserEntity actor, TopicRegistrationEntity registration) {
+        return actor.getId() != null && registration.getTopic().getSupervisors().stream()
+                .anyMatch(supervisor -> Objects.equals(actor.getId(), supervisor.getId()));
+    }
+
+    private static boolean isAssignedEvaluator(UserEntity actor, TopicRegistrationEntity registration) {
+        if (actor.getId() == null) {
+            return false;
+        }
+        if (registration.getReviewBoard() != null && registration.getReviewBoard().getMembers().stream()
+                .anyMatch(member -> member.getLecturer() != null
+                        && Objects.equals(actor.getId(), member.getLecturer().getId()))) {
+            return true;
+        }
+        return registration.getEvaluations().stream()
+                .anyMatch(evaluation -> evaluation.getLecturer() != null
+                        && Objects.equals(actor.getId(), evaluation.getLecturer().getId()));
     }
 
     private static void validateIds(Long groupId, Long registrationId, Long periodId) {
@@ -146,10 +242,32 @@ public class ReportService {
                 report.getUploader().getId(), report.getUploader().getFullName(), report.getSubmittedAt());
     }
 
+    private static ReportAccessSummary toAccessSummary(ReportEntity report) {
+        TopicRegistrationEntity registration = report.getTopicRegistration();
+        return new ReportAccessSummary(
+                report.getId(), registration.getId(), registration.getStudentGroup().getId(),
+                registration.getStudentGroup().getName(), registration.getTopic().getId(),
+                registration.getTopic().getTitle(), registration.getRegistrationPeriod().getId(),
+                registration.getRegistrationPeriod().getName(), report.getOriginalName(),
+                report.getContentType(), report.getFileSize(), report.getUploader().getId(),
+                report.getUploader().getFullName(), report.getSubmittedAt());
+    }
+
     public record ReportSummary(
             Long id, Long registrationId, Long groupId, String originalName, String storedName,
             String contentType, Long fileSize, Long uploaderId, String uploaderName,
             LocalDateTime submittedAt) {
+    }
+
+    public record ReportAccessSummary(
+            Long id, Long registrationId, Long groupId, String groupName, Long topicId,
+            String topicTitle, Long periodId, String periodName, String originalName,
+            String contentType, Long fileSize, Long uploaderId, String uploaderName,
+            LocalDateTime submittedAt) {
+    }
+
+    public record ReportDownload(
+            ReportAccessSummary metadata, java.io.InputStream content, long contentLength) {
     }
 
     public static class ReportNotFoundException extends RuntimeException {

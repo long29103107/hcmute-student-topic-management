@@ -125,7 +125,7 @@ class DatabaseSeedControllerTest {
                 .andExpect(status().isNotFound());
 
         org.assertj.core.api.Assertions.assertThat(roleRepository.count()).isEqualTo(4);
-        org.assertj.core.api.Assertions.assertThat(permissionRepository.count()).isEqualTo(22);
+        org.assertj.core.api.Assertions.assertThat(permissionRepository.count()).isEqualTo(23);
         org.assertj.core.api.Assertions.assertThat(departmentRepository.count()).isEqualTo(15);
         org.assertj.core.api.Assertions.assertThat(registrationPeriodRepository.count()).isEqualTo(1);
         org.assertj.core.api.Assertions.assertThat(studentGroupRepository.count()).isEqualTo(4);
@@ -207,7 +207,7 @@ class DatabaseSeedControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tablesReset").value(17))
                 .andExpect(jsonPath("$.roles").value(4))
-                .andExpect(jsonPath("$.permissions").value(22))
+                .andExpect(jsonPath("$.permissions").value(23))
                 .andExpect(jsonPath("$.departments").value(15))
                 .andExpect(jsonPath("$.users").value(71))
                 .andExpect(jsonPath("$.registrationPeriods").value(1))
@@ -220,7 +220,7 @@ class DatabaseSeedControllerTest {
                 .andExpect(jsonPath("$.studentProfiles").doesNotExist());
 
         org.assertj.core.api.Assertions.assertThat(roleRepository.count()).isEqualTo(4);
-        org.assertj.core.api.Assertions.assertThat(permissionRepository.count()).isEqualTo(22);
+        org.assertj.core.api.Assertions.assertThat(permissionRepository.count()).isEqualTo(23);
         org.assertj.core.api.Assertions.assertThat(userRepository.count()).isEqualTo(71);
         org.assertj.core.api.Assertions.assertThat(departmentRepository.count()).isEqualTo(15);
         org.assertj.core.api.Assertions.assertThat(registrationPeriodRepository.count()).isEqualTo(1);
@@ -235,7 +235,8 @@ class DatabaseSeedControllerTest {
                 .isEqualTo(50);
 
         var facultyHead = roleRepository.findByCode("FACULTY_HEAD").orElseThrow();
-        List<String> lecturerPermissions = List.of("TOPIC_PROPOSE", "TOPIC_VIEW", "EVALUATION_SUBMIT", "RESULT_VIEW");
+        List<String> lecturerPermissions = List.of(
+                "TOPIC_PROPOSE", "TOPIC_VIEW", "REPORT_VIEW", "EVALUATION_SUBMIT", "RESULT_VIEW");
         lecturerPermissions.forEach(code -> org.assertj.core.api.Assertions.assertThat(
                 rolePermissionRepository.existsByRole_IdAndPermission_IdAndActiveTrue(
                         facultyHead.getId(), permissionRepository.findByCode(code).orElseThrow().getId()))

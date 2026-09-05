@@ -107,6 +107,8 @@ public class DatabaseSeedService {
                     "Submit a topic registration for a student group."),
             new PermissionSeed("REPORT_SUBMIT", "Submit reports", "Reports",
                     "Submit reports for an approved topic registration."),
+            new PermissionSeed("REPORT_VIEW", "View/download reports", "Reports",
+                    "View and download reports allowed by resource relationship."),
             new PermissionSeed("EVALUATION_SUBMIT", "Submit evaluations", "Evaluations",
                     "Submit evaluation scores and comments."),
             new PermissionSeed("REGISTRATION_REVIEW", "Review topic registrations", "Registrations",
@@ -115,14 +117,16 @@ public class DatabaseSeedService {
                     "View published results for permitted users."));
 
     private static final List<String> LECTURER_PERMISSIONS = List.of(
-            "TOPIC_PROPOSE", "TOPIC_VIEW", "EVALUATION_SUBMIT", "RESULT_VIEW");
+            "TOPIC_PROPOSE", "TOPIC_VIEW", "REPORT_VIEW", "EVALUATION_SUBMIT", "RESULT_VIEW");
 
     private static final Map<String, List<String>> ROLE_PERMISSIONS = Map.of(
             "ADMIN", allPermissionCodes(),
             "FACULTY_HEAD", withLecturerPermissions(
                     "PERIOD_MANAGE", "SUPERVISOR_MANAGE", "TOPIC_REVIEW", "REGISTRATION_REVIEW"),
             "LECTURER", LECTURER_PERMISSIONS,
-            "STUDENT", List.of("TOPIC_VIEW", "GROUP_MANAGE", "REGISTRATION_SUBMIT", "REPORT_SUBMIT", "RESULT_VIEW"));
+            "STUDENT", List.of(
+                    "TOPIC_VIEW", "GROUP_MANAGE", "REGISTRATION_SUBMIT", "REPORT_SUBMIT", "REPORT_VIEW",
+                    "RESULT_VIEW"));
 
     private static final List<DepartmentSeed> DEPARTMENTS = List.of(
             new DepartmentSeed("CNTT", "Công nghệ thông tin"),
