@@ -5,8 +5,8 @@ status: in_progress
 created_at: 2026-09-05
 updated_at: 2026-09-05
 current_task: null
-task_count: 2
-done_count: 2
+task_count: 3
+done_count: 3
 depends_on: [002, 003]
 ---
 
@@ -57,6 +57,7 @@ Out:
 |---|---|---|---|
 | 004_001 | Report Upload & Metadata | completed | 2026-09-05 |
 | 004_002 | Report Access, Deadline & Resubmission | completed | 2026-09-05 |
+| 004_003 | Evaluator Assignment | completed | 2026-09-05 |
 
 ## Current Task
 
@@ -66,12 +67,12 @@ report metadata and download access.
 
 ## Completed Notes
 
-`004_001` and `004_002` are complete. The remaining Phase 004 tasks are still
-backlog work.
+`004_001`, `004_002` and `004_003` are complete. The remaining Phase 004 tasks
+are still backlog work.
 
 ## Next Task Proposal
 
-Next, implement `004_003` for evaluator assignment.
+Next, implement `004_004` for score entry and average calculation.
 
 ## Task Notes
 
@@ -208,3 +209,56 @@ Out:
 
 Completed on 2026-09-05 after focused relationship, permission, metadata and
 download tests, full regression, package and diff verification.
+
+### 004_003 - Evaluator Assignment
+
+#### Step Goal
+
+Let an Admin or Faculty Head assign or change one evaluator for an approved
+topic registration without bypassing department, role or supervisor-conflict
+rules.
+
+#### Dependency
+
+- `004_002` approved-registration/report relationship boundary.
+- Existing `REGISTRATION_REVIEW` permission and lecturer-capability role seed.
+- Revised `evaluations` table with lecturer-level rows.
+
+#### Scope
+
+In:
+
+- Approved-registration evaluator queue with search, sorting and pagination.
+- SSR modal and REST API for assigning/changing one evaluator.
+- Active Lecturer/Faculty Head candidate validation, department scope,
+  supervisor conflict and duplicate-row protection.
+- Faculty workflow sidebar entry and request-level tests.
+
+Out:
+
+- Score/comment entry, score deadlines, average calculation, result
+  publication and full review-board workflow.
+
+#### Acceptance Criteria
+
+- Faculty Head assigns only within the assigned department; Admin can assign
+  across departments.
+- Candidate evaluator has an active Lecturer or Faculty Head role and is not a
+  supervisor of the same topic.
+- Only approved registrations are eligible.
+- Reassignment updates the existing evaluation row and repeated assignment does
+  not create duplicate rows.
+- SSR and REST use the same Service authorization and validation rules.
+
+#### Verification
+
+- `mvn -q -Dtest=EvaluatorAssignmentControllerTest test` — passed, 4 tests.
+- `mvn -q test` — passed, 139 tests, 0 failures, 0 errors.
+- `mvn -q package -DskipTests` — passed; executable JAR packaged.
+- `git diff --check` — passed; only normal LF/CRLF conversion warnings.
+
+#### Done Notes
+
+Completed on 2026-09-05 after focused evaluator assignment, role validation,
+scope, supervisor conflict, duplicate-row and SSR queue tests, full regression,
+package and diff verification.

@@ -150,6 +150,13 @@ boundary as follows:
   relationship. Admin has operational access to all report resources. A report
   deadline is not inferred from the student window because the schema has no
   dedicated field; resubmission rules remain deferred.
+- Issue #14 lets an Admin or Faculty Head assign or replace one evaluator on an
+  approved registration through the `evaluations` table. The actor is scoped
+  to the registration's department unless they are Admin; the evaluator must
+  be an active Lecturer or Faculty Head and cannot supervise the same topic.
+  Reassignment updates the existing evaluation row, so repeated assignment
+  does not create duplicate rows. `REGISTRATION_REVIEW` is the assignment
+  permission for the current MVP faculty workflow.
 
 ## Evaluation gates
 

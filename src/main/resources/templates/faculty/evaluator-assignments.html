@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head><title>Evaluator assignments</title></head>
+<body>
+<main layout:fragment="content" class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+    <section aria-labelledby="page-title">
+        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <div>
+                <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Faculty workflow / Evaluations</p>
+                <h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Evaluator assignments</h1>
+                <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500">Assign or change one evaluator for each approved topic registration.</p>
+            </div>
+            <span class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800"
+                  th:text="${evaluatorScope}">Faculty Head · CNTT · Công nghệ thông tin</span>
+        </div>
+
+        <div class="mb-6 flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-5 text-blue-900" role="status">
+            <svg class="mt-0.5 h-5 w-5 shrink-0 text-blue-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 1a9 9 0 1 0 9 9 9.01 9.01 0 0 0-9-9Zm0 4a1 1 0 1 1 1 1 1 1 0 0 1-1-1Zm1 10H9v-6h2v6Z"/>
+            </svg>
+            <span>Only approved registrations in your management scope are shown. A topic supervisor cannot evaluate the same topic.</span>
+        </div>
+
+        <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm" aria-labelledby="registrations-heading">
+            <div class="flex flex-col justify-between gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:p-6">
+                <div>
+                    <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Evaluation workflow</p>
+                    <h2 id="registrations-heading" class="text-xl font-semibold text-gray-900">Approved registrations</h2>
+                </div>
+                <form method="get" th:action="@{/faculty/registrations/evaluators}" class="flex flex-wrap gap-2">
+                    <input type="search" name="search" th:value="${registrationSearch}" placeholder="Search registrations"
+                           class="w-56 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500">
+                    <input type="hidden" name="sort" th:value="${registrationSort}">
+                    <input type="hidden" name="direction" th:value="${registrationDirection}">
+                    <button type="submit" class="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800">Search</button>
+                </form>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-gray-600">
+                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                    <tr>
+                        <th scope="col" class="px-6 py-3">
+                            <a class="inline-flex items-center gap-1 hover:text-blue-700"
+                               th:href="@{/faculty/registrations/evaluators(page=0,size=${assignmentPage.size},search=${registrationSearch},sort='group',direction=${registrationSort == 'group' and registrationDirection == 'asc' ? 'desc' : 'asc'})}">
+                                Group <span th:text="${registrationSort == 'group' ? (registrationDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                            </a>
+                        </th>
+                        <th scope="col" class="px-6 py-3">Topic</th>
+                        <th scope="col" class="px-6 py-3">Department</th>
+                        <th scope="col" class="px-6 py-3">Registration period</th>
+                        <th scope="col" class="px-6 py-3">Evaluator</th>
+                        <th scope="col" class="px-6 py-3"><span class="sr-only">Actions</span></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="border-b border-gray-100 align-top hover:bg-gray-50" th:each="registration : ${registrations}">
+                        <td class="px-6 py-4">
+                            <strong class="block font-semibold text-gray-900" th:text="${registration.groupName}">Group Phoenix</strong>
+                            <span class="mt-1 block text-xs text-gray-500" th:text="${'Group #' + registration.groupId}">Group #1</span>
+                        </td>
+                        <td class="max-w-sm px-6 py-4">
+                            <strong class="block font-medium text-gray-900" th:text="${registration.topicTitle}">Smart campus platform</strong>
+                            <span class="mt-1 block text-xs text-gray-500" th:text="${'Topic #' + registration.topicId}">Topic #1</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="block font-medium text-gray-900" th:text="${registration.departmentCode}">CNTT</span>
+                            <span class="block text-xs text-gray-500" th:text="${registration.departmentName}">Công nghệ thông tin</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="block font-medium text-gray-900" th:text="${registration.periodName}">Semester 1</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div th:if="${registration.assignedEvaluator != null}">
+                                <span class="block font-medium text-gray-900" th:text="${registration.assignedEvaluator.fullName}">Nguyễn Thanh Bình</span>
+                                <span class="block text-xs text-gray-500" th:text="${registration.assignedEvaluator.email}">lecturer@hcmute.edu.vn</span>
+                            </div>
+                            <span class="text-xs text-amber-700" th:if="${registration.assignedEvaluator == null}">Not assigned</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <button type="button"
+                                    class="inline-flex items-center rounded-lg border border-blue-600 bg-white px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50"
+                                    th:attr="data-modal-target=${'assign-evaluator-modal-' + registration.id},data-modal-toggle=${'assign-evaluator-modal-' + registration.id}">
+                                <span th:text="${registration.assignedEvaluator == null ? 'Assign evaluator' : 'Change evaluator'}">Assign evaluator</span>
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between"
+                 th:if="${assignmentPage.totalItems > 0}">
+                <p class="text-gray-500">
+                    Showing <span class="font-medium text-gray-900" th:text="${assignmentPage.page * assignmentPage.size + 1}">1</span>–<span
+                        class="font-medium text-gray-900" th:text="${assignmentPage.page * assignmentPage.size + #lists.size(registrations)}">10</span>
+                    of <span class="font-medium text-gray-900" th:text="${assignmentPage.totalItems}">0</span>
+                </p>
+                <nav aria-label="Evaluator assignment pagination">
+                    <ul class="inline-flex -space-x-px">
+                        <li>
+                            <a class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                               th:classappend="${!assignmentPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
+                               th:attr="aria-disabled=${!assignmentPage.hasPrevious}"
+                               th:href="@{/faculty/registrations/evaluators(page=${assignmentPage.page - 1},size=${assignmentPage.size},sort=${assignmentPage.sort},direction=${assignmentPage.direction},search=${registrationSearch})}">Previous</a>
+                        </li>
+                        <li th:each="pageNumber : ${#numbers.sequence(0, assignmentPage.totalPages - 1)}">
+                            <a class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                               th:classappend="${pageNumber == assignmentPage.page ? 'bg-blue-50 text-blue-700' : ''}"
+                               th:attr="aria-current=${pageNumber == assignmentPage.page ? 'page' : null}"
+                               th:href="@{/faculty/registrations/evaluators(page=${pageNumber},size=${assignmentPage.size},sort=${assignmentPage.sort},direction=${assignmentPage.direction},search=${registrationSearch})}"
+                               th:text="${pageNumber + 1}">1</a>
+                        </li>
+                        <li>
+                            <a class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                               th:classappend="${!assignmentPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
+                               th:attr="aria-disabled=${!assignmentPage.hasNext}"
+                               th:href="@{/faculty/registrations/evaluators(page=${assignmentPage.page + 1},size=${assignmentPage.size},sort=${assignmentPage.sort},direction=${assignmentPage.direction},search=${registrationSearch})}">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            <p class="px-6 py-12 text-center text-sm text-gray-500" th:if="${#lists.isEmpty(registrations) and #strings.isEmpty(registrationSearch)}">
+                No approved registrations are available in your management scope.
+            </p>
+            <p class="px-6 py-12 text-center text-sm text-gray-500" th:if="${#lists.isEmpty(registrations) and !#strings.isEmpty(registrationSearch)}">
+                No registrations match your search.
+            </p>
+        </section>
+    </section>
+
+    <div th:each="registration : ${registrations}"
+         th:id="${'assign-evaluator-modal-' + registration.id}"
+         tabindex="-1" aria-hidden="true" role="dialog" aria-modal="true"
+         class="fixed inset-0 z-50 hidden h-full w-full overflow-y-auto overflow-x-hidden bg-gray-900/50 p-4 md:inset-0">
+        <div class="relative mx-auto my-8 w-full max-w-2xl">
+            <button type="button" class="absolute end-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-900"
+                    th:attr="data-modal-hide=${'assign-evaluator-modal-' + registration.id}" aria-label="Close modal">
+                <svg class="h-3 w-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 12 12M13 1 1 13"/>
+                </svg>
+            </button>
+            <div class="relative rounded-lg border border-gray-200 bg-white shadow-xl">
+                <div class="border-b border-gray-200 px-6 py-5 pe-16 sm:px-8">
+                    <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Evaluation workflow</p>
+                    <h2 class="text-xl font-semibold text-gray-900">Assign evaluator</h2>
+                    <p class="mt-2 text-sm leading-5 text-gray-500" th:text="${registration.topicTitle + ' · ' + registration.groupName}">Smart campus platform · Group Phoenix</p>
+                </div>
+                <form class="p-6 sm:p-8" method="post" th:attr="action=${'/faculty/registrations/' + registration.id + '/evaluator'}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <label class="block text-sm font-medium text-gray-900" th:for="${'evaluator-' + registration.id}">Evaluator</label>
+                    <p class="mt-1 text-xs text-gray-500">Only active Lecturer and Faculty Head accounts are listed. Topic supervisors are excluded.</p>
+                    <select required name="evaluatorId" class="mt-4 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                            th:id="${'evaluator-' + registration.id}">
+                        <option value="">Select an evaluator</option>
+                        <option th:each="evaluator : ${registration.evaluatorOptions}"
+                                th:value="${evaluator.id}"
+                                th:selected="${registration.assignedEvaluator != null and registration.assignedEvaluator.id == evaluator.id}"
+                                th:text="${evaluator.fullName + ' · ' + evaluator.email + (evaluator.departmentCode == null ? '' : ' · ' + evaluator.departmentCode)}">Nguyễn Thanh Bình · lecturer@hcmute.edu.vn · CNTT</option>
+                    </select>
+                    <div class="mt-7 flex flex-wrap justify-end gap-3 border-t border-gray-200 pt-6">
+                        <button type="button" class="order-1 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                                th:attr="data-modal-hide=${'assign-evaluator-modal-' + registration.id}">Cancel</button>
+                        <button class="order-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                                type="submit">Save evaluator</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

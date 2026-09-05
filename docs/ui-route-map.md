@@ -60,6 +60,7 @@ Have unless explicitly selected.
 | GET/POST | `/faculty/topics/review` | `TopicReviewController` → list pending proposals and approve/reject |
 | GET/POST | `/faculty/topics/publish` | `TopicPublicationController` → list approved topics in the Faculty Head's department and publish them |
 | GET/POST | `/faculty/registrations/review` | `TopicRegistrationReviewController` → Faculty Head/Admin pending-registration queue, approve/reject with required rejection reason |
+| GET/POST | `/faculty/registrations/evaluators`, `/faculty/registrations/{id}/evaluator` | `EvaluatorAssignmentController` → approved-registration evaluator queue and modal assignment/change flow |
 | GET/POST | `/faculty/boards` | `ReviewBoardController` → full board/member/topic assignment (Should Have) |
 | GET/POST | `/faculty/results` | `ResultController` → aggregate/publish |
 | GET/POST | `/announcements/manage` | `AnnouncementController` → advanced create/edit/hide/publish (Should Have) |
@@ -123,6 +124,8 @@ not replace the Thymeleaf flow or duplicate Service rules.
 | POST | `/api/student/groups/{groupId}/registrations/{registrationId}/reports` | group leader uploads multipart `file` with `periodId`; returns report metadata after external storage succeeds | Student + `REPORT_SUBMIT` + CSRF + current group leader of an approved registration |
 | GET | `/api/faculty/registrations/review`, `/api/registrations/review` | pending topic registrations in the reviewer's department scope | `REGISTRATION_REVIEW` + Admin/Faculty Head |
 | POST | `/api/registrations/{id}/review`, `/api/faculty/registrations/{id}/review` | review `{ decision: "APPROVE" | "REJECT", rejectionReason? }`; reject requires a non-blank reason and only `PENDING` rows can transition | `REGISTRATION_REVIEW` + Admin/Faculty Head + CSRF |
+| GET | `/api/faculty/registrations/evaluators` | approved registrations with current evaluator and valid evaluator options, scoped by department | `REGISTRATION_REVIEW` + Admin/Faculty Head |
+| PUT | `/api/faculty/registrations/{id}/evaluator` | assign or replace `{ evaluatorId }`; only approved registrations, active Lecturer/Faculty Head candidates and non-supervisors are accepted | `REGISTRATION_REVIEW` + Admin/Faculty Head + CSRF |
 | GET | `/api/reports/{id}` | relationship-authorized report metadata | `REPORT_VIEW` + resource relationship |
 | GET | `/api/reports/{id}/download` | relationship-authorized report file download | `REPORT_VIEW` + resource relationship |
 | POST | `/api/faculty/scores/{topicId}` | submit score/comment | assigned lecturer |

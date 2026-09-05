@@ -25,7 +25,7 @@ do not create extra authorization paths for it unless selected.
 | Submit report | yes | no | no | no | group leader only |
 | View/download permitted report | yes | yes | assigned roles | group members + assigned roles | group member |
 | Manage topic supervisors | yes | yes, own department | no | no | no |
-| Manage review board/assignments | yes | yes, Should | no | no | no |
+| Manage evaluator assignments | yes | yes, own department | no | no | no |
 | Enter score for assigned topic | yes | assigned Faculty Head only when also the assigned lecturer | assigned lecturer | no | no |
 | Aggregate board result | yes | yes/assigned chair, Should | chair only, Should | no | no |
 | Publish final result | yes | yes | no | no | no |
@@ -66,3 +66,8 @@ does not silently impersonate another user's ownership relationship.
   limited to the assigned department; Admin has operational access across
   reports. The Service enforces these resource relationships for both metadata
   and file download.
+- Issue #14 uses `REGISTRATION_REVIEW` for the current MVP evaluator-assignment
+  surface. Admin can assign across departments; Faculty Head can assign only
+  for approved registrations in their own department. Candidate evaluators
+  must have an active Lecturer or Faculty Head role and cannot be a supervisor
+  of the registration's topic.

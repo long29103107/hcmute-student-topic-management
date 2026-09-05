@@ -200,6 +200,26 @@ Report deadline and resubmission policy remain deferred because the revised
 schema has no dedicated report deadline field and the business rules do not
 yet define replacement/version behavior.
 
+## Evaluator Assignment checklist (Issue #14 / 004_003)
+
+The `EvaluatorAssignmentControllerTest` suite maps the MVP evaluator flow to
+SSR/REST and persistence assertions:
+
+- `REGISTRATION_REVIEW` allows Admin/Faculty Head assignment; Faculty Head
+  access is limited to approved registrations in the assigned department;
+- pending registrations, other departments and unauthorized users cannot be
+  assigned through the API;
+- active Lecturer and Faculty Head users are valid evaluator candidates, while
+  students, inactive users and topic supervisors are rejected;
+- assigning and changing an evaluator updates one `evaluations` row rather
+  than creating duplicate assignments;
+- the SSR queue exposes only approved in-scope registrations and provides a
+  modal select flow; the REST list returns current evaluator and options;
+- evaluator mutations require CSRF and share the same Service authorization
+  and validation rules as SSR.
+
+Scoring, average calculation and result publication remain outside Issue #14.
+
 ## Topic Supervisor Assignment checklist (Issue #5 / 002_002)
 
 The `TopicSupervisorControllerTest` suite maps the task acceptance criteria to

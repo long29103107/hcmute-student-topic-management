@@ -3,6 +3,21 @@
 Durable project context for future coding-agent sessions. Keep entries concise,
 factual and free of secrets. Update this file after every code or UI update.
 
+## 2026-09-05 — Evaluator assignment (Issue #14 / 004_003)
+
+- Implemented the Admin/Faculty Head evaluator queue at
+  `/faculty/registrations/evaluators` and matching REST list/update routes.
+- The Service accepts only approved registrations, scopes Faculty Heads to
+  their department, accepts active Lecturer/Faculty Head candidates, rejects
+  topic supervisors and updates one `evaluations` row on reassignment.
+- Added the SSR modal, Faculty workflow sidebar entry, `EvaluatorAssignmentControllerTest`,
+  route/authorization/workflow/verification docs and the Phase 004 `004_003`
+  task note. Scoring, average calculation and result publication remain later
+  tasks.
+- Verification: focused evaluator suite passes 4/4; full `mvn test` passes
+  139/139, `mvn package -DskipTests` succeeds and `git diff --check` passes
+  with only normal LF/CRLF conversion warnings.
+
 ## 2026-09-05 — Report access and download (Issue #13 / 004_002)
 
 - Implemented relationship-scoped `REPORT_VIEW` metadata and download access;
