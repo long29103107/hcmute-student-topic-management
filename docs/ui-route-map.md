@@ -59,7 +59,7 @@ Have unless explicitly selected.
 | POST | `/faculty/topics/{id}/supervisors` | `TopicSupervisorController` → replace one or two active Lecturer/Faculty Head supervisors through the shared Service validation |
 | GET/POST | `/faculty/topics/review` | `TopicReviewController` → list pending proposals and approve/reject |
 | GET/POST | `/faculty/topics/publish` | `TopicPublicationController` → list approved topics in the Faculty Head's department and publish them |
-| GET/POST | `/faculty/registrations/review` | `RegistrationReviewController` → approve/reject |
+| GET/POST | `/faculty/registrations/review` | `TopicRegistrationReviewController` → Faculty Head/Admin pending-registration queue, approve/reject with required rejection reason |
 | GET/POST | `/faculty/boards` | `ReviewBoardController` → full board/member/topic assignment (Should Have) |
 | GET/POST | `/faculty/results` | `ResultController` → aggregate/publish |
 | GET/POST | `/announcements/manage` | `AnnouncementController` → advanced create/edit/hide/publish (Should Have) |
@@ -80,8 +80,8 @@ Have unless explicitly selected.
 |---|---|---|
 | GET | `/student/groups` | `StudentGroupController` → related group list with search (`search`), pagination (`page`, `size`), column sort (`sort=group|period|leader|members|status|created`, `direction=asc|desc`), create form and join form |
 | POST | `/student/groups`, `/student/groups/join`, `/student/groups/{id}/join`, `/student/groups/{id}/leave`, `/student/groups/{id}/leader` | `StudentGroupController` → create, join by shared group ID, join/leave an active group and transfer leadership to another member; server enforces Student role, one active group per period, max three members and leader membership |
-| POST | `/student/groups/register-topic` | `TopicRegistrationController` → leader submits |
-| GET | `/student/registrations` | `TopicRegistrationController` → own status |
+| GET/POST | `/student/groups/register-topic` | `TopicRegistrationController` → leader registration form and submit |
+| GET | `/student/registrations` | `TopicRegistrationController` → own group registration history/status |
 | GET/POST | `/student/reports` | `ReportController` → leader submits/member status |
 | GET | `/student/results` | `ResultController` → own group result |
 
@@ -118,7 +118,10 @@ not replace the Thymeleaf flow or duplicate Service rules.
 | POST | `/api/student/groups/{groupId}/members` | join an active group | `GROUP_MANAGE` + Student + CSRF |
 | DELETE | `/api/student/groups/{groupId}/members/me` | leave an active group as a non-leader member | `GROUP_MANAGE` + Student + CSRF |
 | PUT | `/api/student/groups/{groupId}/leader` | transfer leadership to an active student who is already in the group; Admin/another `GROUP_MANAGE` actor may perform the operation, while Student is limited to the current group leader | `GROUP_MANAGE` + CSRF |
-| POST | `/api/student/groups/{groupId}/registrations` | leader submits registration | Group leader |
+| GET | `/api/student/registrations` | current student's group registration history/status | Student + `REGISTRATION_SUBMIT` |
+| POST | `/api/student/groups/{groupId}/registrations` | leader submits `{ topicId, periodId? }`; returns the pending registration | Student + `REGISTRATION_SUBMIT` + CSRF + current group leader |
+| GET | `/api/faculty/registrations/review`, `/api/registrations/review` | pending topic registrations in the reviewer's department scope | `REGISTRATION_REVIEW` + Admin/Faculty Head |
+| POST | `/api/registrations/{id}/review`, `/api/faculty/registrations/{id}/review` | review `{ decision: "APPROVE" | "REJECT", rejectionReason? }`; reject requires a non-blank reason and only `PENDING` rows can transition | `REGISTRATION_REVIEW` + Admin/Faculty Head + CSRF |
 | POST | `/api/student/reports` | leader uploads report metadata/file | Group leader |
 | GET | `/api/reports/{id}` | permitted report metadata/download | permitted user |
 | POST | `/api/faculty/scores/{topicId}` | submit score/comment | assigned lecturer |

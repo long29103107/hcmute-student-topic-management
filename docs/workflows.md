@@ -96,7 +96,16 @@ DRAFT -> PENDING_APPROVAL -> APPROVED -> PUBLISHED
 4. Only leader can submit a registration.
 5. Service checks student window, topic published status, matching period and
    no existing registration for the group.
-6. Faculty Head approves/rejects; reject reason may be stored.
+6. A valid submission is stored as `PENDING` with the submitter and submission
+   time; rejected/cancelled rows remain history while `PENDING` and `APPROVED`
+   count as the current registration.
+7. Faculty Head reviews `PENDING` registrations in the topic's department.
+   Approve changes the row to `APPROVED`; reject requires and stores a reason
+   up to 500 characters. `APPROVED` and `REJECTED` rows are terminal for this
+   workflow and remain in history.
+8. Report and evaluation consumers use the read-only
+   `findApprovedByIdForReadOnly` repository contract; pending/rejected rows are
+   not eligible for downstream work.
 
 The service must perform the check and insert/update in one transaction to
 avoid two concurrent membership or registration requests passing the same

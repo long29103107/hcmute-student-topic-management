@@ -105,6 +105,18 @@
                   <span class="ms-3" data-sidebar-label>My groups</span>
                 </a>
               </li>
+              <li sec:authorize="hasAuthority('REGISTRATION_SUBMIT')">
+                <a
+                  th:href="@{/student/registrations}"
+                  th:aria-current="${pageTitle == 'My registrations' or pageTitle == 'Register topic' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'My registrations' or pageTitle == 'Register topic' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'My registrations' or pageTitle == 'Register topic' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/></svg>
+                  <span class="ms-3" data-sidebar-label>My registrations</span>
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -312,6 +324,18 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m9 12 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                   </svg>
                   <span class="ms-3" data-sidebar-label>Topic review</span>
+                </a>
+              </li>
+              <li sec:authorize="hasAuthority('REGISTRATION_REVIEW')">
+                <a
+                  th:href="@{/faculty/registrations/review}"
+                  th:aria-current="${pageTitle == 'Registration review' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'Registration review' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Registration review' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5h6m-9 4h12M6 13h8m-8 4h5m7.5-2.5 1.5 1.5 3-3"/></svg>
+                  <span class="ms-3" data-sidebar-label>Registration review</span>
                 </a>
               </li>
               <li sec:authorize="hasAnyRole('ADMIN', 'FACULTY_HEAD') and hasAuthority('TOPIC_REVIEW')">

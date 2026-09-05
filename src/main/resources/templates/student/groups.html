@@ -130,6 +130,11 @@
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex flex-col items-end gap-2">
+                                <a th:if="${group.currentStudentIsLeader and group.statusCode == 'ACTIVE'}"
+                                   th:href="@{/student/groups/register-topic(groupId=${group.id})}"
+                                   class="inline-flex items-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700 hover:bg-blue-100 focus:outline-none focus:ring-4 focus:ring-blue-200">
+                                    Register topic
+                                </a>
                                 <form class="flex items-center gap-2" method="post"
                                       th:if="${group.canTransfer}"
                                       th:action="@{/student/groups/{id}/leader(id=${group.id})}"

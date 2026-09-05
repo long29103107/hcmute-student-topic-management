@@ -91,6 +91,13 @@ public interface TopicRepository extends JpaRepository<TopicEntity, Long> {
             + "join fetch t.registrationPeriod "
             + "join fetch t.department "
             + "join fetch t.proposedBy "
+            + "where t.id = :topicId")
+    Optional<TopicEntity> findByIdForRegistration(@Param("topicId") Long topicId);
+
+    @Query("select t from TopicEntity t "
+            + "join fetch t.registrationPeriod "
+            + "join fetch t.department "
+            + "join fetch t.proposedBy "
             + "where t.status = :status "
             + "order by t.updatedAt desc, t.id desc")
     List<TopicEntity> findByStatusForPublication(@Param("status") TopicStatus status);

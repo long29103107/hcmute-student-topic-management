@@ -3,6 +3,34 @@
 Durable project context for future coding-agent sessions. Keep entries concise,
 factual and free of secrets. Update this file after every code or UI update.
 
+## 2026-09-05 — Topic registration submission (Issue #10)
+
+- Implemented leader-only topic registration through a shared transaction-safe
+  Service used by `/student/groups/register-topic` and
+  `/api/student/groups/{groupId}/registrations`.
+- The Service locks the group and registration period before checking active
+  group state, leader membership, published topic state, period alignment,
+  inclusive student window and current-registration uniqueness. It persists
+  `PENDING` rows with submitter and submitted time.
+- Added the SSR registration form, `/student/registrations` history page and
+  `GET /api/student/registrations` relationship-scoped read endpoint. Faculty
+  Head review remains Issue #11 scope.
+- Verification: focused `TopicRegistrationControllerTest` passes 8/8;
+  full `mvn test` is the remaining regression check after documentation update.
+
+## 2026-09-05 — Topic registration review (Issue #11)
+
+- Implemented Faculty Head/Admin review at `/faculty/registrations/review` and
+  `/api/registrations/{id}/review`, using the existing `REGISTRATION_REVIEW`
+  permission and department-scoped Faculty Head authorization.
+- Only `PENDING` registrations can transition to `APPROVED` or `REJECTED`;
+  rejection requires a trimmed reason of at most 500 characters. Approved and
+  rejected rows remain immutable history.
+- Added pending queue search/sort/pagination, SSR/REST review UI, sidebar link,
+  and `findApprovedByIdForReadOnly` for downstream report/evaluation queries.
+- Verification: focused `TopicRegistrationReviewControllerTest` passes 6/6;
+  full regression test is still required after the combined #10/#11 changes.
+
 ## 2026-09-04 — Account directory layout and department display
 
 - Canonical account directories are `/admin/students` and `/admin/lecturers`;

@@ -1,0 +1,84 @@
+package com.hcmute.topicmanagement.web.controller;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import jakarta.validation.Valid;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.hcmute.topicmanagement.service.TopicRegistrationReviewService;
+import com.hcmute.topicmanagement.service.TopicRegistrationReviewService.RegistrationReviewSummary;
+import com.hcmute.topicmanagement.web.dto.TopicRegistrationReviewRequest;
+
+@RestController
+@RequestMapping("/api")
+public class TopicRegistrationReviewRestController {
+
+    private final TopicRegistrationReviewService topicRegistrationReviewService;
+
+    public TopicRegistrationReviewRestController(TopicRegistrationReviewService topicRegistrationReviewService) {
+        this.topicRegistrationReviewService = topicRegistrationReviewService;
+    }
+
+    @GetMapping({"/faculty/registrations/review", "/registrations/review"})
+    @PreAuthorize("hasAuthority('REGISTRATION_REVIEW')")
+    public List<RegistrationReviewSummary> list(Authentication authentication) {
+        return topicRegistrationReviewService.listPending(authentication.getName());
+    }
+
+    @PostMapping({"/registrations/{id}/review", "/faculty/registrations/{id}/review"})
+    @PreAuthorize("hasAuthority('REGISTRATION_REVIEW')")
+    public RegistrationReviewSummary review(
+            Authentication authentication,
+            @PathVariable Long id,
+            @Valid @RequestBody TopicRegistrationReviewRequest request) {
+        return topicRegistrationReviewService.review(
+                authentication.getName(), id, request.decision(), request.rejectionReason());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException exception) {
+        Map<String, String> fieldErrors = new LinkedHashMap<>();
+        exception.getBindingResult().getFieldErrors()
+                .forEach(error -> fieldErrors.putIfAbsent(error.getField(), error.getDefaultMessage()));
+        return ResponseEntity.badRequest().body(new ApiError(
+                "TOPIC_REGISTRATION_REVIEW_INVALID", "Topic registration review validation failed.", fieldErrors));
+    }
+
+    @ExceptionHandler(TopicRegistrationReviewService.TopicRegistrationReviewValidationException.class)
+    public ResponseEntity<ApiError> handleBusinessValidation(
+            TopicRegistrationReviewService.TopicRegistrationReviewValidationException exception) {
+        return ResponseEntity.badRequest().body(new ApiError(
+                "TOPIC_REGISTRATION_REVIEW_INVALID", exception.getMessage(), Map.of()));
+    }
+
+    @ExceptionHandler(TopicRegistrationReviewService.TopicRegistrationReviewNotFoundException.class)
+    public ResponseEntity<ApiError> handleNotFound(
+            TopicRegistrationReviewService.TopicRegistrationReviewNotFoundException exception) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiError(
+                "TOPIC_REGISTRATION_REVIEW_NOT_FOUND", exception.getMessage(), Map.of()));
+    }
+
+    @ExceptionHandler(TopicRegistrationReviewService.TopicRegistrationReviewAccessException.class)
+    public ResponseEntity<ApiError> handleAccessDenied(
+            TopicRegistrationReviewService.TopicRegistrationReviewAccessException exception) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiError(
+                "TOPIC_REGISTRATION_REVIEW_FORBIDDEN", exception.getMessage(), Map.of()));
+    }
+
+    public record ApiError(String code, String message, Map<String, String> fieldErrors) {
+    }
+}

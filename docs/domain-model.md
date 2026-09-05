@@ -52,9 +52,12 @@ revised schema does not have a separate Student Profile entity.
   membership remains a separately configured policy. Invite/confirm workflow
   is not part of the revised MVP contract.
 - `TopicRegistrationEntity` links a group, topic, period and submitter. It
-  keeps `PENDING`, `APPROVED`, `REJECTED` and `CANCELLED` history. The revised
-  schema deliberately does not use a unique `(group_id, period_id)` key; the
-  Service layer prevents more than one active registration.
+  keeps `PENDING`, `APPROVED`, `REJECTED` and `CANCELLED` history, including a
+  required rejection reason for a Faculty Head rejection. The revised schema
+  deliberately does not use a unique `(group_id, period_id)` key; the Service
+  layer prevents more than one active registration. Downstream report and
+  evaluation flows should load only approved registrations through the
+  repository's read-only approved-registration query.
 - `ReportEntity` stores report metadata and uploader information. File bytes
   stay outside the database in configured non-public storage. Upload is allowed
   only for the leader of an approved registration; file policy is configurable

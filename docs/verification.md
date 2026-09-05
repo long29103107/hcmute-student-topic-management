@@ -124,6 +124,38 @@ SSR/REST request-level assertions:
 - Published proposals are rejected by the existing proposal update flow, and
   publication mutations require CSRF.
 
+## Topic Registration Submission checklist (Issue #10 / 003_003)
+
+The `TopicRegistrationControllerTest` suite maps the student registration
+slice to SSR/REST request-level assertions without including Faculty Head
+review from Issue #11:
+
+- the leader can submit through REST and the SSR form, and the student can view
+  registration history for their groups;
+- non-leaders are rejected server-side;
+- only `ACTIVE` groups and `PUBLISHED` topics are accepted;
+- the selected topic must belong to the group's registration period and the
+  inclusive student registration window is enforced;
+- a group cannot create a second `PENDING`/`APPROVED` registration in the same
+  period; the submitted user and timestamp are persisted;
+- students cannot read registrations for unrelated groups.
+
+## Topic Registration Review checklist (Issue #11 / 003_004)
+
+The `TopicRegistrationReviewControllerTest` suite maps the Faculty Head/Admin
+review slice to SSR/REST request-level assertions:
+
+- `REGISTRATION_REVIEW` allows the Faculty Head/Admin review queue; a Faculty
+  Head sees only registrations whose topic belongs to the assigned department;
+- pending registrations can be approved or rejected, while rejection requires
+  a non-blank reason no longer than 500 characters;
+- only `PENDING` rows transition; approved/rejected rows cannot be edited or
+  transitioned again;
+- registration history remains queryable after review, and the approved-only
+  read-only repository query excludes pending/rejected registrations;
+- the SSR review form, REST review endpoint, invalid reason handling, CSRF and
+  role/scope authorization are covered.
+
 ## Topic Supervisor Assignment checklist (Issue #5 / 002_002)
 
 The `TopicSupervisorControllerTest` suite maps the task acceptance criteria to
