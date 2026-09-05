@@ -83,6 +83,31 @@
             </ul>
           </div>
 
+          <div sec:authorize="hasRole('STUDENT') and hasAuthority('GROUP_MANAGE')">
+            <p
+              class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400"
+              data-sidebar-label
+            >
+              Student workspace
+            </p>
+            <ul class="space-y-1.5">
+              <li>
+                <a
+                  th:href="@{/student/groups}"
+                  th:aria-current="${pageTitle == 'My groups' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'My groups' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'My groups' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m7-8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm5-3h4m-2-2v4"/>
+                  </svg>
+                  <span class="ms-3" data-sidebar-label>My groups</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+
           <div sec:authorize="hasRole('ADMIN')">
             <p
               class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400"

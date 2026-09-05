@@ -28,6 +28,7 @@ import com.hcmute.topicmanagement.repository.PermissionRepository;
 import com.hcmute.topicmanagement.repository.RegistrationPeriodRepository;
 import com.hcmute.topicmanagement.repository.RoleRepository;
 import com.hcmute.topicmanagement.repository.RolePermissionRepository;
+import com.hcmute.topicmanagement.repository.StudentGroupRepository;
 import com.hcmute.topicmanagement.repository.TopicRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
 import com.hcmute.topicmanagement.repository.UserRoleRepository;
@@ -48,6 +49,9 @@ class DatabaseSeedControllerTest {
 
     @Autowired
     private RegistrationPeriodRepository registrationPeriodRepository;
+
+    @Autowired
+    private StudentGroupRepository studentGroupRepository;
 
     @Autowired
     private TopicRepository topicRepository;
@@ -81,6 +85,7 @@ class DatabaseSeedControllerTest {
                 .andExpect(content().string(containsString("POST /api/seed/users")))
                 .andExpect(content().string(containsString("POST /api/seed/departments")))
                 .andExpect(content().string(containsString("POST /api/seed/registration-periods")))
+                .andExpect(content().string(containsString("POST /api/seed/student-groups")))
                 .andExpect(content().string(containsString("POST /api/seed/topics")))
                 .andExpect(content().string(containsString("data-seed-action")))
                 .andExpect(content().string(containsString("Available seed APIs")))
@@ -97,6 +102,7 @@ class DatabaseSeedControllerTest {
                 "/api/seed/departments",
                 "/api/seed/users",
                 "/api/seed/registration-periods",
+                "/api/seed/student-groups",
                 "/api/seed/topics");
 
         for (String endpoint : endpoints) {
@@ -122,6 +128,7 @@ class DatabaseSeedControllerTest {
         org.assertj.core.api.Assertions.assertThat(permissionRepository.count()).isEqualTo(22);
         org.assertj.core.api.Assertions.assertThat(departmentRepository.count()).isEqualTo(15);
         org.assertj.core.api.Assertions.assertThat(registrationPeriodRepository.count()).isEqualTo(1);
+        org.assertj.core.api.Assertions.assertThat(studentGroupRepository.count()).isEqualTo(4);
         org.assertj.core.api.Assertions.assertThat(topicRepository.count()).isEqualTo(8);
         org.assertj.core.api.Assertions.assertThat(topicRepository.countSupervisorAssignments()).isEqualTo(13);
         org.assertj.core.api.Assertions.assertThat(topicRepository.findAllForSupervisorManagement())
@@ -204,6 +211,7 @@ class DatabaseSeedControllerTest {
                 .andExpect(jsonPath("$.departments").value(15))
                 .andExpect(jsonPath("$.users").value(71))
                 .andExpect(jsonPath("$.registrationPeriods").value(1))
+                .andExpect(jsonPath("$.studentGroups").value(4))
                 .andExpect(jsonPath("$.topics").value(8))
                 .andExpect(jsonPath("$.topicSupervisors").value(13))
                 .andExpect(jsonPath("$.facultyHeads").value(4))
@@ -216,6 +224,7 @@ class DatabaseSeedControllerTest {
         org.assertj.core.api.Assertions.assertThat(userRepository.count()).isEqualTo(71);
         org.assertj.core.api.Assertions.assertThat(departmentRepository.count()).isEqualTo(15);
         org.assertj.core.api.Assertions.assertThat(registrationPeriodRepository.count()).isEqualTo(1);
+        org.assertj.core.api.Assertions.assertThat(studentGroupRepository.count()).isEqualTo(4);
         org.assertj.core.api.Assertions.assertThat(topicRepository.count()).isEqualTo(8);
         org.assertj.core.api.Assertions.assertThat(topicRepository.countSupervisorAssignments()).isEqualTo(13);
         org.assertj.core.api.Assertions.assertThat(userRoleRepository.countByRole_CodeAndActiveTrueAndUser_ActiveTrue("FACULTY_HEAD"))
@@ -247,6 +256,12 @@ class DatabaseSeedControllerTest {
         org.assertj.core.api.Assertions.assertThat(rolePermissionRepository
                 .existsByRole_IdAndPermission_IdAndActiveTrue(
                         admin.getId(), permissionRepository.findByCode("DEPARTMENT_MANAGE").orElseThrow().getId()))
+                .isTrue();
+
+        var studentRole = roleRepository.findByCode("STUDENT").orElseThrow();
+        org.assertj.core.api.Assertions.assertThat(rolePermissionRepository
+                .existsByRole_IdAndPermission_IdAndActiveTrue(
+                        studentRole.getId(), permissionRepository.findByCode("GROUP_MANAGE").orElseThrow().getId()))
                 .isTrue();
 
         var facultyHeadRole = roleRepository.findByCode("FACULTY_HEAD").orElseThrow();

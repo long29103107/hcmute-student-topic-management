@@ -22,9 +22,11 @@ import com.hcmute.topicmanagement.model.PermissionEntity;
 import com.hcmute.topicmanagement.model.RegistrationPeriodEntity;
 import com.hcmute.topicmanagement.model.RoleEntity;
 import com.hcmute.topicmanagement.model.RolePermissionEntity;
+import com.hcmute.topicmanagement.model.StudentGroupEntity;
 import com.hcmute.topicmanagement.model.TopicEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
+import com.hcmute.topicmanagement.model.enums.GroupStatus;
 import com.hcmute.topicmanagement.model.enums.PeriodType;
 import com.hcmute.topicmanagement.model.enums.RegistrationPeriodStatus;
 import com.hcmute.topicmanagement.model.enums.TopicStatus;
@@ -33,6 +35,7 @@ import com.hcmute.topicmanagement.repository.PermissionRepository;
 import com.hcmute.topicmanagement.repository.RegistrationPeriodRepository;
 import com.hcmute.topicmanagement.repository.RolePermissionRepository;
 import com.hcmute.topicmanagement.repository.RoleRepository;
+import com.hcmute.topicmanagement.repository.StudentGroupRepository;
 import com.hcmute.topicmanagement.repository.TopicRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
 import com.hcmute.topicmanagement.repository.UserRoleRepository;
@@ -272,6 +275,12 @@ public class DatabaseSeedService {
                     TopicStatus.DRAFT,
                     List.of("nguyen.thi.thu", "ta.minh.quan")));
 
+    private static final List<StudentGroupSeed> STUDENT_GROUPS = List.of(
+            new StudentGroupSeed("Nhóm Phoenix", "24110000", List.of("24110001", "24110002")),
+            new StudentGroupSeed("Nhóm Orion", "24110003", List.of("24110004", "24110005")),
+            new StudentGroupSeed("Nhóm Nova", "24110013", List.of("24110014", "24110015")),
+            new StudentGroupSeed("Nhóm Atlas", "24110026", List.of("24110027", "24110028")));
+
     private static final List<UserSeed> USERS = buildUsers();
 
     private static List<UserSeed> buildUsers() {
@@ -321,6 +330,7 @@ public class DatabaseSeedService {
     private final RegistrationPeriodRepository registrationPeriodRepository;
     private final RolePermissionRepository rolePermissionRepository;
     private final DepartmentRepository departmentRepository;
+    private final StudentGroupRepository studentGroupRepository;
     private final TopicRepository topicRepository;
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
@@ -334,6 +344,7 @@ public class DatabaseSeedService {
             RegistrationPeriodRepository registrationPeriodRepository,
             RolePermissionRepository rolePermissionRepository,
             DepartmentRepository departmentRepository,
+            StudentGroupRepository studentGroupRepository,
             TopicRepository topicRepository,
             UserRepository userRepository,
             UserRoleRepository userRoleRepository) {
@@ -343,6 +354,7 @@ public class DatabaseSeedService {
         this.registrationPeriodRepository = registrationPeriodRepository;
         this.rolePermissionRepository = rolePermissionRepository;
         this.departmentRepository = departmentRepository;
+        this.studentGroupRepository = studentGroupRepository;
         this.topicRepository = topicRepository;
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
@@ -358,6 +370,7 @@ public class DatabaseSeedService {
         seedDepartments();
         seedUsers(roles);
         seedRegistrationPeriods();
+        List<StudentGroupEntity> studentGroups = seedStudentGroups();
         List<TopicEntity> topics = seedTopics();
         entityManager.clear();
 
@@ -368,6 +381,7 @@ public class DatabaseSeedService {
                 DEPARTMENTS.size(),
                 USERS.size(),
                 1,
+                studentGroups.size(),
                 topics.size(),
                 topics.stream().mapToInt(topic -> topic.getSupervisors().size()).sum(),
                 countUsersWithRole("FACULTY_HEAD"),
@@ -447,6 +461,12 @@ public class DatabaseSeedService {
     public SeedStepResult seedRegistrationPeriodsStep() {
         List<RegistrationPeriodEntity> periods = seedRegistrationPeriods();
         return new SeedStepResult("registration-periods", periods.size(), LocalDateTime.now());
+    }
+
+    @Transactional
+    public SeedStepResult seedStudentGroupsStep() {
+        List<StudentGroupEntity> studentGroups = seedStudentGroups();
+        return new SeedStepResult("student-groups", studentGroups.size(), LocalDateTime.now());
     }
 
     @Transactional
@@ -594,6 +614,42 @@ public class DatabaseSeedService {
         return topicRepository.saveAllAndFlush(topics);
     }
 
+    private List<StudentGroupEntity> seedStudentGroups() {
+        RegistrationPeriodEntity period = registrationPeriodRepository.findByNameIgnoreCase(SEEDED_PERIOD_NAME)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Seed registration periods before student groups."));
+
+        List<StudentGroupEntity> groups = STUDENT_GROUPS.stream()
+                .map(seed -> {
+                    UserEntity leader = requireSeedStudent(seed.leaderLogin());
+                    StudentGroupEntity group = studentGroupRepository
+                            .findByRegistrationPeriod_IdAndNameIgnoreCase(period.getId(), seed.name())
+                            .orElseGet(() -> new StudentGroupEntity(seed.name(), period, leader, leader));
+                    group.setName(seed.name());
+                    group.setRegistrationPeriod(period);
+                    group.setCreatedBy(leader);
+                    group.setLeader(leader);
+                    group.setStatus(GroupStatus.ACTIVE);
+                    group.getMembers().clear();
+                    group.getMembers().add(leader);
+                    seed.memberLogins().stream()
+                            .map(this::requireSeedStudent)
+                            .forEach(group.getMembers()::add);
+                    if (group.getMembers().size() > 3) {
+                        throw new IllegalStateException("Student group seed exceeds the maximum size: " + seed.name());
+                    }
+                    return group;
+                })
+                .toList();
+        return studentGroupRepository.saveAllAndFlush(groups);
+    }
+
+    private UserEntity requireSeedStudent(String loginIdentifier) {
+        return userRepository.findByLoginIdentifier(loginIdentifier)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Seed users before student groups: " + loginIdentifier));
+    }
+
     private UserEntity requireSeedUser(String loginIdentifier) {
         String lookupIdentifier = loginIdentifier.contains("@")
                 ? loginIdentifier
@@ -693,6 +749,7 @@ public class DatabaseSeedService {
             int departments,
             int users,
             int registrationPeriods,
+            int studentGroups,
             int topics,
             int topicSupervisors,
             int facultyHeads,
@@ -725,5 +782,8 @@ public class DatabaseSeedService {
             String proposerLogin,
             TopicStatus status,
             List<String> supervisorLogins) {
+    }
+
+    private record StudentGroupSeed(String name, String leaderLogin, List<String> memberLogins) {
     }
 }

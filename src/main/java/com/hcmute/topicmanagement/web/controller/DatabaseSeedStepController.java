@@ -57,6 +57,11 @@ public class DatabaseSeedStepController {
         return databaseSeedService.seedRegistrationPeriodsStep();
     }
 
+    @PostMapping("/student-groups")
+    public SeedStepResult seedStudentGroups() {
+        return databaseSeedService.seedStudentGroupsStep();
+    }
+
     @PostMapping("/topics")
     public SeedStepResult seedTopics() {
         return databaseSeedService.seedTopicsStep();

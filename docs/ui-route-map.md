@@ -78,7 +78,8 @@ Have unless explicitly selected.
 
 | Method | Route | Purpose |
 |---|---|---|
-| GET/POST | `/student/groups` | `StudentGroupController` → create/join/member list |
+| GET | `/student/groups` | `StudentGroupController` → related group list with search (`search`), pagination (`page`, `size`), column sort (`sort=group|period|leader|members|status|created`, `direction=asc|desc`), create form and join form |
+| POST | `/student/groups`, `/student/groups/join`, `/student/groups/{id}/join`, `/student/groups/{id}/leave` | `StudentGroupController` → create, join by shared group ID, join and leave an active group; server enforces Student role, one active group per period and max three members |
 | POST | `/student/groups/register-topic` | `TopicRegistrationController` → leader submits |
 | GET | `/student/registrations` | `TopicRegistrationController` → own status |
 | GET/POST | `/student/reports` | `ReportController` → leader submits/member status |
@@ -99,8 +100,9 @@ not replace the Thymeleaf flow or duplicate Service rules.
 | POST | `/api/seed/role-permissions` | recreate role-permission fixture assignments | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
 | POST | `/api/seed/users` | create or update local test accounts and role assignments | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
 | POST | `/api/seed/registration-periods` | create or update the local open registration-period fixture | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
+| POST | `/api/seed/student-groups` | create or update four local student-group fixtures with seeded memberships | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
 | POST | `/api/seed/topics` | create or update eight local topic fixtures and their one-to-two supervisor assignments | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
-| POST | `/api/admin/seed` | truncate all 17 revised-schema tables and recreate local identity, academic topic and supervisor fixtures; response includes `tablesReset`, `roles`, `permissions`, `users`, `topics` and `topicSupervisors` | ADMIN only + CSRF; local destructive operation |
+| POST | `/api/admin/seed` | truncate all 17 revised-schema tables and recreate local identity, academic topic, supervisor and student-group fixtures; response includes `tablesReset`, `roles`, `permissions`, `users`, `registrationPeriods`, `studentGroups`, `topics` and `topicSupervisors` | ADMIN only + CSRF; local destructive operation |
 | GET | `/api/announcements` | published announcements | authenticated |
 | GET | `/api/topics` | published topics filtered by keyword, period or department; the server only returns PUBLISHED topics in an OPEN period with an active student window | `TOPIC_VIEW` |
 | POST | `/api/faculty/topics/{id}/publish`, `/api/topics/{id}/publish` | publish an APPROVED topic; Admin can publish across departments and Faculty Head is scoped to their department | `TOPIC_REVIEW` + Admin/Faculty Head role + CSRF |
@@ -111,7 +113,10 @@ not replace the Thymeleaf flow or duplicate Service rules.
 | PUT | `/api/lecturer/topics/{id}` | update an owned `DRAFT`/`REJECTED` proposal; a rejected proposal returns to `DRAFT` after a valid update | `TOPIC_PROPOSE` |
 | GET | `/api/faculty/topics/review`, `/api/topics/review` | list pending topic proposals in the actor's review scope | `TOPIC_REVIEW` |
 | POST | `/api/topics/{id}/approve` | approve/reject a `PENDING_APPROVAL` topic with `{ "decision": "APPROVE" | "REJECT" }` | `TOPIC_REVIEW` + CSRF |
-| GET/POST | `/api/student/groups` | group/member operations | Student |
+| GET | `/api/student/groups` | related groups with search, pagination metadata and column sort (`sort=group|period|leader|members|status|created`, `direction=asc|desc`) | `GROUP_MANAGE` + Student |
+| POST | `/api/student/groups` | create a group; creator becomes the leader and first member | `GROUP_MANAGE` + Student + CSRF |
+| POST | `/api/student/groups/{groupId}/members` | join an active group | `GROUP_MANAGE` + Student + CSRF |
+| DELETE | `/api/student/groups/{groupId}/members/me` | leave an active group as a non-leader member | `GROUP_MANAGE` + Student + CSRF |
 | POST | `/api/student/groups/{groupId}/registrations` | leader submits registration | Group leader |
 | POST | `/api/student/reports` | leader uploads report metadata/file | Group leader |
 | GET | `/api/reports/{id}` | permitted report metadata/download | permitted user |
