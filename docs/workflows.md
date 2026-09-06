@@ -66,6 +66,9 @@ DRAFT -> PENDING_APPROVAL -> APPROVED -> PUBLISHED
 ```
 
 - Lecturer owns creation while the lecturer window is open.
+- Lecturer can submit an owned `DRAFT` or `REJECTED` proposal while its
+  lecturer registration window is open; submission changes the topic to
+  `PENDING_APPROVAL` and makes it read-only until Faculty review decides it.
 - Admin/Faculty Head owns approval/rejection; Admin can publish across departments and Faculty Head publication is department-scoped.
 - Student catalog/query checks `PUBLISHED`, an `OPEN` period and the inclusive student registration window; registration later rechecks the same gates.
 - Rejection reason is optional for Must Have and useful for Should Have; keep

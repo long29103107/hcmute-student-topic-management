@@ -30,6 +30,9 @@
 - The Student dashboard only shows `Register a topic` when the student is the
   leader of an active group; non-leaders still see group, registration and result
   actions but not the topic-registration shortcut.
+- Dashboard content wrappers now use the full available main width instead of
+  centering a `max-w-7xl` block, removing the excessive gap between the sidebar
+  and the first dashboard content column.
 
 ## 2026-09-06 — Sidebar accordion groups
 
@@ -457,6 +460,20 @@ factual and free of secrets. Update this file after every code or UI update.
 - The `/seed` pipeline's `/api/seed/ddl` step now drops all 17 revised-schema
   tables, recreates the DDL and requires an explicit destructive confirmation;
   app startup remains non-destructive with `ddl-auto=none`.
+
+## 2026-09-06 — Lecturer topic submission handoff
+
+- Added the missing Lecturer submission flow from `DRAFT`/`REJECTED` to
+  `PENDING_APPROVAL` through SSR `POST /lecturer/topics/{id}/submit` and REST
+  `POST /api/lecturer/topics/{id}/submit`.
+- Submission is owner-scoped, permission-protected, CSRF-protected and only
+  allowed while the topic's lecturer registration window is open. The UI now
+  exposes a confirmation modal from the topic Actions menu.
+- Updated `docs/ui-route-map.md`, `docs/workflows.md` and
+  `docs/verification.md`.
+- Verification: focused `TopicProposalControllerTest` passes; full `mvn test`
+  passes; `node --check src/main/resources/static/js/app.js` and
+  `git diff --check` pass.
 
 ## Entry template
 

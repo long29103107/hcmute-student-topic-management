@@ -94,6 +94,7 @@ class TopicProposalControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("lecturer/topics"))
                 .andExpect(content().string(containsString("Smart campus platform " + suffix)))
+                .andExpect(content().string(containsString("Submit for review")))
                 .andExpect(content().string(containsString("my-8 w-full max-w-2xl")))
                 .andExpect(content().string(not(containsString(otherTopic.getTitle()))));
     }
@@ -187,12 +188,51 @@ class TopicProposalControllerTest {
     }
 
     @Test
+    void lecturerCanSubmitDraftAndRejectedTopicForReview() throws Exception {
+        String suffix = suffix();
+        UserEntity lecturer = lecturer(suffix);
+        DepartmentEntity department = department(suffix);
+        RegistrationPeriodEntity period = openPeriod(suffix);
+        TopicEntity topic = topicRepository.saveAndFlush(new TopicEntity(
+                period, department, lecturer, "Submit topic " + suffix, "Submit description"));
+
+        mockMvc.perform(post("/lecturer/topics/{id}/submit", topic.getId())
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/lecturer/topics"))
+                .andExpect(flash().attribute(
+                        "successMessage", "Topic proposal submitted for faculty review."));
+
+        assertEquals(TopicStatus.PENDING_APPROVAL, topicRepository.findById(topic.getId()).orElseThrow().getStatus());
+
+        topic.setStatus(TopicStatus.REJECTED);
+        topicRepository.saveAndFlush(topic);
+
+        mockMvc.perform(post("/lecturer/topics/{id}/submit", topic.getId())
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute(
+                        "successMessage", "Topic proposal submitted for faculty review."));
+
+        assertEquals(TopicStatus.PENDING_APPROVAL, topicRepository.findById(topic.getId()).orElseThrow().getStatus());
+
+        mockMvc.perform(post("/lecturer/topics/{id}/submit", topic.getId())
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute(
+                        "errorMessage", "Only draft or rejected topic proposals can be submitted for review."));
+    }
+
+    @Test
     void topicProposalApiReturnsOwnTopicsAndValidatesRequests() throws Exception {
         String suffix = suffix();
         UserEntity lecturer = lecturer(suffix);
         DepartmentEntity department = department(suffix);
         RegistrationPeriodEntity period = openPeriod(suffix);
-        topicRepository.saveAndFlush(new TopicEntity(
+        TopicEntity apiTopic = topicRepository.saveAndFlush(new TopicEntity(
                 period, department, lecturer, "API proposal " + suffix, "API description"));
 
         mockMvc.perform(get("/api/lecturer/topics")
@@ -200,6 +240,12 @@ class TopicProposalControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("API proposal " + suffix))
                 .andExpect(jsonPath("$[0].statusCode").value("DRAFT"));
+
+        mockMvc.perform(post("/api/lecturer/topics/{id}/submit", apiTopic.getId())
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statusCode").value("PENDING_APPROVAL"));
 
         mockMvc.perform(post("/api/lecturer/topics")
                         .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))

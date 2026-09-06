@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main}">
 <head><title>Lecturer dashboard</title></head>
 <body>
-<main layout:fragment="content" class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+<main layout:fragment="content" class="w-full min-w-0 px-4 py-8 sm:px-6 lg:px-8">
     <section id="overview" aria-labelledby="page-title">
         <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div><p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Lecturer workspace / Overview</p><h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Lecturer dashboard</h1><p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500" th:text="${'Welcome back, ' + dashboard.displayName + '. Keep your proposals and assigned evaluations on track.'}">Keep your proposals and assigned evaluations on track.</p></div>

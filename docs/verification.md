@@ -88,6 +88,18 @@ The period service and controller tests also cover the follow-up rules:
 
 ## REST smoke checklist
 
+## Topic Proposal Submission checklist
+
+The `TopicProposalControllerTest` suite covers the missing handoff from the
+Lecturer workspace into Faculty review:
+
+- An owner can submit a `DRAFT` or `REJECTED` proposal while its lecturer
+  registration window is open, and the Service persists `PENDING_APPROVAL`.
+- Submitted proposals cannot be submitted again and remain protected by the
+  existing ownership and permission checks.
+- The SSR route and REST endpoint both require `TOPIC_PROPOSE` and CSRF for
+  mutations; the page exposes a confirmation modal before submission.
+
 ## Topic Review, Approve and Reject checklist (Issue #6 / 002_003)
 
 The `TopicReviewControllerTest` suite maps the issue checklist to SSR/REST

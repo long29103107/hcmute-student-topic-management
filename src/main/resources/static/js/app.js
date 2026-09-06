@@ -475,6 +475,56 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const topicSubmitModal = document.querySelector('[data-topic-submit-confirm-modal]');
+    const topicSubmitForms = [...document.querySelectorAll('[data-submit-review-form]')];
+    if (topicSubmitModal && topicSubmitForms.length > 0) {
+        const topicTitle = topicSubmitModal.querySelector('[data-topic-submit-modal-topic-title]');
+        const confirmButton = topicSubmitModal.querySelector('[data-topic-submit-modal-confirm]');
+        const closeButtons = topicSubmitModal.querySelectorAll('[data-topic-submit-modal-close]');
+        let pendingSubmitForm;
+        let lastFocusedElement;
+
+        const closeTopicSubmitModal = () => {
+            topicSubmitModal.classList.add('hidden');
+            topicSubmitModal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('overflow-hidden');
+            pendingSubmitForm = undefined;
+            lastFocusedElement?.focus();
+        };
+
+        document.querySelectorAll('[data-submit-review-open]').forEach((button) => {
+            button.addEventListener('click', () => {
+                pendingSubmitForm = document.getElementById(button.dataset.submitReviewOpen);
+                if (!pendingSubmitForm) {
+                    return;
+                }
+                lastFocusedElement = button;
+                if (topicTitle) {
+                    topicTitle.textContent = button.dataset.submitReviewTopicTitle || 'this topic';
+                }
+                topicSubmitModal.classList.remove('hidden');
+                topicSubmitModal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('overflow-hidden');
+                window.setTimeout(() => confirmButton?.focus(), 0);
+            });
+        });
+
+        closeButtons.forEach((button) => button.addEventListener('click', closeTopicSubmitModal));
+        confirmButton?.addEventListener('click', () => {
+            pendingSubmitForm?.submit();
+        });
+        topicSubmitModal.addEventListener('click', (event) => {
+            if (event.target === topicSubmitModal) {
+                closeTopicSubmitModal();
+            }
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !topicSubmitModal.classList.contains('hidden')) {
+                closeTopicSubmitModal();
+            }
+        });
+    }
+
     document.querySelectorAll('[data-group-modal]').forEach((modal) => {
         const openButtons = document.querySelectorAll(`[data-group-modal-open="${modal.id}"]`);
         const closeButtons = modal.querySelectorAll('[data-group-modal-close]');

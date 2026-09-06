@@ -26,6 +26,8 @@ public class TopicProposalService {
     private static final int MAX_DESCRIPTION_LENGTH = 5000;
     private static final Set<TopicStatus> EDITABLE_STATUSES =
             EnumSet.of(TopicStatus.DRAFT, TopicStatus.REJECTED);
+    private static final Set<TopicStatus> SUBMITTABLE_STATUSES =
+            EnumSet.of(TopicStatus.DRAFT, TopicStatus.REJECTED);
 
     private final TopicRepository topicRepository;
     private final UserRepository userRepository;
@@ -101,6 +103,30 @@ public class TopicProposalService {
         if (topic.getStatus() == TopicStatus.REJECTED) {
             topic.setStatus(TopicStatus.DRAFT);
         }
+        return toSummary(topicRepository.saveAndFlush(topic));
+    }
+
+    @Transactional
+    @PreAuthorize("hasAuthority('TOPIC_PROPOSE')")
+    public TopicSummary submitForReview(Long topicId, String lecturerEmail) {
+        UserEntity lecturer = findActiveLecturer(lecturerEmail);
+        TopicEntity topic = topicRepository.findOwnProposalWithPeriodAndDepartment(topicId, lecturer.getId())
+                .orElseThrow(() -> new TopicProposalNotFoundException(topicId));
+        if (!SUBMITTABLE_STATUSES.contains(topic.getStatus())) {
+            throw new TopicProposalValidationException(
+                    "Only draft or rejected topic proposals can be submitted for review.");
+        }
+
+        try {
+            registrationPeriodService.requireOpenForLecturer(
+                    topic.getRegistrationPeriod().getId(), LocalDateTime.now());
+        } catch (RegistrationPeriodService.RegistrationPeriodNotFoundException
+                | RegistrationPeriodService.RegistrationPeriodAccessException exception) {
+            throw new TopicProposalValidationException(
+                    "The topic proposal can only be submitted while its registration period is open for lecturer proposals.");
+        }
+
+        topic.setStatus(TopicStatus.PENDING_APPROVAL);
         return toSummary(topicRepository.saveAndFlush(topic));
     }
 

@@ -70,7 +70,7 @@ Have unless explicitly selected.
 | Method | Route | Purpose |
 |---|---|---|
 | GET | `/lecturer/topics` | `TopicProposalController` → list the authenticated Lecturer's own proposals and render compact `max-w-2xl` create/edit modals; Faculty Head access is limited to the same own-proposal capability |
-| POST | `/lecturer/topics`, `/lecturer/topics/{id}/edit` | `TopicProposalController` → create or update an owned proposal through PRG; the Service requires an active department, an open lecturer registration window and an editable `DRAFT`/`REJECTED` status |
+| POST | `/lecturer/topics`, `/lecturer/topics/{id}/edit`, `/lecturer/topics/{id}/submit` | `TopicProposalController` → create, update or submit an owned proposal through PRG; submit transitions `DRAFT`/`REJECTED` to `PENDING_APPROVAL` while the lecturer registration window is open |
 | GET | `/lecturer/assignments` | `AssignmentController` → supervised/reviewer assignments |
 | GET/POST | `/lecturer/scoring`, `/lecturer/scoring/{id}` | `EvaluationScoringController` → assigned evaluation queue and score/comment modal; score changes use PRG |
 | GET | `/reports/view?id=...` | `ReportViewController` → relationship-authorized report download |
@@ -111,6 +111,7 @@ not replace the Thymeleaf flow or duplicate Service rules.
 | PUT | `/api/faculty/topics/{id}/supervisors` | replace a topic's supervisor IDs; accepts one or two IDs and returns the updated assignment | `SUPERVISOR_MANAGE` + CSRF |
 | GET/POST | `/api/lecturer/topics` | list or create the authenticated user's own topic proposals; create validates the active department and inclusive lecturer registration window | `TOPIC_PROPOSE` |
 | PUT | `/api/lecturer/topics/{id}` | update an owned `DRAFT`/`REJECTED` proposal; a rejected proposal returns to `DRAFT` after a valid update | `TOPIC_PROPOSE` |
+| POST | `/api/lecturer/topics/{id}/submit` | submit an owned `DRAFT`/`REJECTED` proposal for Faculty review while its lecturer registration window is open; transitions it to `PENDING_APPROVAL` | `TOPIC_PROPOSE` + CSRF |
 | GET | `/api/faculty/topics/review`, `/api/topics/review` | list pending topic proposals in the actor's review scope | `TOPIC_REVIEW` |
 | POST | `/api/topics/{id}/approve` | approve/reject a `PENDING_APPROVAL` topic with `{ "decision": "APPROVE" | "REJECT" }` | `TOPIC_REVIEW` + CSRF |
 | GET | `/api/student/groups` | related groups with search, pagination metadata and column sort (`sort=group|period|leader|members|status|created`, `direction=asc|desc`) | `GROUP_MANAGE` + Student |

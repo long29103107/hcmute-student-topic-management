@@ -56,6 +56,12 @@ public class TopicProposalRestController {
                 request.departmentId(), request.periodId());
     }
 
+    @PostMapping("/{id}/submit")
+    @PreAuthorize("hasAuthority('TOPIC_PROPOSE')")
+    public TopicSummary submitForReview(Authentication authentication, @PathVariable Long id) {
+        return topicProposalService.submitForReview(id, authentication.getName());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException exception) {
         Map<String, String> fieldErrors = new LinkedHashMap<>();

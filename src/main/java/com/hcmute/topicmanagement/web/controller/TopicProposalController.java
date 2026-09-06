@@ -85,6 +85,23 @@ public class TopicProposalController {
         return "redirect:/lecturer/topics";
     }
 
+    @PostMapping("/{id}/submit")
+    @PreAuthorize("hasAuthority('TOPIC_PROPOSE')")
+    public String submitForReview(
+            Authentication authentication,
+            @PathVariable Long id,
+            RedirectAttributes redirectAttributes) {
+        try {
+            topicProposalService.submitForReview(id, authentication.getName());
+            redirectAttributes.addFlashAttribute(
+                    "successMessage", "Topic proposal submitted for faculty review.");
+        } catch (TopicProposalService.TopicProposalNotFoundException
+                | TopicProposalService.TopicProposalValidationException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        }
+        return "redirect:/lecturer/topics";
+    }
+
     private void populatePage(String lecturerEmail, Model model) {
         List<TopicSummary> topics = topicProposalService.listOwnProposals(lecturerEmail);
         TopicProposalService.ProposalFormOptions options = topicProposalService.getProposalFormOptions();
