@@ -31,8 +31,8 @@ Have unless explicitly selected.
 
 | Method | Route | Purpose |
 |---|---|---|
-| GET | `/` | `HomeController` → `home.html`, redirects to the dashboard |
-| GET | `/dashboard` | `HomeController` → `home.html`, first-look MVP dashboard |
+| GET | `/` | `HomeController` → redirects to the role-aware dashboard |
+| GET | `/dashboard` | `HomeController` → `dashboard/admin.html`, `dashboard/faculty-head.html`, `dashboard/lecturer.html` or `dashboard/student.html` based on the authenticated role |
 | GET | `/announcements` | published announcements |
 | GET | `/topics` | `TopicCatalogController` → published topic list filtered by keyword, department and valid student registration period |
 | GET | `/topics/view?id=...` | topic detail |

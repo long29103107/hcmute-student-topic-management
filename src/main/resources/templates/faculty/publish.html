@@ -72,8 +72,8 @@
                             <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800" th:text="${topic.statusLabel}">Approved</span>
                         </td>
                         <td class="px-6 py-4">
-                            <form class="m-0 flex justify-end" th:action="@{/faculty/topics/publish}" method="post"
-                                  th:attr="data-confirm=${'Publish &quot;' + topic.title + '&quot;? Students will be able to see it when the period is valid.'}">
+                            <form class="m-0 flex justify-end" data-publish-form th:action="@{/faculty/topics/publish}" method="post"
+                                  th:attr="data-publish-topic-title=${topic.title}">
                                 <input type="hidden" name="topicId" th:value="${topic.id}">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                                 <button type="submit" title="Publish topic" aria-label="Publish topic"
@@ -110,6 +110,38 @@
             </div>
         </section>
     </section>
+
+    <div id="publish-confirm-modal" class="fixed inset-0 z-[70] hidden overflow-y-auto" tabindex="-1"
+         aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="publish-confirm-title"
+         aria-describedby="publish-confirm-description" data-publish-confirm-modal>
+        <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" data-publish-modal-close></div>
+        <div class="relative flex min-h-full items-center justify-center p-4">
+            <div class="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+                <div class="flex items-start gap-4 px-6 pb-5 pt-6">
+                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                        <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 10 3 3 7-7"/></svg>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h2 id="publish-confirm-title" class="text-lg font-semibold text-gray-900" data-publish-modal-title>Publish topic?</h2>
+                        <p id="publish-confirm-description" class="mt-2 text-sm leading-6 text-gray-500" data-publish-modal-description>
+                            Students will be able to see this topic when the registration period is valid.
+                        </p>
+                        <p class="mt-2 truncate text-sm font-semibold text-gray-800" data-publish-modal-topic-title></p>
+                    </div>
+                    <button type="button" class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-900"
+                            aria-label="Close confirmation dialog" data-publish-modal-close>
+                        <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 12 12M13 1 1 13"/></svg>
+                    </button>
+                </div>
+                <div class="flex justify-end gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">
+                    <button type="button" class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100"
+                            data-publish-modal-cancel>Cancel</button>
+                    <button type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200"
+                            data-publish-modal-confirm>Publish topic</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 </body>
 </html>

@@ -257,7 +257,10 @@ Out:
 
 #### Verification
 
-- `mvn -q -Dtest=EvaluatorAssignmentControllerTest test` — passed, 4 tests.
+- `mvn -q -Dtest=EvaluatorAssignmentControllerTest test` — passed, 5 tests.
+- Full `mvn -q test` — passed, 149 tests, 0 failures, 0 errors.
+- `mvn -q package -DskipTests` — passed; executable JAR packaged.
+- `git diff --check` — passed with only normal LF/CRLF conversion warnings.
 
 ### 004_004 - Scoring & Average Calculation
 

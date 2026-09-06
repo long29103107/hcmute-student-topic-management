@@ -86,7 +86,7 @@ public class EvaluatorAssignmentService {
         }
         assertCanManage(scope, registration);
 
-        UserEntity evaluator = findActiveEvaluator(evaluatorId);
+        UserEntity evaluator = findActiveEvaluator(evaluatorId, registration);
         if (isTopicSupervisor(evaluator, registration)) {
             throw new EvaluatorAssignmentValidationException(
                     "A topic supervisor cannot be assigned as that topic's evaluator.");
@@ -107,20 +107,33 @@ public class EvaluatorAssignmentService {
                         "Only an active Admin or Faculty Head can assign evaluators."));
     }
 
-    private UserEntity findActiveEvaluator(Long evaluatorId) {
+    private UserEntity findActiveEvaluator(Long evaluatorId, TopicRegistrationEntity registration) {
         List<UserEntity> candidates = userRepository.findActiveLecturerCapabilitiesByIdIn(List.of(evaluatorId));
         if (candidates.size() != 1) {
             throw new EvaluatorAssignmentValidationException(
                     "Evaluator must be an active Lecturer or Faculty Head.");
         }
-        return candidates.get(0);
+        UserEntity evaluator = candidates.get(0);
+        Long topicDepartmentId = registration.getTopic().getDepartment() == null
+                ? null : registration.getTopic().getDepartment().getId();
+        if (topicDepartmentId == null
+                || evaluator.getDepartment() == null
+                || !Objects.equals(topicDepartmentId, evaluator.getDepartment().getId())) {
+            throw new EvaluatorAssignmentValidationException(
+                    "Evaluator must belong to the topic's department.");
+        }
+        return evaluator;
     }
 
     private RegistrationSummary toSummary(TopicRegistrationEntity registration) {
         EvaluationEntity evaluation = evaluationRepository
                 .findFirstByTopicRegistration_IdOrderByCreatedAtAsc(registration.getId())
                 .orElse(null);
-        List<EvaluatorOption> options = userRepository.findActiveLecturerCapabilitiesOrderByFullName().stream()
+        Long topicDepartmentId = registration.getTopic().getDepartment() == null
+                ? null : registration.getTopic().getDepartment().getId();
+        List<EvaluatorOption> options = topicDepartmentId == null
+                ? List.of()
+                : userRepository.findActiveLecturerCapabilitiesByDepartmentIdOrderByFullName(topicDepartmentId).stream()
                 .filter(candidate -> !isTopicSupervisor(candidate, registration))
                 .map(EvaluatorAssignmentService::toOption)
                 .toList();

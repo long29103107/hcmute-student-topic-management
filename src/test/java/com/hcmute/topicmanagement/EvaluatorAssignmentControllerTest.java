@@ -158,6 +158,41 @@ class EvaluatorAssignmentControllerTest {
     }
 
     @Test
+    void assignmentRejectsOtherDepartmentEvaluatorAndExcludesThemFromOptions() throws Exception {
+        String suffix = suffix();
+        DepartmentEntity topicDepartment = department("EVAL-SAME-" + suffix);
+        DepartmentEntity otherDepartment = department("EVAL-OTHER-" + suffix);
+        UserEntity facultyHead = account("eval-same-head-" + suffix, "Same Department Head " + suffix,
+                "FACULTY_HEAD", topicDepartment);
+        UserEntity sameDepartmentEvaluator = account("eval-same-lecturer-" + suffix,
+                "Same Department Evaluator " + suffix, "LECTURER", topicDepartment);
+        UserEntity otherDepartmentEvaluator = account("eval-other-lecturer-" + suffix,
+                "Other Department Evaluator " + suffix, "LECTURER", otherDepartment);
+        TopicRegistrationEntity registration = registration(
+                openPeriod(suffix), topicDepartment, "Same department evaluator " + suffix,
+                TopicRegistrationStatus.APPROVED);
+
+        mockMvc.perform(get("/api/faculty/registrations/evaluators")
+                        .with(user(facultyHeadPrincipal(facultyHead.getEmailOrCode()))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.registrations[?(@.id == " + registration.getId()
+                        + ")].evaluatorOptions[*].id").value(hasItem(sameDepartmentEvaluator.getId().intValue())))
+                .andExpect(jsonPath("$.registrations[?(@.id == " + registration.getId()
+                        + ")].evaluatorOptions[*].id").value(
+                                not(hasItem(otherDepartmentEvaluator.getId().intValue()))));
+
+        mockMvc.perform(put("/api/faculty/registrations/{id}/evaluator", registration.getId())
+                        .with(user(facultyHeadPrincipal(facultyHead.getEmailOrCode())))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"evaluatorId\":" + otherDepartmentEvaluator.getId() + "}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("EVALUATOR_ASSIGNMENT_INVALID"))
+                .andExpect(jsonPath("$.message").value(
+                        "Evaluator must belong to the topic's department."));
+    }
+
+    @Test
     void onlyApprovedRegistrationsInFacultyHeadDepartmentCanBeAssigned() throws Exception {
         String suffix = suffix();
         DepartmentEntity ownDepartment = department("EVAL-OWN-" + suffix);

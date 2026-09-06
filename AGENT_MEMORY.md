@@ -1,5 +1,55 @@
 # Agent Memory
 
+## 2026-09-06 — CNTT department Markdown export
+
+- Added `docs/department-cntt.md`, a seed-backed Markdown export covering the
+  CNTT department, Faculty Head, lecturers, students, topics, supervisors,
+  student groups, registration period and relevant routes.
+- The export intentionally omits credentials and labels registrations,
+  evaluations, reports and results as unavailable from the live database when
+  MySQL is not running; the seed baseline creates none of those activity rows.
+
+## 2026-09-06 — Custom publish confirmation modal
+
+- Replaced the browser-native `window.confirm()` on `/faculty/topics/publish`
+  with an accessible in-page confirmation modal showing the selected topic,
+  Cancel and Publish actions, Escape handling and focus restoration.
+- The modal still submits the existing CSRF-protected POST form only after the
+  user confirms; other legacy confirmation forms remain unchanged.
+
+## 2026-09-06 — Role-specific dashboards
+
+- Replaced the hardcoded shared dashboard route with repository-backed dashboards
+  for Admin, Faculty Head, Lecturer and Student accounts.
+- `/dashboard` remains the stable entry point; `DashboardService` selects the
+  role template and scopes workflow counts to the authenticated user's role and
+  department where applicable.
+- Added four Thymeleaf views under `templates/dashboard/` with role-specific
+  metrics and quick actions. The older `home.html` remains as an unused legacy
+  artifact until the dashboard cleanup phase.
+- The Student dashboard only shows `Register a topic` when the student is the
+  leader of an active group; non-leaders still see group, registration and result
+  actions but not the topic-registration shortcut.
+
+## 2026-09-06 — Sidebar accordion groups
+
+- Converted the five role-aware sidebar sections into native accessible
+  accordion groups using `<details>`/`<summary>`.
+- The group containing the current page opens automatically from `pageTitle`,
+  while users can click each group header to expand or collapse it.
+- Rebuilt Tailwind assets and verified the Thymeleaf-rendering controller
+  suites pass.
+
+## 2026-09-06 — Evaluator candidates are department-scoped
+
+- Evaluator assignment options now list only active Lecturer/Faculty Head
+  accounts from the topic's department; topic supervisors remain excluded.
+- SSR and REST assignment validation reject a cross-department evaluator even
+  when an out-of-scope ID is submitted directly.
+- Added regression coverage for the option list and cross-department rejection.
+- Verification: focused evaluator suite passes 5/5; full `mvn -q test` passes
+  149/149; package and diff checks pass.
+
 Durable project context for future coding-agent sessions. Keep entries concise,
 factual and free of secrets. Update this file after every code or UI update.
 

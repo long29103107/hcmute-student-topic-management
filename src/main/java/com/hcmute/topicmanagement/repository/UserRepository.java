@@ -98,6 +98,16 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     @Query("select distinct u from UserEntity u "
             + "left join fetch u.department "
             + "join u.userRoles ur join ur.role r "
+            + "where u.department.id = :departmentId "
+            + "and u.active = true and ur.active = true and r.active = true "
+            + "and r.code in ('LECTURER', 'FACULTY_HEAD') "
+            + "order by lower(u.fullName), lower(u.loginIdentifier)")
+    List<UserEntity> findActiveLecturerCapabilitiesByDepartmentIdOrderByFullName(
+            @Param("departmentId") Long departmentId);
+
+    @Query("select distinct u from UserEntity u "
+            + "left join fetch u.department "
+            + "join u.userRoles ur join ur.role r "
             + "where u.id in :ids and u.active = true and ur.active = true and r.active = true "
             + "and r.code in ('LECTURER', 'FACULTY_HEAD')")
     List<UserEntity> findActiveLecturerCapabilitiesByIdIn(@Param("ids") Collection<Long> ids);

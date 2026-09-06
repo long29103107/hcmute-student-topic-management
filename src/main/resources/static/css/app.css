@@ -20,6 +20,18 @@
         flex: 1 1 auto;
     }
 
+    [data-sidebar-group] > summary {
+        list-style: none;
+    }
+
+    [data-sidebar-group] > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    [data-sidebar-group][open] > summary [data-sidebar-chevron] {
+        transform: rotate(180deg);
+    }
+
     main.max-w-7xl {
         max-width: none;
         width: 100%;

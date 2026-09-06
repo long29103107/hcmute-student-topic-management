@@ -34,13 +34,14 @@
         </a>
 
         <nav class="flex-1 space-y-5 font-medium">
-          <div>
-            <p
-              class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400"
-              data-sidebar-label
-            >
-              Workspace
-            </p>
+          <details data-sidebar-group th:open="${pageTitle == 'Dashboard' or pageTitle == 'Published topics'}">
+            <summary class="group flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:bg-gray-50 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      th:classappend="${pageTitle == 'Dashboard' or pageTitle == 'Published topics' ? 'bg-blue-50 text-blue-700' : ''}">
+              <span data-sidebar-label>Workspace</span>
+              <svg data-sidebar-label data-sidebar-chevron class="h-4 w-4 shrink-0 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m6 9 6 6 6-6"/>
+              </svg>
+            </summary>
             <a
               th:href="@{/dashboard#overview}"
               th:aria-current="${pageTitle == 'Dashboard' ? 'page' : null}"
@@ -62,7 +63,7 @@
               </svg>
               <span class="ms-3" data-sidebar-label>Dashboard</span>
             </a>
-          </div>
+
 
           <div sec:authorize="hasAuthority('TOPIC_VIEW')">
             <ul class="space-y-1.5">
@@ -82,14 +83,16 @@
               </li>
             </ul>
           </div>
+          </details>
 
-          <div sec:authorize="hasRole('STUDENT') and hasAuthority('GROUP_MANAGE')">
-            <p
-              class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400"
-              data-sidebar-label
-            >
-              Student workspace
-            </p>
+          <details sec:authorize="hasRole('STUDENT') and hasAuthority('GROUP_MANAGE')" data-sidebar-group th:open="${pageTitle == 'My groups' or pageTitle == 'My registrations' or pageTitle == 'Register topic' or pageTitle == 'My results'}">
+            <summary class="group flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:bg-gray-50 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      th:classappend="${pageTitle == 'My groups' or pageTitle == 'My registrations' or pageTitle == 'Register topic' or pageTitle == 'My results' ? 'bg-blue-50 text-blue-700' : ''}">
+              <span data-sidebar-label>Student workspace</span>
+              <svg data-sidebar-label data-sidebar-chevron class="h-4 w-4 shrink-0 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m6 9 6 6 6-6"/>
+              </svg>
+            </summary>
             <ul class="space-y-1.5">
               <li>
                 <a
@@ -130,15 +133,16 @@
                 </a>
               </li>
             </ul>
-          </div>
+          </details>
 
-          <div sec:authorize="hasRole('ADMIN')">
-            <p
-              class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400"
-              data-sidebar-label
-            >
-              Administration
-            </p>
+          <details sec:authorize="hasRole('ADMIN')" data-sidebar-group th:open="${pageTitle == 'Manage students' or pageTitle == 'Create user' or pageTitle == 'Edit user' or pageTitle == 'Manage lecturers' or pageTitle == 'Department management' or pageTitle == 'Roles &amp; access controls' or pageTitle == 'Role permissions' or pageTitle == 'Manage permissions'}">
+            <summary class="group flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:bg-gray-50 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      th:classappend="${pageTitle == 'Manage students' or pageTitle == 'Create user' or pageTitle == 'Edit user' or pageTitle == 'Manage lecturers' or pageTitle == 'Department management' or pageTitle == 'Roles & access controls' or pageTitle == 'Role permissions' or pageTitle == 'Manage permissions' ? 'bg-blue-50 text-blue-700' : ''}">
+              <span data-sidebar-label>Administration</span>
+              <svg data-sidebar-label data-sidebar-chevron class="h-4 w-4 shrink-0 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m6 9 6 6 6-6"/>
+              </svg>
+            </summary>
             <ul class="space-y-1.5">
               <li sec:authorize="hasAuthority('USER_READ')">
                 <a
@@ -234,15 +238,16 @@
                 </a>
               </li>
             </ul>
-          </div>
+          </details>
 
-          <div sec:authorize="hasAnyRole('ADMIN', 'LECTURER', 'FACULTY_HEAD')">
-            <p
-              class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400"
-              data-sidebar-label
-            >
-              Lecturer workspace
-            </p>
+          <details sec:authorize="hasAnyRole('ADMIN', 'LECTURER', 'FACULTY_HEAD')" data-sidebar-group th:open="${pageTitle == 'My topic proposals' or pageTitle == 'My evaluations'}">
+            <summary class="group flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:bg-gray-50 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      th:classappend="${pageTitle == 'My topic proposals' or pageTitle == 'My evaluations' ? 'bg-blue-50 text-blue-700' : ''}">
+              <span data-sidebar-label>Lecturer workspace</span>
+              <svg data-sidebar-label data-sidebar-chevron class="h-4 w-4 shrink-0 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m6 9 6 6 6-6"/>
+              </svg>
+            </summary>
             <ul class="space-y-1.5">
                 <li>
                   <a
@@ -294,15 +299,16 @@
                 </a>
               </li>
             </ul>
-          </div>
+          </details>
 
-          <div sec:authorize="hasAnyRole('ADMIN', 'FACULTY_HEAD')">
-            <p
-              class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400"
-              data-sidebar-label
-            >
-              Faculty workflow
-            </p>
+          <details sec:authorize="hasAnyRole('ADMIN', 'FACULTY_HEAD')" data-sidebar-group th:open="${pageTitle == 'My department' or pageTitle == 'Registration period management' or pageTitle == 'Supervisor assignments' or pageTitle == 'Topic review' or pageTitle == 'Registration review' or pageTitle == 'Evaluator assignments' or pageTitle == 'Publish topics' or pageTitle == 'Result publication'}">
+            <summary class="group flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:bg-gray-50 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      th:classappend="${pageTitle == 'My department' or pageTitle == 'Registration period management' or pageTitle == 'Supervisor assignments' or pageTitle == 'Topic review' or pageTitle == 'Registration review' or pageTitle == 'Evaluator assignments' or pageTitle == 'Publish topics' or pageTitle == 'Result publication' ? 'bg-blue-50 text-blue-700' : ''}">
+              <span data-sidebar-label>Faculty workflow</span>
+              <svg data-sidebar-label data-sidebar-chevron class="h-4 w-4 shrink-0 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m6 9 6 6 6-6"/>
+              </svg>
+            </summary>
             <ul class="space-y-1.5">
               <li sec:authorize="hasRole('FACULTY_HEAD')">
                 <a
@@ -413,7 +419,7 @@
                 </a>
               </li>
             </ul>
-          </div>
+          </details>
         </nav>
 
         <div

@@ -1,20 +1,20 @@
 package com.hcmute.topicmanagement.web.controller;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-
-import org.springframework.boot.SpringBootVersion;
-import org.springframework.core.SpringVersion;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import com.hcmute.topicmanagement.service.DashboardService;
+
 @Controller
 public class HomeController {
 
-    private static final DateTimeFormatter TIME_FORMATTER =
-            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss XXX");
+    private final DashboardService dashboardService;
+
+    public HomeController(DashboardService dashboardService) {
+        this.dashboardService = dashboardService;
+    }
 
     @GetMapping("/")
     public String root() {
@@ -22,19 +22,11 @@ public class HomeController {
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model) {
+    public String dashboard(Authentication authentication, Model model) {
+        DashboardService.DashboardView dashboard = dashboardService.load(authentication.getName());
         model.addAttribute("applicationName", "HCMUTE Student Topic Management");
         model.addAttribute("pageTitle", "Dashboard");
-        model.addAttribute("activePeriod", "Project registration period — Semester 1");
-        model.addAttribute("periodStatus", "Open");
-        model.addAttribute("topicCount", 24);
-        model.addAttribute("registrationCount", 12);
-        model.addAttribute("groupCount", 8);
-        model.addAttribute("announcementCount", 3);
-        model.addAttribute("serverTime", OffsetDateTime.now(ZoneId.systemDefault()).format(TIME_FORMATTER));
-        model.addAttribute("javaVersion", System.getProperty("java.version"));
-        model.addAttribute("springVersion", SpringVersion.getVersion());
-        model.addAttribute("springBootVersion", SpringBootVersion.getVersion());
-        return "home";
+        model.addAttribute("dashboard", dashboard.data());
+        return "dashboard/" + dashboard.template();
     }
 }

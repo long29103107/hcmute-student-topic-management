@@ -209,8 +209,9 @@ SSR/REST and persistence assertions:
   access is limited to approved registrations in the assigned department;
 - pending registrations, other departments and unauthorized users cannot be
   assigned through the API;
-- active Lecturer and Faculty Head users are valid evaluator candidates, while
-  students, inactive users and topic supervisors are rejected;
+- active Lecturer and Faculty Head users from the topic's department are valid
+  evaluator candidates, while students, inactive users, other-department users
+  and topic supervisors are rejected;
 - assigning and changing an evaluator updates one `evaluations` row rather
   than creating duplicate assignments;
 - the SSR queue exposes only approved in-scope registrations and provides a

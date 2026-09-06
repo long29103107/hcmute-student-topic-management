@@ -28,7 +28,8 @@ In:
 
 - Faculty Head/Admin evaluator queue for approved registrations.
 - Assign/change one evaluator through the `evaluations` table.
-- Active Lecturer/Faculty Head candidate validation.
+- Active Lecturer/Faculty Head candidate validation scoped to the topic's
+  department.
 - Supervisor conflict, approved-only, department scope and duplicate-row
   protection.
 - SSR modal UI, REST list/update API, sidebar entry and request-level tests.
@@ -44,8 +45,8 @@ Out:
 
 - Faculty Head can assign a valid evaluator in their department scope; Admin
   can operate across departments.
-- Evaluators must be active Lecturer or Faculty Head accounts and cannot be a
-  supervisor for the same topic.
+- Evaluators must be active Lecturer or Faculty Head accounts from the same
+  department as the topic and cannot be a supervisor for the same topic.
 - Only approved registrations are eligible.
 - Reassignment updates the current evaluation row; repeated assignment does
   not create duplicate rows.
@@ -63,7 +64,7 @@ Out:
 
 ## Verification
 
-- Focused `mvn -q -Dtest=EvaluatorAssignmentControllerTest test` passes, 4 tests.
-- Full `mvn -q test` passes, 139 tests, 0 failures, 0 errors.
+- Focused `mvn -q -Dtest=EvaluatorAssignmentControllerTest test` passes, 5 tests.
+- Full `mvn -q test` passes, 149 tests, 0 failures, 0 errors.
 - `mvn -q package -DskipTests` passes; executable JAR packaged.
 - `git diff --check` passes; only normal LF/CRLF conversion warnings.

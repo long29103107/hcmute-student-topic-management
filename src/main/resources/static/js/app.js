@@ -415,6 +415,66 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const publishModal = document.querySelector('[data-publish-confirm-modal]');
+    const publishForms = [...document.querySelectorAll('[data-publish-form]')];
+    if (publishModal && publishForms.length > 0) {
+        const publishModalTopicTitle = publishModal.querySelector('[data-publish-modal-topic-title]');
+        const publishModalConfirm = publishModal.querySelector('[data-publish-modal-confirm]');
+        const publishModalCancel = publishModal.querySelector('[data-publish-modal-cancel]');
+        let pendingPublishForm;
+        let lastFocusedPublishButton;
+
+        const closePublishModal = () => {
+            publishModal.classList.add('hidden');
+            publishModal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('overflow-hidden');
+            pendingPublishForm = undefined;
+            lastFocusedPublishButton?.focus();
+        };
+
+        const openPublishModal = (form, button) => {
+            pendingPublishForm = form;
+            lastFocusedPublishButton = button;
+            if (publishModalTopicTitle) {
+                publishModalTopicTitle.textContent = form.dataset.publishTopicTitle || 'this topic';
+            }
+            publishModal.classList.remove('hidden');
+            publishModal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('overflow-hidden');
+            window.setTimeout(() => publishModalCancel?.focus(), 0);
+        };
+
+        publishForms.forEach((form) => {
+            form.addEventListener('submit', (event) => {
+                if (form.dataset.publishConfirmed === 'true') {
+                    delete form.dataset.publishConfirmed;
+                    return;
+                }
+                event.preventDefault();
+                openPublishModal(form, form.querySelector('button[type="submit"]'));
+            });
+        });
+
+        publishModal.querySelectorAll('[data-publish-modal-close]').forEach((closeButton) => {
+            closeButton.addEventListener('click', closePublishModal);
+        });
+        publishModalCancel?.addEventListener('click', closePublishModal);
+        publishModalConfirm?.addEventListener('click', () => {
+            if (!pendingPublishForm) {
+                return;
+            }
+            const formToSubmit = pendingPublishForm;
+            formToSubmit.dataset.publishConfirmed = 'true';
+            closePublishModal();
+            formToSubmit.requestSubmit();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !publishModal.classList.contains('hidden')) {
+                closePublishModal();
+            }
+        });
+    }
+
     document.querySelectorAll('[data-group-modal]').forEach((modal) => {
         const openButtons = document.querySelectorAll(`[data-group-modal-open="${modal.id}"]`);
         const closeButtons = modal.querySelectorAll('[data-group-modal-close]');

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main}">
+<head><title>Lecturer dashboard</title></head>
+<body>
+<main layout:fragment="content" class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <section id="overview" aria-labelledby="page-title">
+        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <div><p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Lecturer workspace / Overview</p><h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Lecturer dashboard</h1><p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500" th:text="${'Welcome back, ' + dashboard.displayName + '. Keep your proposals and assigned evaluations on track.'}">Keep your proposals and assigned evaluations on track.</p></div>
+            <span class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1.5 text-sm font-medium text-blue-800" th:text="${dashboard.departmentLabel}">Department</span>
+        </div>
+
+        <div class="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Lecturer summary">
+            <a class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md" th:href="@{/lecturer/topics}"><span class="text-sm font-medium text-gray-500">My proposals</span><strong class="mt-2 block text-3xl font-bold text-gray-900" th:text="${dashboard.ownTopicCount}">0</strong><span class="mt-1 block text-xs text-gray-500">All submitted proposals</span></a>
+            <a class="rounded-lg border border-yellow-200 bg-yellow-50 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" th:href="@{/lecturer/topics}"><span class="text-sm font-medium text-yellow-700">Pending proposals</span><strong class="mt-2 block text-3xl font-bold text-yellow-900" th:text="${dashboard.pendingOwnTopics}">0</strong><span class="mt-1 block text-xs text-yellow-700">Waiting for review</span></a>
+            <a class="rounded-lg border border-blue-200 bg-blue-50 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" th:href="@{/lecturer/scoring}"><span class="text-sm font-medium text-blue-700">Assigned evaluations</span><strong class="mt-2 block text-3xl font-bold text-blue-900" th:text="${dashboard.assignedEvaluationCount}">0</strong><span class="mt-1 block text-xs text-blue-700">Topics assigned to you</span></a>
+            <a class="rounded-lg border border-orange-200 bg-orange-50 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" th:href="@{/lecturer/scoring}"><span class="text-sm font-medium text-orange-700">Pending scores</span><strong class="mt-2 block text-3xl font-bold text-orange-900" th:text="${dashboard.pendingAssignedEvaluations}">0</strong><span class="mt-1 block text-xs text-orange-700">Need your evaluation</span></a>
+        </div>
+
+        <div class="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
+            <section class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="period-heading">
+                <div class="mb-5 flex items-start justify-between gap-4"><div><p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Current period</p><h2 id="period-heading" class="text-xl font-semibold text-gray-900" th:text="${dashboard.activePeriodName}">No open registration period</h2></div><span class="rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800" th:text="${dashboard.activePeriodStatus}">OPEN</span></div>
+                <p class="text-sm leading-6 text-gray-500">Use the lecturer workspace to propose topics, update editable proposals and complete assigned evaluation scores.</p>
+                <div class="mt-5 rounded-lg bg-gray-50 p-4"><span class="text-sm text-gray-500">Draft evaluations in your queue</span><strong class="mt-1 block text-2xl font-bold text-gray-900" th:text="${dashboard.pendingEvaluations}">0</strong></div>
+            </section>
+            <section class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="actions-heading">
+                <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Quick actions</p><h2 id="actions-heading" class="mb-5 text-xl font-semibold text-gray-900">Continue your work</h2>
+                <div class="space-y-3">
+                    <a class="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-800 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700" th:href="@{/lecturer/topics}">Manage my proposals <span aria-hidden="true">→</span></a>
+                    <a class="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-800 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700" th:href="@{/lecturer/scoring}">Open scoring queue <span aria-hidden="true">→</span></a>
+                    <a class="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-800 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700" th:href="@{/topics}">Browse published topics <span aria-hidden="true">→</span></a>
+                </div>
+            </section>
+        </div>
+    </section>
+</main>
+</body>
+</html>
