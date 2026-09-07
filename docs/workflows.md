@@ -186,8 +186,9 @@ Issue #15 implements the MVP score-entry boundary:
 - The `reviewer_score_deadline` is enforced server-side. A published
   `registration_results` row also makes the evaluation read-only.
 - The average is calculated from non-null `SUBMITTED`/`PUBLISHED` scores and
-  rounded to two decimal places with `HALF_UP`. Score entry does not publish or
-  write the final result.
+  rounded to two decimal places with `HALF_UP`; scores outside the configured
+  range or with more than two decimal places are invalid. Score entry does not
+  publish or write the final result.
 
 Issue #16 completes the MVP result-release boundary:
 
@@ -209,10 +210,23 @@ Issue #16 completes the MVP result-release boundary:
 - Topic must be assigned to board before scores are accepted.
 - A lecturer cannot submit a score if they are a supervisor of the topic.
 - Score deadline, if applicable, is checked server-side.
-- Chair or the configured academic role aggregates evaluation scores using the
-  confirmed grading policy; until then, keep scale/rounding configurable.
-- Faculty Head publishes only after required scoring/review completion is
-  satisfied by the confirmed policy.
+- Each registration/evaluator pair has one evaluation row. The board materializes
+  one row per active member and reuses/deactivates rows when membership changes.
+- Chair or the configured academic role aggregates only valid submitted scores
+  from current active members; inactive historical members remain auditable but
+  do not block or change the current average.
+- Faculty Head publishes only after every active board member has submitted a
+  valid score and the board is `COMPLETED`. Publication writes publisher/time
+  audit fields, changes the board to `PUBLISHED`, and locks further score edits.
+
+Issue #25 implements the multi-evaluator boundary: duplicate evaluator rows are
+blocked at the database boundary, score range/precision rules are shared by SSR
+and REST, and average calculation is deterministic (`HALF_UP`, scale 2).
+
+Issue #26 completes the result/QA boundary: incomplete or malformed board
+evaluations cannot publish, student result reads remain group-scoped and
+published-only, and the repeatable local seed contains one published board
+result plus one active board for interactive scoring.
 
 ## Result visibility
 

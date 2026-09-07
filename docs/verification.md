@@ -328,3 +328,23 @@ The board flow is now implemented and should be smoke-tested after the local see
 - Board status moves forward only; removing a member deactivates the old row and keeps its assignment history.
 - `/lecturer/scoring` and the scoring REST endpoints expose/accept only the active board member assignment while the board is `ACTIVE` or `COMPLETED`; supervisor and unassigned-member attempts are rejected.
 - `ReviewBoardControllerTest` covers SSR/REST scope, page rendering, invalid composition, evaluation linking and cross-department denial.
+
+## Multi-evaluator scoring and result QA (Issues #25/#26)
+
+- Each registration/evaluator pair is unique; a board keeps one current
+  evaluation per active member while retaining inactive member history.
+- A result cannot publish until every active board member has a valid submitted
+  score and the board is `COMPLETED`; publication records publisher/timestamps,
+  changes the board to `PUBLISHED`, and blocks further score edits.
+- Invalid scores are excluded from averages and cannot satisfy publication; the
+  average is rounded to two decimals with `HALF_UP` in both SSR and REST paths.
+- The repeatable seed creates two boards with six members/evaluations, one
+  published result at average `8.50`, and one active board with draft scores.
+- `ResultPublicationControllerTest` covers board completion, multi-evaluator
+  rounding, inactive-member history, student login-to-result access, privacy,
+  and publication locking. `DatabaseSeedControllerTest` verifies the published
+  result count.
+- Manual smoke path: reset/seed as Admin, open the Phoenix result as a Student,
+  score the Atlas board as each assigned evaluator, complete the board, publish
+  as the Faculty Head, then confirm the student sees only their own published
+  result.

@@ -25,4 +25,6 @@ Validate board composition, scope and member history.
 
 - Focused controller integration test covers invalid composition and cross-department denial.
 - Seed reset reports 6 active board members across 2 boards.
-- No external GitHub state beyond moving the issue to In Progress was changed.
+- Full `mvn -q test` passes across 26 test classes with 0 failures and 0 errors.
+- `mvn -q package -DskipTests` and `git diff --check` pass.
+- No external GitHub state beyond the existing issue workflow was changed.

@@ -72,7 +72,7 @@ class ReviewBoardControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("faculty/boards"))
                 .andExpect(content().string(containsString("Nền tảng quản lý đề tài và tiến độ khóa luận")))
-                .andExpect(content().string(containsString("ACTIVE")))
+                .andExpect(content().string(containsString("PUBLISHED")))
                 .andExpect(content().string(containsString("Nguyễn Thanh Bình")))
                 .andExpect(content().string(org.hamcrest.Matchers.not(
                         containsString("Ứng dụng quản lý quy trình thực tập doanh nghiệp"))));

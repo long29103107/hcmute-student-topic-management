@@ -539,3 +539,35 @@ factual and free of secrets. Update this file after every code or UI update.
   `AnnouncementControllerTest` passes 4/4 and `mvn -q -DskipTests compile`
   passes. Full suite, package, diff check and browser smoke remain before
   ticket closeout.
+
+## 2026-09-07 — Final local verification for announcements and review boards (#20–#24)
+
+- Re-verified the implemented Phase 005 announcement work and Phase 006 review-board
+  work without changing the application scope or external GitHub issue state.
+- Full `mvn -q test` passed across 26 test classes with 0 failures and 0 errors;
+  `mvn -q package -DskipTests`, `node --check src/main/resources/static/js/app.js`
+  and `git diff --check` also passed.
+- Browser smoke was not run because the desktop browser automation channel was
+  unavailable in this session; controller integration coverage remains green.
+- GitHub project-board count/status synchronization is still pending because the
+  active GitHub account lacks repository/project visibility for the supplied URL.
+
+## 2026-09-07 — Multi-evaluator scoring and result publication (#25–#26)
+
+- Implemented shared score validation/aggregation, registration/evaluator and
+  board/member uniqueness constraints, board-aware average calculation, and
+  inactive-member history handling.
+- Publication now requires every active board member to have a valid score and
+  a `COMPLETED` board; it records publisher/finalization timestamps, moves the
+  board to `PUBLISHED`, and locks subsequent score edits.
+- The repeatable seed now creates one published Phoenix result at average `8.50`
+  plus one active Atlas board; seed reset reports one `registration_result`.
+- Updated README, workflow/verification docs, seed UI and added phase records
+  under `.codex/phases/007-result-publication/`.
+- Verification: full `mvn -q test` passed 167 tests with 0 failures/errors;
+  `mvn -q package -DskipTests`, `node --check src/main/resources/static/js/app.js`
+  and `git diff --check` passed. Browser smoke was not run because desktop
+  browser automation was unavailable.
+- GitHub Project #5 items #25 and #26 remain `In progress` after implementation;
+  this workflow does not mark issues `Done` or close them without an explicit
+  user request.

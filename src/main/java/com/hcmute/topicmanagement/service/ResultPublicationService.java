@@ -1,8 +1,8 @@
 package com.hcmute.topicmanagement.service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -12,16 +12,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.hcmute.topicmanagement.model.DepartmentEntity;
 import com.hcmute.topicmanagement.model.EvaluationEntity;
+import com.hcmute.topicmanagement.model.ReviewBoardEntity;
+import com.hcmute.topicmanagement.model.ReviewBoardMemberEntity;
 import com.hcmute.topicmanagement.model.RegistrationResultEntity;
 import com.hcmute.topicmanagement.model.StudentGroupEntity;
 import com.hcmute.topicmanagement.model.TopicRegistrationEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
-import com.hcmute.topicmanagement.model.enums.EvaluationStatus;
 import com.hcmute.topicmanagement.model.enums.RegistrationResultStatus;
+import com.hcmute.topicmanagement.model.enums.ReviewBoardStatus;
 import com.hcmute.topicmanagement.model.enums.TopicRegistrationStatus;
 import com.hcmute.topicmanagement.repository.EvaluationRepository;
 import com.hcmute.topicmanagement.repository.RegistrationResultRepository;
+import com.hcmute.topicmanagement.repository.ReviewBoardMemberRepository;
+import com.hcmute.topicmanagement.repository.ReviewBoardRepository;
 import com.hcmute.topicmanagement.repository.TopicRegistrationRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
 
@@ -32,17 +36,26 @@ public class ResultPublicationService {
     private final TopicRegistrationRepository topicRegistrationRepository;
     private final EvaluationRepository evaluationRepository;
     private final RegistrationResultRepository registrationResultRepository;
+    private final ReviewBoardRepository reviewBoardRepository;
+    private final ReviewBoardMemberRepository reviewBoardMemberRepository;
     private final UserRepository userRepository;
+    private final EvaluationScoreCalculator scoreCalculator;
 
     public ResultPublicationService(
             TopicRegistrationRepository topicRegistrationRepository,
             EvaluationRepository evaluationRepository,
             RegistrationResultRepository registrationResultRepository,
-            UserRepository userRepository) {
+            ReviewBoardRepository reviewBoardRepository,
+            ReviewBoardMemberRepository reviewBoardMemberRepository,
+            UserRepository userRepository,
+            EvaluationScoreCalculator scoreCalculator) {
         this.topicRegistrationRepository = topicRegistrationRepository;
         this.evaluationRepository = evaluationRepository;
         this.registrationResultRepository = registrationResultRepository;
+        this.reviewBoardRepository = reviewBoardRepository;
+        this.reviewBoardMemberRepository = reviewBoardMemberRepository;
         this.userRepository = userRepository;
+        this.scoreCalculator = scoreCalculator;
     }
 
     @PreAuthorize("hasAuthority('REGISTRATION_REVIEW')")
@@ -73,15 +86,6 @@ public class ResultPublicationService {
 
         List<EvaluationEntity> evaluations = evaluationRepository
                 .findByTopicRegistration_IdOrderByCreatedAtAsc(registration.getId());
-        if (evaluations.isEmpty()) {
-            throw new ResultPublicationValidationException(
-                    "A result cannot be published until an evaluator has been assigned.");
-        }
-        if (evaluations.stream().anyMatch(evaluation -> !isSubmittedWithScore(evaluation))) {
-            throw new ResultPublicationValidationException(
-                    "A result can be published only after every assigned evaluator submits a score.");
-        }
-
         RegistrationResultEntity result = registrationResultRepository
                 .findByTopicRegistration_Id(registration.getId())
                 .orElseGet(() -> new RegistrationResultEntity(registration));
@@ -89,15 +93,37 @@ public class ResultPublicationService {
             throw new ResultPublicationValidationException(
                     "Published results cannot be changed without an audited action.");
         }
+        EvaluationContext context = evaluationContext(evaluations);
+        if (context.requiredEvaluations().isEmpty()) {
+            throw new ResultPublicationValidationException(
+                    "A result cannot be published until an evaluator has been assigned.");
+        }
+        if (!context.structurallyValid()) {
+            throw new ResultPublicationValidationException(
+                    "Review board evaluations must be assigned to every active board member.");
+        }
+        if (context.board() != null && context.board().getStatus() != ReviewBoardStatus.COMPLETED) {
+            throw new ResultPublicationValidationException(
+                    "A review board must be completed before its result can be published.");
+        }
+        if (context.requiredEvaluations().stream()
+                .anyMatch(evaluation -> !scoreCalculator.isSubmittedWithValidScore(evaluation))) {
+            throw new ResultPublicationValidationException(
+                    "A result can be published only after every assigned evaluator submits a score.");
+        }
 
         LocalDateTime now = LocalDateTime.now();
-        result.setAverageScore(averageScore(evaluations));
+        result.setAverageScore(scoreCalculator.averageScore(context.requiredEvaluations()));
         result.setStatus(RegistrationResultStatus.PUBLISHED);
         result.setFinalizedBy(publisher);
         result.setFinalizedAt(now);
         result.setPublishedBy(publisher);
         result.setPublishedAt(now);
         registrationResultRepository.saveAndFlush(result);
+        if (context.board() != null) {
+            context.board().setStatus(ReviewBoardStatus.PUBLISHED);
+            reviewBoardRepository.saveAndFlush(context.board());
+        }
         return toSummary(registration);
     }
 
@@ -117,13 +143,19 @@ public class ResultPublicationService {
     private ResultSummary toSummary(TopicRegistrationEntity registration) {
         List<EvaluationEntity> evaluations = evaluationRepository
                 .findByTopicRegistration_IdOrderByCreatedAtAsc(registration.getId());
+        EvaluationContext context = evaluationContext(evaluations);
         RegistrationResultEntity result = registrationResultRepository
                 .findByTopicRegistration_Id(registration.getId()).orElse(null);
-        long submittedCount = evaluations.stream().filter(this::isSubmittedWithScore).count();
+        List<EvaluationEntity> requiredEvaluations = context.requiredEvaluations();
+        long submittedCount = requiredEvaluations.stream()
+                .filter(scoreCalculator::isSubmittedWithValidScore)
+                .count();
         boolean published = result != null && result.getStatus() == RegistrationResultStatus.PUBLISHED;
-        BigDecimal average = submittedCount == evaluations.size() && !evaluations.isEmpty()
-                ? averageScore(evaluations)
+        BigDecimal average = submittedCount == requiredEvaluations.size() && !requiredEvaluations.isEmpty()
+                ? scoreCalculator.averageScore(requiredEvaluations)
                 : null;
+        boolean boardCompleted = context.board() == null
+                || context.board().getStatus() == ReviewBoardStatus.COMPLETED;
         return new ResultSummary(
                 registration.getId(),
                 registration.getStudentGroup().getId(),
@@ -134,13 +166,14 @@ public class ResultPublicationService {
                 registration.getTopic().getDepartment().getName(),
                 registration.getRegistrationPeriod().getId(),
                 registration.getRegistrationPeriod().getName(),
-                evaluations.size(),
+                requiredEvaluations.size(),
                 (int) submittedCount,
                 result == null ? "NOT_CREATED" : result.getStatus().name(),
                 result != null && result.getAverageScore() != null ? result.getAverageScore() : average,
                 result == null ? null : result.getFinalComment(),
                 result == null ? null : result.getPublishedAt(),
-                !published && submittedCount == evaluations.size() && !evaluations.isEmpty());
+                !published && context.structurallyValid() && boardCompleted
+                        && submittedCount == requiredEvaluations.size() && !requiredEvaluations.isEmpty());
     }
 
     private static StudentResultSummary toStudentSummary(
@@ -161,19 +194,35 @@ public class ResultPublicationService {
                 result.getPublishedAt());
     }
 
-    private BigDecimal averageScore(List<EvaluationEntity> evaluations) {
-        BigDecimal total = evaluations.stream()
-                .filter(this::isSubmittedWithScore)
-                .map(EvaluationEntity::getScore)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        long count = evaluations.stream().filter(this::isSubmittedWithScore).count();
-        return total.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP);
-    }
+    private EvaluationContext evaluationContext(List<EvaluationEntity> evaluations) {
+        ReviewBoardEntity board = evaluations.stream()
+                .map(EvaluationEntity::getBoard)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+        if (board == null) {
+            return new EvaluationContext(evaluations, null, true);
+        }
 
-    private boolean isSubmittedWithScore(EvaluationEntity evaluation) {
-        return evaluation.getScore() != null
-                && (evaluation.getStatus() == EvaluationStatus.SUBMITTED
-                        || evaluation.getStatus() == EvaluationStatus.PUBLISHED);
+        boolean structurallyValid = evaluations.stream().allMatch(evaluation ->
+                evaluation.getBoard() != null && Objects.equals(evaluation.getBoard().getId(), board.getId()));
+        List<ReviewBoardMemberEntity> activeMembers = reviewBoardMemberRepository
+                .findByBoard_IdAndActiveTrueOrderByMemberRoleAscAssignedAtAsc(board.getId());
+        List<EvaluationEntity> required = new ArrayList<>();
+        for (ReviewBoardMemberEntity member : activeMembers) {
+            List<EvaluationEntity> matches = evaluations.stream()
+                    .filter(evaluation -> evaluation.getBoardMember() != null
+                            && Objects.equals(evaluation.getBoardMember().getId(), member.getId())
+                            && evaluation.getLecturer() != null
+                            && Objects.equals(evaluation.getLecturer().getId(), member.getLecturer().getId()))
+                    .toList();
+            if (matches.size() != 1) {
+                structurallyValid = false;
+            } else {
+                required.add(matches.get(0));
+            }
+        }
+        return new EvaluationContext(required, board, structurallyValid && !activeMembers.isEmpty());
     }
 
     private UserEntity findActivePublisher(String email) {
@@ -242,6 +291,12 @@ public class ResultPublicationService {
             String finalComment,
             LocalDateTime publishedAt,
             boolean publishable) {
+    }
+
+    private record EvaluationContext(
+            List<EvaluationEntity> requiredEvaluations,
+            ReviewBoardEntity board,
+            boolean structurallyValid) {
     }
 
     public record StudentResultSummary(

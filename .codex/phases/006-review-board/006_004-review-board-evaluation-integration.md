@@ -24,5 +24,7 @@ Connect evaluation rows to board members and enforce score-entry gates.
 ## Verification
 
 - Focused board controller test verifies evaluation linkage for a newly created board.
-- Existing evaluator/scoring regression suites remain part of the full Maven test run.
+- Existing evaluator/scoring regression suites pass in the full `mvn -q test` run
+  across 26 test classes with 0 failures and 0 errors.
+- `mvn -q package -DskipTests` and `git diff --check` pass.
 - Result publication remains a separate downstream workflow.

@@ -1,6 +1,8 @@
 package com.hcmute.topicmanagement.service;
 
 import java.sql.SQLException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import com.hcmute.topicmanagement.model.DepartmentEntity;
 import com.hcmute.topicmanagement.model.EvaluationEntity;
+import com.hcmute.topicmanagement.model.RegistrationResultEntity;
 import com.hcmute.topicmanagement.model.ReviewBoardEntity;
 import com.hcmute.topicmanagement.model.ReviewBoardMemberEntity;
 import com.hcmute.topicmanagement.model.TopicRegistrationEntity;
@@ -32,10 +35,12 @@ import com.hcmute.topicmanagement.model.TopicEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
 import com.hcmute.topicmanagement.model.enums.GroupStatus;
+import com.hcmute.topicmanagement.model.enums.EvaluationStatus;
 import com.hcmute.topicmanagement.model.enums.AnnouncementScope;
 import com.hcmute.topicmanagement.model.enums.AnnouncementStatus;
 import com.hcmute.topicmanagement.model.enums.PeriodType;
 import com.hcmute.topicmanagement.model.enums.RegistrationPeriodStatus;
+import com.hcmute.topicmanagement.model.enums.RegistrationResultStatus;
 import com.hcmute.topicmanagement.model.enums.ReviewBoardMemberRole;
 import com.hcmute.topicmanagement.model.enums.ReviewBoardStatus;
 import com.hcmute.topicmanagement.model.enums.TopicRegistrationStatus;
@@ -46,6 +51,7 @@ import com.hcmute.topicmanagement.repository.PermissionRepository;
 import com.hcmute.topicmanagement.repository.RegistrationPeriodRepository;
 import com.hcmute.topicmanagement.repository.RolePermissionRepository;
 import com.hcmute.topicmanagement.repository.EvaluationRepository;
+import com.hcmute.topicmanagement.repository.RegistrationResultRepository;
 import com.hcmute.topicmanagement.repository.ReviewBoardMemberRepository;
 import com.hcmute.topicmanagement.repository.ReviewBoardRepository;
 import com.hcmute.topicmanagement.repository.TopicRegistrationRepository;
@@ -373,6 +379,7 @@ public class DatabaseSeedService {
     private final RolePermissionRepository rolePermissionRepository;
     private final TopicRegistrationRepository topicRegistrationRepository;
     private final EvaluationRepository evaluationRepository;
+    private final RegistrationResultRepository registrationResultRepository;
     private final ReviewBoardRepository reviewBoardRepository;
     private final ReviewBoardMemberRepository reviewBoardMemberRepository;
     private final DepartmentRepository departmentRepository;
@@ -393,6 +400,7 @@ public class DatabaseSeedService {
             DepartmentRepository departmentRepository,
             TopicRegistrationRepository topicRegistrationRepository,
             EvaluationRepository evaluationRepository,
+            RegistrationResultRepository registrationResultRepository,
             ReviewBoardRepository reviewBoardRepository,
             ReviewBoardMemberRepository reviewBoardMemberRepository,
             StudentGroupRepository studentGroupRepository,
@@ -407,6 +415,7 @@ public class DatabaseSeedService {
         this.rolePermissionRepository = rolePermissionRepository;
         this.topicRegistrationRepository = topicRegistrationRepository;
         this.evaluationRepository = evaluationRepository;
+        this.registrationResultRepository = registrationResultRepository;
         this.reviewBoardRepository = reviewBoardRepository;
         this.reviewBoardMemberRepository = reviewBoardMemberRepository;
         this.departmentRepository = departmentRepository;
@@ -450,6 +459,7 @@ public class DatabaseSeedService {
                 countUsersWithRole("LECTURER"),
                 countUsersWithRole("STUDENT"),
                 announcements.size(),
+                (int) registrationResultRepository.count(),
                 LocalDateTime.now());
     }
 
@@ -730,15 +740,19 @@ public class DatabaseSeedService {
     private List<ReviewBoardEntity> seedReviewBoards() {
         List<ReviewBoardSeed> seeds = List.of(
                 new ReviewBoardSeed("Nhóm Phoenix", "Nền tảng quản lý đề tài và tiến độ khóa luận",
-                        "nguyen.van.khang", LocalDateTime.now().plusDays(3),
-                        List.of(new BoardMemberSeed("nguyen.thanh.binh", ReviewBoardMemberRole.CHAIR),
-                                new BoardMemberSeed("dang.minh.tri", ReviewBoardMemberRole.SECRETARY),
-                                new BoardMemberSeed("bui.thanh.ha", ReviewBoardMemberRole.MEMBER))),
+                        "nguyen.van.khang", LocalDateTime.now().minusDays(2), ReviewBoardStatus.PUBLISHED,
+                        "Seeded board result: all assigned evaluators submitted their scores.",
+                        List.of(new BoardMemberSeed("nguyen.thanh.binh", ReviewBoardMemberRole.CHAIR,
+                                        new BigDecimal("8.50"), "Clear scope and implementation."),
+                                new BoardMemberSeed("dang.minh.tri", ReviewBoardMemberRole.SECRETARY,
+                                        new BigDecimal("9.00"), "Strong progress and documentation."),
+                                new BoardMemberSeed("bui.thanh.ha", ReviewBoardMemberRole.MEMBER,
+                                        new BigDecimal("8.00"), "Good result with minor polish remaining."))),
                 new ReviewBoardSeed("Nhóm Atlas", "Ứng dụng quản lý quy trình thực tập doanh nghiệp",
-                        "le.quang.huy", LocalDateTime.now().plusDays(6),
-                        List.of(new BoardMemberSeed("phan.tuan.anh", ReviewBoardMemberRole.CHAIR),
-                                new BoardMemberSeed("huynh.thi.my.linh", ReviewBoardMemberRole.SECRETARY),
-                                new BoardMemberSeed("le.quang.huy", ReviewBoardMemberRole.MEMBER))));
+                        "le.quang.huy", LocalDateTime.now().plusDays(6), ReviewBoardStatus.ACTIVE, null,
+                        List.of(new BoardMemberSeed("phan.tuan.anh", ReviewBoardMemberRole.CHAIR, null, null),
+                                new BoardMemberSeed("huynh.thi.my.linh", ReviewBoardMemberRole.SECRETARY, null, null),
+                                new BoardMemberSeed("le.quang.huy", ReviewBoardMemberRole.MEMBER, null, null))));
         RegistrationPeriodEntity period = registrationPeriodRepository.findByNameIgnoreCase(SEEDED_PERIOD_NAME)
                 .orElseThrow(() -> new IllegalStateException("Seed registration periods before boards."));
         List<ReviewBoardEntity> boards = new ArrayList<>();
@@ -758,7 +772,7 @@ public class DatabaseSeedService {
             board.setTopicRegistration(registration);
             board.setCreatedBy(creator);
             board.setScheduledAt(seed.scheduledAt());
-            board.setStatus(ReviewBoardStatus.ACTIVE);
+            board.setStatus(seed.status());
             board = reviewBoardRepository.saveAndFlush(board);
             ReviewBoardEntity savedBoard = board;
             Map<String, UserEntity> members = seed.members().stream()
@@ -778,7 +792,31 @@ public class DatabaseSeedService {
                         .orElseGet(() -> new EvaluationEntity(registration, lecturer));
                 evaluation.setBoard(board);
                 evaluation.setBoardMember(member);
+                evaluation.setScore(memberSeed.score());
+                evaluation.setComment(memberSeed.comment());
+                evaluation.setStatus(memberSeed.score() == null
+                        ? EvaluationStatus.DRAFT : EvaluationStatus.PUBLISHED);
+                evaluation.setSubmittedAt(memberSeed.score() == null
+                        ? null : LocalDateTime.now().minusDays(1));
                 evaluationRepository.saveAndFlush(evaluation);
+            }
+            if (seed.status() == ReviewBoardStatus.PUBLISHED) {
+                BigDecimal average = seed.members().stream()
+                        .map(BoardMemberSeed::score)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add)
+                        .divide(BigDecimal.valueOf(seed.members().size()), 2, RoundingMode.HALF_UP);
+                RegistrationResultEntity result = registrationResultRepository
+                        .findByTopicRegistration_Id(registration.getId())
+                        .orElseGet(() -> new RegistrationResultEntity(registration));
+                LocalDateTime publishedAt = LocalDateTime.now().minusDays(1);
+                result.setAverageScore(average);
+                result.setFinalComment(seed.finalComment());
+                result.setStatus(RegistrationResultStatus.PUBLISHED);
+                result.setFinalizedBy(creator);
+                result.setFinalizedAt(publishedAt);
+                result.setPublishedBy(creator);
+                result.setPublishedAt(publishedAt);
+                registrationResultRepository.saveAndFlush(result);
             }
             boards.add(board);
         }
@@ -968,6 +1006,7 @@ public class DatabaseSeedService {
             int lecturers,
             int students,
             int announcements,
+            int registrationResults,
             LocalDateTime completedAt) {
     }
 
@@ -1005,10 +1044,16 @@ public class DatabaseSeedService {
             String topicTitle,
             String creatorLogin,
             LocalDateTime scheduledAt,
+            ReviewBoardStatus status,
+            String finalComment,
             List<BoardMemberSeed> members) {
     }
 
-    private record BoardMemberSeed(String login, ReviewBoardMemberRole role) {
+    private record BoardMemberSeed(
+            String login,
+            ReviewBoardMemberRole role,
+            BigDecimal score,
+            String comment) {
     }
 
     private record AnnouncementSeed(

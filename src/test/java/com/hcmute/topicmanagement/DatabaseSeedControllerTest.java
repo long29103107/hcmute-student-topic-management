@@ -28,6 +28,7 @@ import com.hcmute.topicmanagement.repository.DepartmentRepository;
 import com.hcmute.topicmanagement.repository.AnnouncementRepository;
 import com.hcmute.topicmanagement.repository.PermissionRepository;
 import com.hcmute.topicmanagement.repository.RegistrationPeriodRepository;
+import com.hcmute.topicmanagement.repository.RegistrationResultRepository;
 import com.hcmute.topicmanagement.repository.RoleRepository;
 import com.hcmute.topicmanagement.repository.RolePermissionRepository;
 import com.hcmute.topicmanagement.repository.StudentGroupRepository;
@@ -55,6 +56,9 @@ class DatabaseSeedControllerTest {
 
     @Autowired
     private RegistrationPeriodRepository registrationPeriodRepository;
+
+    @Autowired
+    private RegistrationResultRepository registrationResultRepository;
 
     @Autowired
     private StudentGroupRepository studentGroupRepository;
@@ -143,6 +147,7 @@ class DatabaseSeedControllerTest {
         org.assertj.core.api.Assertions.assertThat(studentGroupRepository.count()).isEqualTo(4);
         org.assertj.core.api.Assertions.assertThat(topicRepository.count()).isEqualTo(8);
         org.assertj.core.api.Assertions.assertThat(announcementRepository.count()).isEqualTo(2);
+        org.assertj.core.api.Assertions.assertThat(registrationResultRepository.count()).isEqualTo(1);
         org.assertj.core.api.Assertions.assertThat(topicRepository.countSupervisorAssignments()).isEqualTo(13);
         org.assertj.core.api.Assertions.assertThat(topicRepository.findAllForSupervisorManagement())
                 .hasSize(8)
@@ -245,6 +250,7 @@ class DatabaseSeedControllerTest {
                 .andExpect(jsonPath("$.lecturers").value(16))
                 .andExpect(jsonPath("$.students").value(50))
                 .andExpect(jsonPath("$.announcements").value(2))
+                .andExpect(jsonPath("$.registrationResults").value(1))
                 .andExpect(jsonPath("$.studentProfiles").doesNotExist());
 
         org.assertj.core.api.Assertions.assertThat(roleRepository.count()).isEqualTo(4);
@@ -255,6 +261,7 @@ class DatabaseSeedControllerTest {
         org.assertj.core.api.Assertions.assertThat(studentGroupRepository.count()).isEqualTo(4);
         org.assertj.core.api.Assertions.assertThat(topicRepository.count()).isEqualTo(8);
         org.assertj.core.api.Assertions.assertThat(announcementRepository.count()).isEqualTo(2);
+        org.assertj.core.api.Assertions.assertThat(registrationResultRepository.count()).isEqualTo(1);
         org.assertj.core.api.Assertions.assertThat(topicRepository.countSupervisorAssignments()).isEqualTo(13);
         org.assertj.core.api.Assertions.assertThat(userRoleRepository.countByRole_CodeAndActiveTrueAndUser_ActiveTrue("FACULTY_HEAD"))
                 .isEqualTo(4);

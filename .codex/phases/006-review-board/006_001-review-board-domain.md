@@ -23,7 +23,8 @@ Implement one review board per approved topic registration with a forward-only l
 ## Verification
 
 - mvn -q -Dtest=ReviewBoardControllerTest test passes.
-- Full suite was rerun after the seed contract update; final result is recorded in the handoff.
+- Full `mvn -q test` passes across 26 test classes with 0 failures and 0 errors.
+- `mvn -q package -DskipTests`, JavaScript syntax check and `git diff --check` pass.
 - Scope is limited to the review-board workflow; commit, push and issue closure were not performed.
 
 ## Follow-up

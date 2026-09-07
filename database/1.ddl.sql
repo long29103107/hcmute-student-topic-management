@@ -277,6 +277,7 @@ CREATE TABLE IF NOT EXISTS review_board_members (
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_review_board_members PRIMARY KEY (id),
+    CONSTRAINT uk_review_board_members_board_lecturer UNIQUE (board_id, lecturer_id),
 
     CONSTRAINT fk_review_board_members_board FOREIGN KEY (board_id)
         REFERENCES review_boards (id),
@@ -298,6 +299,7 @@ CREATE TABLE IF NOT EXISTS evaluations (
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_evaluations PRIMARY KEY (id),
+    CONSTRAINT uk_evaluations_registration_lecturer UNIQUE (registration_id, lecturer_id),
     CONSTRAINT fk_evaluations_registration FOREIGN KEY (registration_id)
         REFERENCES topic_registrations (id),
     CONSTRAINT fk_evaluations_board FOREIGN KEY (board_id) REFERENCES review_boards (id),

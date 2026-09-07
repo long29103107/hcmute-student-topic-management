@@ -24,4 +24,8 @@ Provide scoped SSR and REST board management for Admin and Faculty Head, with Le
 ## Verification
 
 - ReviewBoardControllerTest renders SSR and REST responses and verifies department scope.
-- Full Maven test command is required as final regression verification.
+- Full `mvn -q test` passes across 26 test classes with 0 failures and 0 errors.
+- `mvn -q package -DskipTests`, `node --check src/main/resources/static/js/app.js`
+  and `git diff --check` pass.
+- Browser smoke was not run because the desktop browser automation channel was
+  unavailable in this session; controller coverage verifies the SSR/REST paths.

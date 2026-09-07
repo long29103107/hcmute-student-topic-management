@@ -8,6 +8,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -25,14 +26,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.mock.web.MockHttpSession;
 
 import com.hcmute.topicmanagement.model.DepartmentEntity;
 import com.hcmute.topicmanagement.model.EvaluationEntity;
 import com.hcmute.topicmanagement.model.RegistrationPeriodEntity;
 import com.hcmute.topicmanagement.model.RegistrationResultEntity;
+import com.hcmute.topicmanagement.model.ReviewBoardEntity;
+import com.hcmute.topicmanagement.model.ReviewBoardMemberEntity;
+import com.hcmute.topicmanagement.model.PermissionEntity;
 import com.hcmute.topicmanagement.model.RoleEntity;
+import com.hcmute.topicmanagement.model.RolePermissionEntity;
 import com.hcmute.topicmanagement.model.StudentGroupEntity;
 import com.hcmute.topicmanagement.model.TopicEntity;
 import com.hcmute.topicmanagement.model.TopicRegistrationEntity;
@@ -42,12 +49,18 @@ import com.hcmute.topicmanagement.model.enums.EvaluationStatus;
 import com.hcmute.topicmanagement.model.enums.PeriodType;
 import com.hcmute.topicmanagement.model.enums.RegistrationPeriodStatus;
 import com.hcmute.topicmanagement.model.enums.RegistrationResultStatus;
+import com.hcmute.topicmanagement.model.enums.ReviewBoardMemberRole;
+import com.hcmute.topicmanagement.model.enums.ReviewBoardStatus;
 import com.hcmute.topicmanagement.model.enums.TopicRegistrationStatus;
 import com.hcmute.topicmanagement.model.enums.TopicStatus;
 import com.hcmute.topicmanagement.repository.DepartmentRepository;
 import com.hcmute.topicmanagement.repository.EvaluationRepository;
 import com.hcmute.topicmanagement.repository.RegistrationPeriodRepository;
 import com.hcmute.topicmanagement.repository.RegistrationResultRepository;
+import com.hcmute.topicmanagement.repository.ReviewBoardMemberRepository;
+import com.hcmute.topicmanagement.repository.ReviewBoardRepository;
+import com.hcmute.topicmanagement.repository.PermissionRepository;
+import com.hcmute.topicmanagement.repository.RolePermissionRepository;
 import com.hcmute.topicmanagement.repository.RoleRepository;
 import com.hcmute.topicmanagement.repository.StudentGroupRepository;
 import com.hcmute.topicmanagement.repository.TopicRegistrationRepository;
@@ -76,6 +89,12 @@ class ResultPublicationControllerTest {
     private RoleRepository roleRepository;
 
     @Autowired
+    private PermissionRepository permissionRepository;
+
+    @Autowired
+    private RolePermissionRepository rolePermissionRepository;
+
+    @Autowired
     private DepartmentRepository departmentRepository;
 
     @Autowired
@@ -95,6 +114,15 @@ class ResultPublicationControllerTest {
 
     @Autowired
     private RegistrationResultRepository registrationResultRepository;
+
+    @Autowired
+    private ReviewBoardRepository reviewBoardRepository;
+
+    @Autowired
+    private ReviewBoardMemberRepository reviewBoardMemberRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Test
     void facultyHeadPublishesCompleteResultAndStudentSeesOnlyOwnPublishedGroupResult() throws Exception {
@@ -271,6 +299,150 @@ class ResultPublicationControllerTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void boardResultCannotBePublishedBeforeBoardIsCompleted() throws Exception {
+        String suffix = suffix();
+        DepartmentEntity department = department("RESULT-BOARD-STATUS-" + suffix);
+        UserEntity facultyHead = account("result-board-status-head-" + suffix, "Board Status Head " + suffix,
+                "FACULTY_HEAD", department);
+        TopicRegistrationEntity registration = registration(
+                openPeriod(suffix), department, "Board status result " + suffix,
+                TopicRegistrationStatus.APPROVED,
+                account("result-board-status-student-" + suffix, "Board Status Student " + suffix,
+                        "STUDENT", null));
+        List<UserEntity> evaluators = boardEvaluators(suffix, department);
+        ReviewBoardEntity board = boardWithScores(registration, facultyHead, evaluators,
+                ReviewBoardStatus.ACTIVE, List.of("8.00", "9.00", "8.50"));
+
+        mockMvc.perform(post("/api/faculty/results/{id}/publish", registration.getId())
+                        .with(user(facultyPrincipal(facultyHead.getEmailOrCode())))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(
+                        "A review board must be completed before its result can be published."));
+
+        Assertions.assertThat(reviewBoardRepository.findById(board.getId()).orElseThrow().getStatus())
+                .isEqualTo(ReviewBoardStatus.ACTIVE);
+    }
+
+    @Test
+    void completedBoardPublishesRoundedAverageAndLocksBoard() throws Exception {
+        String suffix = suffix();
+        DepartmentEntity department = department("RESULT-BOARD-PUBLISH-" + suffix);
+        UserEntity facultyHead = account("result-board-publish-head-" + suffix, "Board Publish Head " + suffix,
+                "FACULTY_HEAD", department);
+        TopicRegistrationEntity registration = registration(
+                openPeriod(suffix), department, "Completed board result " + suffix,
+                TopicRegistrationStatus.APPROVED,
+                account("result-board-publish-student-" + suffix, "Board Publish Student " + suffix,
+                        "STUDENT", null));
+        List<UserEntity> evaluators = boardEvaluators(suffix, department);
+        ReviewBoardEntity board = boardWithScores(registration, facultyHead, evaluators,
+                ReviewBoardStatus.COMPLETED, List.of("8.00", "8.01", "8.02"));
+
+        mockMvc.perform(post("/api/faculty/results/{id}/publish", registration.getId())
+                        .with(user(facultyPrincipal(facultyHead.getEmailOrCode())))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("PUBLISHED"))
+                .andExpect(jsonPath("$.averageScore").value(8.01));
+
+        Assertions.assertThat(reviewBoardRepository.findById(board.getId()).orElseThrow().getStatus())
+                .isEqualTo(ReviewBoardStatus.PUBLISHED);
+        Assertions.assertThat(registrationResultRepository.findById(registration.getId()).orElseThrow().getAverageScore())
+                .isEqualByComparingTo("8.01");
+    }
+
+    @Test
+    void inactiveHistoricalBoardMemberDoesNotBlockCurrentAverage() throws Exception {
+        String suffix = suffix();
+        DepartmentEntity department = department("RESULT-BOARD-HISTORY-" + suffix);
+        UserEntity facultyHead = account("result-board-history-head-" + suffix, "Board History Head " + suffix,
+                "FACULTY_HEAD", department);
+        TopicRegistrationEntity registration = registration(
+                openPeriod(suffix), department, "Historical board result " + suffix,
+                TopicRegistrationStatus.APPROVED,
+                account("result-board-history-student-" + suffix, "Board History Student " + suffix,
+                        "STUDENT", null));
+        List<UserEntity> evaluators = boardEvaluators(suffix, department);
+        ReviewBoardEntity board = boardWithScores(registration, facultyHead, evaluators,
+                ReviewBoardStatus.COMPLETED, List.of("8.00", "9.00", "10.00"));
+        ReviewBoardMemberEntity historicalMember = reviewBoardMemberRepository
+                .findByBoard_IdAndLecturer_Id(board.getId(), evaluators.get(2).getId()).orElseThrow();
+        historicalMember.setActive(false);
+        historicalMember.setEndedAt(LocalDateTime.now().minusMinutes(1));
+        reviewBoardMemberRepository.saveAndFlush(historicalMember);
+
+        mockMvc.perform(post("/api/faculty/results/{id}/publish", registration.getId())
+                        .with(user(facultyPrincipal(facultyHead.getEmailOrCode())))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.averageScore").value(8.5))
+                .andExpect(jsonPath("$.evaluationCount").value(2))
+                .andExpect(jsonPath("$.submittedEvaluationCount").value(2));
+    }
+
+    @Test
+    void invalidBoardScoreCannotSatisfyPublication() throws Exception {
+        String suffix = suffix();
+        DepartmentEntity department = department("RESULT-BOARD-INVALID-" + suffix);
+        UserEntity facultyHead = account("result-board-invalid-head-" + suffix, "Board Invalid Head " + suffix,
+                "FACULTY_HEAD", department);
+        TopicRegistrationEntity registration = registration(
+                openPeriod(suffix), department, "Invalid board result " + suffix,
+                TopicRegistrationStatus.APPROVED,
+                account("result-board-invalid-student-" + suffix, "Board Invalid Student " + suffix,
+                        "STUDENT", null));
+        List<UserEntity> evaluators = boardEvaluators(suffix, department);
+        boardWithScores(registration, facultyHead, evaluators,
+                ReviewBoardStatus.COMPLETED, List.of("8.00", "11.00", "8.50"));
+
+        mockMvc.perform(post("/api/faculty/results/{id}/publish", registration.getId())
+                        .with(user(facultyPrincipal(facultyHead.getEmailOrCode())))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(
+                        "A result can be published only after every assigned evaluator submits a score."));
+    }
+
+    @Test
+    void studentCanLoginAndReadOnlyOwnPublishedResultEndToEnd() throws Exception {
+        String suffix = suffix();
+        DepartmentEntity department = department("RESULT-LOGIN-" + suffix);
+        UserEntity student = account("result-login-student-" + suffix, "Login Student " + suffix,
+                "STUDENT", null);
+        student.setPasswordHash(passwordEncoder.encode("student-password"));
+        userRepository.saveAndFlush(student);
+        RoleEntity studentRole = roleRepository.findByCode("STUDENT").orElseThrow();
+        PermissionEntity resultView = permissionRepository.findByCode("RESULT_VIEW")
+                .orElseGet(() -> permissionRepository.saveAndFlush(
+                        new PermissionEntity("RESULT_VIEW", "View results", "Results")));
+        rolePermissionRepository.saveAndFlush(new RolePermissionEntity(studentRole, resultView));
+        TopicRegistrationEntity registration = registration(
+                openPeriod(suffix), department, "Login published result " + suffix,
+                TopicRegistrationStatus.APPROVED, student);
+        UserEntity evaluator = account("result-login-evaluator-" + suffix, "Login Evaluator " + suffix,
+                "LECTURER", department);
+        submittedEvaluation(registration, evaluator, "8.75");
+        UserEntity publisher = account("result-login-head-" + suffix, "Login Head " + suffix,
+                "FACULTY_HEAD", department);
+        publishDirect(registration, publisher, "8.75");
+
+        var login = mockMvc.perform(post("/login")
+                        .param("email", student.getEmailOrCode())
+                        .param("password", "student-password")
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/dashboard"))
+                .andReturn();
+        MockHttpSession session = (MockHttpSession) login.getRequest().getSession(false);
+
+        mockMvc.perform(get("/student/results").session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("student/results"))
+                .andExpect(content().string(containsString("Login published result " + suffix)));
+    }
+
     private EvaluationEntity submittedEvaluation(
             TopicRegistrationEntity registration, UserEntity evaluator, String score) {
         EvaluationEntity evaluation = new EvaluationEntity(registration, evaluator);
@@ -287,6 +459,41 @@ class ResultPublicationControllerTest {
         result.setPublishedBy(publisher);
         result.setPublishedAt(LocalDateTime.now().minusMinutes(1));
         registrationResultRepository.saveAndFlush(result);
+    }
+
+    private List<UserEntity> boardEvaluators(String suffix, DepartmentEntity department) {
+        return List.of(
+                account("result-board-evaluator-1-" + suffix, "Board Evaluator 1 " + suffix, "LECTURER", department),
+                account("result-board-evaluator-2-" + suffix, "Board Evaluator 2 " + suffix, "LECTURER", department),
+                account("result-board-evaluator-3-" + suffix, "Board Evaluator 3 " + suffix, "LECTURER", department));
+    }
+
+    private ReviewBoardEntity boardWithScores(
+            TopicRegistrationEntity registration,
+            UserEntity creator,
+            List<UserEntity> evaluators,
+            ReviewBoardStatus status,
+            List<String> scores) {
+        ReviewBoardEntity board = new ReviewBoardEntity(registration, creator);
+        board.setStatus(status);
+        board = reviewBoardRepository.saveAndFlush(board);
+        ReviewBoardMemberRole[] roles = {
+                ReviewBoardMemberRole.CHAIR,
+                ReviewBoardMemberRole.SECRETARY,
+                ReviewBoardMemberRole.MEMBER};
+        for (int index = 0; index < evaluators.size(); index++) {
+            ReviewBoardMemberEntity member = new ReviewBoardMemberEntity(board, evaluators.get(index));
+            member.setMemberRole(roles[index]);
+            member = reviewBoardMemberRepository.saveAndFlush(member);
+            EvaluationEntity evaluation = new EvaluationEntity(registration, evaluators.get(index));
+            evaluation.setBoard(board);
+            evaluation.setBoardMember(member);
+            evaluation.setScore(new BigDecimal(scores.get(index)));
+            evaluation.setStatus(EvaluationStatus.SUBMITTED);
+            evaluation.setSubmittedAt(LocalDateTime.now().minusMinutes(1));
+            evaluationRepository.saveAndFlush(evaluation);
+        }
+        return board;
     }
 
     private TopicRegistrationEntity registration(

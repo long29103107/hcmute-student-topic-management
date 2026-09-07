@@ -11,9 +11,11 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "review_board_members")
+@Table(name = "review_board_members", uniqueConstraints = @UniqueConstraint(
+        name = "uk_review_board_members_board_lecturer", columnNames = {"board_id", "lecturer_id"}))
 public class ReviewBoardMemberEntity extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

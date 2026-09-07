@@ -1,7 +1,6 @@
 package com.hcmute.topicmanagement.service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -32,16 +31,19 @@ public class EvaluationScoringService {
     private final RegistrationResultRepository registrationResultRepository;
     private final UserRepository userRepository;
     private final EvaluationScoringProperties scoringProperties;
+    private final EvaluationScoreCalculator scoreCalculator;
 
     public EvaluationScoringService(
             EvaluationRepository evaluationRepository,
             RegistrationResultRepository registrationResultRepository,
             UserRepository userRepository,
-            EvaluationScoringProperties scoringProperties) {
+            EvaluationScoringProperties scoringProperties,
+            EvaluationScoreCalculator scoreCalculator) {
         this.evaluationRepository = evaluationRepository;
         this.registrationResultRepository = registrationResultRepository;
         this.userRepository = userRepository;
         this.scoringProperties = scoringProperties;
+        this.scoreCalculator = scoreCalculator;
     }
 
     @PreAuthorize("hasAuthority('EVALUATION_SUBMIT')")
@@ -161,18 +163,8 @@ public class EvaluationScoringService {
     }
 
     private BigDecimal averageScore(Long registrationId) {
-        List<BigDecimal> scores = evaluationRepository
-                .findByTopicRegistration_IdOrderByCreatedAtAsc(registrationId).stream()
-                .filter(evaluation -> evaluation.getScore() != null)
-                .filter(evaluation -> evaluation.getStatus() == EvaluationStatus.SUBMITTED
-                        || evaluation.getStatus() == EvaluationStatus.PUBLISHED)
-                .map(EvaluationEntity::getScore)
-                .toList();
-        if (scores.isEmpty()) {
-            return null;
-        }
-        BigDecimal total = scores.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
-        return total.divide(BigDecimal.valueOf(scores.size()), 2, RoundingMode.HALF_UP);
+        return scoreCalculator.averageScore(
+                evaluationRepository.findByTopicRegistration_IdOrderByCreatedAtAsc(registrationId));
     }
 
     private boolean isResultPublished(TopicRegistrationEntity registration) {

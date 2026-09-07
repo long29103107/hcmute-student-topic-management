@@ -1,7 +1,7 @@
 # [005_004] Announcement seed and authorization tests
 
 - Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/20
-- Status: Implemented locally; GitHub issue remains In Progress until user review.
+- Status: Implemented and locally verified; GitHub issue remains In Progress until user review.
 - Phase: 005 — Announcements
 
 ## Vision alignment
@@ -33,5 +33,9 @@ introducing a second authorization path.
 - `DatabaseSeedControllerTest`: 3 tests passed.
 - `AnnouncementControllerTest`: 4 tests passed.
 - `mvn -q -DskipTests compile`: passed.
-- Full `mvn test`, package, `git diff --check` and browser smoke are the final
-  combined verification run before moving the tickets to Done.
+- Full `mvn -q test`: passed across 26 test classes with 0 failures and 0 errors.
+- `mvn -q package -DskipTests`, `node --check src/main/resources/static/js/app.js`
+  and `git diff --check`: passed.
+- Browser smoke was not run because the desktop browser automation channel was
+  unavailable in this session; SSR/REST behavior is covered by the controller
+  tests.
