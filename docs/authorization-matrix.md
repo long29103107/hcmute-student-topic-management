@@ -30,7 +30,7 @@ do not create extra authorization paths for it unless selected.
 | Aggregate board result | yes | yes/assigned chair, Should | chair only, Should | no | no |
 | Publish final result | yes | yes | no | no | no |
 | View own group result after publication | yes | no | no | own group only | own group only |
-| Manage announcements | yes | yes if granted | no | no | no |
+| Manage announcements (`ANNOUNCEMENT_MANAGE`) | yes, all departments | yes, own department | no | no | no |
 | View published announcements | yes | yes | yes | yes | yes |
 
 Admin is a full-capability system role for operational surfaces: the seed

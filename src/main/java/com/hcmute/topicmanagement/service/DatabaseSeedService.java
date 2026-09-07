@@ -114,7 +114,9 @@ public class DatabaseSeedService {
             new PermissionSeed("REGISTRATION_REVIEW", "Review topic registrations", "Registrations",
                     "Approve or reject student topic registrations."),
             new PermissionSeed("RESULT_VIEW", "View results", "Results",
-                    "View published results for permitted users."));
+                    "View published results for permitted users."),
+            new PermissionSeed("ANNOUNCEMENT_MANAGE", "Manage announcements", "Announcements",
+                    "Create, update, publish, and hide announcements within the user's management scope."));
 
     private static final List<String> LECTURER_PERMISSIONS = List.of(
             "TOPIC_PROPOSE", "TOPIC_VIEW", "REPORT_VIEW", "EVALUATION_SUBMIT", "RESULT_VIEW");
@@ -122,7 +124,8 @@ public class DatabaseSeedService {
     private static final Map<String, List<String>> ROLE_PERMISSIONS = Map.of(
             "ADMIN", allPermissionCodes(),
             "FACULTY_HEAD", withLecturerPermissions(
-                    "PERIOD_MANAGE", "SUPERVISOR_MANAGE", "TOPIC_REVIEW", "REGISTRATION_REVIEW"),
+                    "PERIOD_MANAGE", "SUPERVISOR_MANAGE", "TOPIC_REVIEW", "REGISTRATION_REVIEW",
+                    "ANNOUNCEMENT_MANAGE"),
             "LECTURER", LECTURER_PERMISSIONS,
             "STUDENT", List.of(
                     "TOPIC_VIEW", "GROUP_MANAGE", "REGISTRATION_SUBMIT", "REPORT_SUBMIT", "REPORT_VIEW",

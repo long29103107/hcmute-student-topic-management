@@ -483,3 +483,18 @@ factual and free of secrets. Update this file after every code or UI update.
 - Business or authorization rule:
 - Documents updated:
 - Verification:
+
+## 2026-09-07 — Announcement contract and permissions (Issue #17)
+
+- Added the shared `AnnouncementScope` (`SCHOOL`, `DEPARTMENT`) and
+  `AnnouncementStatus` (`DRAFT`, `PUBLISHED`, `HIDDEN`) vocabulary.
+- Added the seed-managed `ANNOUNCEMENT_MANAGE` permission for Admin and
+  Faculty Head; Lecturer and Student do not receive management authority.
+- Documented the field contract, visibility rules, lifecycle transitions and
+  ownership boundary in `docs/announcement-contract.md`, and synchronized the
+  domain model, authorization matrix and README permission count.
+- The next backend task owns the announcements table/entity/repository,
+  transactional service operations and published-scope queries.
+- Verification: focused `DatabaseSeedControllerTest` and full `mvn test` pass;
+  `git diff --check` passes. MySQL/Tomcat smoke was not run for this contract-
+  and seed-only change.

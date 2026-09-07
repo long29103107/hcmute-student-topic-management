@@ -79,6 +79,23 @@ revised schema does not have a separate Student Profile entity.
   stores the aggregate score, final comment and finalization/publication audit
   fields. `average_score` belongs here, not on individual evaluations.
 
+## Announcements
+
+- `AnnouncementScope` is either `SCHOOL` or `DEPARTMENT`. A department-scoped
+  announcement must reference one department; a school-wide announcement has
+  no department restriction.
+- `AnnouncementStatus` is `DRAFT`, `PUBLISHED` or `HIDDEN`. New announcements
+  start as drafts. Only published announcements are returned by the public
+  announcement query; hidden and draft records remain management-only.
+- The `ANNOUNCEMENT_MANAGE` permission is assigned to Admin and Faculty Head
+  by the seed contract. Admin has all-department management scope; Faculty Head
+  management is limited to the user's department. Students and Lecturers have
+  no management permission but can read published announcements allowed by
+  their school/department visibility.
+- The persistent entity and service/repository operations are intentionally
+  owned by the next Announcement backend task. This task fixes the shared
+  status, scope and authorization vocabulary before that implementation.
+
 ## Relationships
 
 ```text
@@ -93,6 +110,8 @@ TopicRegistration 1 ── * Report
 TopicRegistration 1 ── 0..1 ReviewBoard 1 ── * ReviewBoardMember * ── 1 User
 TopicRegistration 1 ── * Evaluation * ── 1 User
 TopicRegistration 1 ── 0..1 RegistrationResult
+User 1 ── * Announcement
+Department 1 ── * Announcement (department scope only)
 ```
 
 The relationship diagram does not replace Service authorization. In
