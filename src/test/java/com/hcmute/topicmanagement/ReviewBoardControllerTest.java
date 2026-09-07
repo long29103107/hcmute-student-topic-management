@@ -86,6 +86,23 @@ class ReviewBoardControllerTest {
     }
 
     @Test
+    void createBoardFormRendersInsideAFullWidthModal() throws Exception {
+        mockMvc.perform(get("/faculty/boards")
+                        .with(user(facultyHeadPrincipal(CNTT_HEAD, "REVIEW_BOARD_VIEW", "REVIEW_BOARD_MANAGE"))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-modal-target=\"create-board-modal\"")))
+                .andExpect(content().string(containsString("id=\"create-board-modal\"")))
+                .andExpect(content().string(containsString("class=\"relative w-full\"")))
+                .andExpect(content().string(containsString("name=\"lecturerIds\"")))
+                .andExpect(content().string(containsString("type=\"checkbox\"")))
+                .andExpect(content().string(containsString("max-h-72")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        containsString("relative w-full max-"))))
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        containsString("multiple required size=\"6\""))));
+    }
+
+    @Test
     void boardCreationRejectsInvalidCompositionAndCreatesEvaluationsForValidMembers() throws Exception {
         TopicRegistrationEntity registration = registration("Nhóm Nova");
         List<Long> members = registrationRepository.findByStatusForReview(

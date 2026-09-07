@@ -21,53 +21,90 @@
             <span>Only approved registrations in your management scope are available. Topic supervisors and lecturers outside the topic department are rejected by the server.</span>
         </div>
 
-        <section sec:authorize="hasAuthority('REVIEW_BOARD_MANAGE')" class="mb-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="create-board-heading">
-            <div class="mb-5">
+        <section sec:authorize="hasAuthority('REVIEW_BOARD_MANAGE')" class="mb-6 flex flex-col justify-between gap-4 rounded-lg border border-gray-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center" aria-labelledby="create-board-heading">
+            <div>
                 <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Board setup</p>
                 <h2 id="create-board-heading" class="text-xl font-semibold text-gray-900">Create review board</h2>
                 <p class="mt-2 text-sm text-gray-500">The server validates department scope, active lecturer capability, member count, role uniqueness, and supervisor exclusion.</p>
             </div>
-            <form method="post" th:action="@{/faculty/boards/save}" class="grid gap-5 lg:grid-cols-2">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-900" for="registrationId">Approved registration</label>
-                    <select id="registrationId" name="registrationId" required class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm">
-                        <option value="">Select an approved registration</option>
-                        <option th:each="registration : ${boardRegistrations}" th:value="${registration.id}"
-                                th:text="${registration.groupName + ' · ' + registration.topicTitle + ' · ' + registration.departmentCode}">Group Phoenix · Topic · CNTT</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-900" for="scheduledAt">Scheduled at</label>
-                    <input id="scheduledAt" name="scheduledAt" type="datetime-local" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm">
-                </div>
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-900" for="lecturerIds">Board lecturers</label>
-                    <select id="lecturerIds" name="lecturerIds" multiple required size="6" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm">
-                        <option th:each="lecturer : ${boardLecturers}" th:value="${lecturer.id}"
-                                th:text="${lecturer.fullName + ' · ' + lecturer.departmentCode}">Lecturer · CNTT</option>
-                    </select>
-                    <p class="mt-1 text-xs text-gray-500">Hold Ctrl/Cmd to select 3–5 lecturers.</p>
-                </div>
-                <div class="space-y-4">
-                    <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-900" for="chairId">Chair</label>
-                        <select id="chairId" name="chairId" required class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm">
-                            <option value="">Select Chair</option>
-                            <option th:each="lecturer : ${boardLecturers}" th:value="${lecturer.id}" th:text="${lecturer.fullName}">Lecturer</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-900" for="secretaryId">Secretary</label>
-                        <select id="secretaryId" name="secretaryId" required class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm">
-                            <option value="">Select Secretary</option>
-                            <option th:each="lecturer : ${boardLecturers}" th:value="${lecturer.id}" th:text="${lecturer.fullName}">Lecturer</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800">Create board</button>
-                </div>
-            </form>
+            <button type="button" data-modal-target="create-board-modal" data-modal-toggle="create-board-modal"
+                    class="inline-flex w-fit shrink-0 items-center justify-center rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                Create board
+            </button>
         </section>
+
+        <div sec:authorize="hasAuthority('REVIEW_BOARD_MANAGE')" id="create-board-modal" tabindex="-1" aria-hidden="true" role="dialog" aria-modal="true"
+             aria-labelledby="create-board-modal-title" aria-describedby="create-board-modal-description"
+             class="fixed inset-0 z-50 hidden h-full w-full overflow-y-auto bg-gray-900/50 p-4">
+            <div class="relative w-full">
+                <div class="rounded-lg border border-gray-200 bg-white shadow-xl">
+                    <div class="flex items-start justify-between border-b border-gray-200 px-6 py-5">
+                        <div>
+                            <h2 id="create-board-modal-title" class="text-xl font-semibold text-gray-900">Create review board</h2>
+                            <p id="create-board-modal-description" class="mt-1 text-sm text-gray-500">Assign 3–5 lecturers with exactly one Chair and one Secretary.</p>
+                        </div>
+                        <button type="button" data-modal-hide="create-board-modal"
+                                class="rounded-lg p-2 text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-900" aria-label="Close create review board dialog">
+                            <span aria-hidden="true" class="text-xl leading-none">×</span>
+                        </button>
+                    </div>
+                    <form method="post" th:action="@{/faculty/boards/save}" class="grid gap-5 p-6 lg:grid-cols-2">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-gray-900" for="create-registration-id">Approved registration</label>
+                            <select id="create-registration-id" name="registrationId" required class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm">
+                                <option value="">Select an approved registration</option>
+                                <option th:each="registration : ${boardRegistrations}" th:value="${registration.id}"
+                                        th:text="${registration.groupName + ' · ' + registration.topicTitle + ' · ' + registration.departmentCode}">Group Phoenix · Topic · CNTT</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-gray-900" for="create-scheduled-at">Scheduled at</label>
+                            <input id="create-scheduled-at" name="scheduledAt" type="datetime-local" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm">
+                        </div>
+                        <div class="lg:col-span-2">
+                            <fieldset>
+                                <legend class="text-sm font-medium text-gray-900">Board lecturers</legend>
+                                <p class="mt-1 text-xs text-gray-500">Select 3–5 lecturers. Only active lecturer-capability accounts from this department are listed.</p>
+                                <div class="mt-4 max-h-72 space-y-2 overflow-y-auto rounded-lg border border-gray-200 p-3">
+                                    <label class="flex cursor-pointer items-start gap-3 rounded-lg p-3 hover:bg-gray-50"
+                                           th:each="lecturer : ${boardLecturers}">
+                                        <input type="checkbox" name="lecturerIds" th:value="${lecturer.id}"
+                                               class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="min-w-0">
+                                            <span class="block text-sm font-medium text-gray-900" th:text="${lecturer.fullName}">Lecturer</span>
+                                            <span class="block truncate text-xs text-gray-500" th:text="${lecturer.email}">lecturer@lecturer.hcmute.edu.vn</span>
+                                            <span class="block text-xs text-gray-500" th:text="${lecturer.departmentCode}">CNTT</span>
+                                        </span>
+                                    </label>
+                                    <p class="px-2 py-4 text-sm text-gray-500" th:if="${#lists.isEmpty(boardLecturers)}">No active lecturer-capability accounts are available.</p>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-gray-900" for="create-chair-id">Chair</label>
+                                <select id="create-chair-id" name="chairId" required class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm">
+                                    <option value="">Select Chair</option>
+                                    <option th:each="lecturer : ${boardLecturers}" th:value="${lecturer.id}" th:text="${lecturer.fullName}">Lecturer</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-gray-900" for="create-secretary-id">Secretary</label>
+                                <select id="create-secretary-id" name="secretaryId" required class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm">
+                                    <option value="">Select Secretary</option>
+                                    <option th:each="lecturer : ${boardLecturers}" th:value="${lecturer.id}" th:text="${lecturer.fullName}">Lecturer</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-3 border-t border-gray-200 pt-5 lg:col-span-2">
+                            <button type="button" data-modal-hide="create-board-modal" class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+                            <button type="submit" class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800">Create board</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
 
         <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm" aria-labelledby="boards-heading">
             <div class="flex flex-col justify-between gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-end sm:p-6">
@@ -129,7 +166,25 @@
                     <input type="hidden" name="registrationId" th:value="${board.registrationId}">
                     <div><label class="mb-2 block text-sm font-medium text-gray-900">Scheduled at</label><input name="scheduledAt" type="datetime-local" th:value="${board.scheduledAt == null ? '' : #temporals.format(board.scheduledAt, 'yyyy-MM-dd''T''HH:mm')}" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"></div>
                     <div><label class="mb-2 block text-sm font-medium text-gray-900">Status</label><select name="status" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"><option th:each="candidateStatus : ${T(com.hcmute.topicmanagement.model.enums.ReviewBoardStatus).values()}" th:value="${candidateStatus}" th:text="${candidateStatus}" th:selected="${candidateStatus.name() == board.status}">ACTIVE</option></select></div>
-                    <div><label class="mb-2 block text-sm font-medium text-gray-900">Board lecturers</label><select name="lecturerIds" multiple required size="6" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"><option th:each="lecturer : ${boardLecturers}" th:value="${lecturer.id}" th:text="${lecturer.fullName + ' · ' + lecturer.departmentCode}" th:selected="${#lists.contains(board.members.![lecturerId], lecturer.id)}">Lecturer</option></select></div>
+                    <div class="sm:col-span-2">
+                        <fieldset>
+                            <legend class="text-sm font-medium text-gray-900">Board lecturers</legend>
+                            <p class="mt-1 text-xs text-gray-500">Select 3–5 lecturers. Only active lecturer-capability accounts from this department are listed.</p>
+                            <div class="mt-4 max-h-72 space-y-2 overflow-y-auto rounded-lg border border-gray-200 p-3">
+                                <label class="flex cursor-pointer items-start gap-3 rounded-lg p-3 hover:bg-gray-50"
+                                       th:each="lecturer : ${boardLecturers}">
+                                    <input type="checkbox" name="lecturerIds" th:value="${lecturer.id}"
+                                           th:checked="${#lists.contains(board.members.![lecturerId], lecturer.id)}"
+                                           class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="min-w-0">
+                                        <span class="block text-sm font-medium text-gray-900" th:text="${lecturer.fullName}">Lecturer</span>
+                                        <span class="block truncate text-xs text-gray-500" th:text="${lecturer.email}">lecturer@lecturer.hcmute.edu.vn</span>
+                                        <span class="block text-xs text-gray-500" th:text="${lecturer.departmentCode}">CNTT</span>
+                                    </span>
+                                </label>
+                            </div>
+                        </fieldset>
+                    </div>
                     <div class="space-y-4"><div><label class="mb-2 block text-sm font-medium text-gray-900">Chair</label><select name="chairId" required class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"><option th:each="member : ${board.members}" th:if="${member.active}" th:value="${member.lecturerId}" th:text="${member.fullName}" th:selected="${member.role == 'CHAIR'}">Chair</option></select></div><div><label class="mb-2 block text-sm font-medium text-gray-900">Secretary</label><select name="secretaryId" required class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"><option th:each="member : ${board.members}" th:if="${member.active}" th:value="${member.lecturerId}" th:text="${member.fullName}" th:selected="${member.role == 'SECRETARY'}">Secretary</option></select></div><button type="submit" class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white">Save changes</button></div>
                 </form>
             </div>
