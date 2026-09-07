@@ -272,10 +272,12 @@ CREATE TABLE IF NOT EXISTS review_board_members (
     lecturer_id BIGINT NOT NULL,
     member_role VARCHAR(20) NOT NULL DEFAULT 'MEMBER',
     assigned_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    ended_at DATETIME(6) NULL,
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_review_board_members PRIMARY KEY (id),
-    CONSTRAINT uk_review_board_members_board_lecturer UNIQUE (board_id, lecturer_id),
+
     CONSTRAINT fk_review_board_members_board FOREIGN KEY (board_id)
         REFERENCES review_boards (id),
     CONSTRAINT fk_review_board_members_lecturer FOREIGN KEY (lecturer_id)
@@ -287,6 +289,7 @@ CREATE TABLE IF NOT EXISTS evaluations (
     id BIGINT NOT NULL AUTO_INCREMENT,
     registration_id BIGINT NOT NULL,
     board_id BIGINT NULL,
+    board_member_id BIGINT NULL,
     lecturer_id BIGINT NOT NULL,
     score DECIMAL(5, 2) NULL,
     comment TEXT NULL,
@@ -298,9 +301,11 @@ CREATE TABLE IF NOT EXISTS evaluations (
     CONSTRAINT fk_evaluations_registration FOREIGN KEY (registration_id)
         REFERENCES topic_registrations (id),
     CONSTRAINT fk_evaluations_board FOREIGN KEY (board_id) REFERENCES review_boards (id),
+    CONSTRAINT fk_evaluations_board_member FOREIGN KEY (board_member_id) REFERENCES review_board_members (id),
     CONSTRAINT fk_evaluations_lecturer FOREIGN KEY (lecturer_id) REFERENCES users (id),
     INDEX idx_evaluations_registration_lecturer (registration_id, lecturer_id),
     INDEX idx_evaluations_board (board_id),
+    INDEX idx_evaluations_board_member (board_member_id),
     INDEX idx_evaluations_lecturer_status (lecturer_id, status),
     INDEX idx_evaluations_registration_status (registration_id, status)
 ) ENGINE = InnoDB;

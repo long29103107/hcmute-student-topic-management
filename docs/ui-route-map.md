@@ -61,7 +61,7 @@ below as an implemented extension.
 | GET/POST | `/faculty/topics/publish` | `TopicPublicationController` → list approved topics in the Faculty Head's department and publish them |
 | GET/POST | `/faculty/registrations/review` | `TopicRegistrationReviewController` → Faculty Head/Admin pending-registration queue, approve/reject with required rejection reason |
 | GET/POST | `/faculty/registrations/evaluators`, `/faculty/registrations/{id}/evaluator` | `EvaluatorAssignmentController` → approved-registration evaluator queue and modal assignment/change flow |
-| GET/POST | `/faculty/boards` | `ReviewBoardController` → full board/member/topic assignment (Should Have) |
+| GET/POST | `/faculty/boards` | `ReviewBoardController` → scoped review-board list, create/edit member composition and lifecycle actions |
 | GET/POST | `/faculty/results`, `/faculty/results/{id}/publish` | `ResultController` → scoped result publication queue and final publish action |
 | GET | `/announcements/manage` | `AnnouncementController` → management queue and create/edit forms |
 | POST | `/announcements/manage`, `/announcements/manage/update` | `AnnouncementController` → create draft or update an announcement through PRG |
@@ -135,6 +135,9 @@ not replace the Thymeleaf flow or duplicate Service rules.
 | POST | `/api/registrations/{id}/review`, `/api/faculty/registrations/{id}/review` | review `{ decision: "APPROVE" | "REJECT", rejectionReason? }`; reject requires a non-blank reason and only `PENDING` rows can transition | `REGISTRATION_REVIEW` + Admin/Faculty Head + CSRF |
 | GET | `/api/faculty/registrations/evaluators` | approved registrations with current evaluator and valid evaluator options, scoped by department | `REGISTRATION_REVIEW` + Admin/Faculty Head |
 | PUT | `/api/faculty/registrations/{id}/evaluator` | assign or replace `{ evaluatorId }`; only approved registrations, active Lecturer/Faculty Head candidates and non-supervisors are accepted | `REGISTRATION_REVIEW` + Admin/Faculty Head + CSRF |
+| GET | `/api/faculty/boards`, `/api/faculty/boards/{id}` | list or inspect review boards visible to the actor; Faculty Head scope is department, Lecturer scope is active board membership | `REVIEW_BOARD_VIEW` |
+| POST/PUT | `/api/faculty/boards`, `/api/faculty/boards/{id}` | create or replace `{ registrationId, scheduledAt, status, lecturerIds, chairId, secretaryId }`; validates approved registration, 3–5 active same-department non-supervisors and exact Chair/Secretary roles | `REVIEW_BOARD_MANAGE` + CSRF |
+| POST | `/api/faculty/boards/{id}/status` | move a board through its forward-only lifecycle | `REVIEW_BOARD_MANAGE` + CSRF |
 | GET | `/api/reports/{id}` | relationship-authorized report metadata | `REPORT_VIEW` + resource relationship |
 | GET | `/api/reports/{id}/download` | relationship-authorized report file download | `REPORT_VIEW` + resource relationship |
 | GET | `/api/lecturer/scoring`, `/api/faculty/scores` | assigned evaluator queue, configured score range and calculated averages | `EVALUATION_SUBMIT` + assigned evaluator |

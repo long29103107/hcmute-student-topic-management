@@ -51,6 +51,7 @@ public class EvaluationScoringService {
                 .findByLecturer_IdOrderByUpdatedAtDesc(evaluator.getId()).stream()
                 .filter(evaluation -> evaluation.getTopicRegistration() != null
                         && evaluation.getTopicRegistration().getStatus() == TopicRegistrationStatus.APPROVED)
+                .filter(this::isVisibleAssignment)
                 .map(this::toSummary)
                 .toList();
         return new ScoringPage(
@@ -71,6 +72,13 @@ public class EvaluationScoringService {
                 || !Objects.equals(evaluator.getId(), evaluation.getLecturer().getId())) {
             throw new EvaluationScoringAccessException(
                     "Only the assigned evaluator can submit this evaluation.");
+        }
+        if (evaluation.getBoard() != null && (evaluation.getBoardMember() == null
+                || !evaluation.getBoardMember().isActive()
+                || (evaluation.getBoard().getStatus() != com.hcmute.topicmanagement.model.enums.ReviewBoardStatus.ACTIVE
+                && evaluation.getBoard().getStatus() != com.hcmute.topicmanagement.model.enums.ReviewBoardStatus.COMPLETED))) {
+            throw new EvaluationScoringValidationException(
+                    "Board evaluations can only be scored by an active assigned member while the board is active.");
         }
 
         TopicRegistrationEntity registration = evaluation.getTopicRegistration();
@@ -121,6 +129,10 @@ public class EvaluationScoringService {
         LocalDateTime deadline = registration.getRegistrationPeriod().getReviewerScoreDeadline();
         boolean resultPublished = isResultPublished(registration);
         boolean deadlinePassed = deadline != null && LocalDateTime.now().isAfter(deadline);
+        boolean boardEditable = evaluation.getBoard() == null || (evaluation.getBoardMember() != null
+                && evaluation.getBoardMember().isActive()
+                && (evaluation.getBoard().getStatus() == com.hcmute.topicmanagement.model.enums.ReviewBoardStatus.ACTIVE
+                || evaluation.getBoard().getStatus() == com.hcmute.topicmanagement.model.enums.ReviewBoardStatus.COMPLETED));
         return new EvaluationSummary(
                 evaluation.getId(),
                 registration.getId(),
@@ -138,7 +150,14 @@ public class EvaluationScoringService {
                 averageScore(registration.getId()),
                 evaluation.getSubmittedAt(),
                 deadline,
-                !resultPublished && !deadlinePassed);
+                boardEditable && !resultPublished && !deadlinePassed,
+                evaluation.getBoard() == null ? null : evaluation.getBoard().getStatus().name(),
+                evaluation.getBoardMember() == null ? null : evaluation.getBoardMember().getMemberRole().name());
+    }
+
+    private boolean isVisibleAssignment(EvaluationEntity evaluation) {
+        return evaluation.getBoard() == null
+                || (evaluation.getBoardMember() != null && evaluation.getBoardMember().isActive());
     }
 
     private BigDecimal averageScore(Long registrationId) {
@@ -214,7 +233,9 @@ public class EvaluationScoringService {
             BigDecimal averageScore,
             LocalDateTime submittedAt,
             LocalDateTime deadline,
-            boolean editable) {
+            boolean editable,
+            String boardStatus,
+            String boardMemberRole) {
     }
 
     public static class EvaluationScoringNotFoundException extends RuntimeException {

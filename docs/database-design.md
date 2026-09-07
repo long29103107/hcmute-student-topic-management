@@ -37,11 +37,13 @@ The revised schema contains 18 tables:
   and resubmission policy must not infer one from the student registration
   window.
 - `evaluations` are lecturer-level rows. The unique key is
-  `(registration_id, lecturer_id)`, `board_id` is nullable, and aggregate data
-  belongs in `registration_results`.
+  `(registration_id, lecturer_id)`, `board_id` and `board_member_id` are nullable
+  for legacy/MVP compatibility, and aggregate data belongs in
+  `registration_results`. Board-created evaluations link both the board and the
+  active member assignment.
 - `review_boards.registration_id` is unique: the current schema allows one
-  board per topic registration. `review_board_members` prevents duplicate
-  lecturer assignment per board.
+  board per topic registration. `review_board_members` keeps the current active
+  composition and permits inactive historical rows for reassignment history.
 - `registration_results` uses `registration_id` as both primary key and
   foreign key, with optional finalization/publication metadata.
 
@@ -76,8 +78,10 @@ that are not expressible in this schema:
   transfer is allowed only to an active student who is already a member;
 - a student belongs to at most one active group in a period;
 - at most one active topic registration per group and period;
-- a full review board has 3–5 lecturers, exactly one `CHAIR` and one
-  `SECRETARY`, when that workflow is enabled;
+- a review board has 3–5 active lecturers, exactly one `CHAIR` and one
+  `SECRETARY`, all from the topic department and none of the topic supervisors;
+- review-board lifecycle transitions are forward-only (`DRAFT` → `ASSIGNED`/`SCHEDULED`/`ACTIVE` → `COMPLETED` → `PUBLISHED` → `CLOSED`);
+- only active board members can score while the board is `ACTIVE` or `COMPLETED`;
 - a supervisor cannot evaluate their own topic;
 - score deadlines, result aggregation and publication visibility are checked on
   the server.
@@ -92,5 +96,4 @@ mysql -u root -p < database/1.ddl.sql
 
 The local seed pipeline drops all 18 revised-schema tables with foreign-key
 checks disabled, recreates the schema from `database/1.ddl.sql`, and then
-recreates identity and academic fixtures. It does not migrate arbitrary legacy
-data. The application does not perform this destructive reset on startup.
+recreates identity and academic fixtures, including 3 approved registrations, 2 review boards, 6 active board members and 6 linked evaluation rows. It does not migrate arbitrary legacy data. The application does not perform this destructive reset on startup.

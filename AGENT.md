@@ -178,3 +178,8 @@ mvn package
 
 Nếu task chạm MySQL/Tomcat, bổ sung smoke test theo `docs/verification.md` khi
 môi trường đã có các dịch vụ đó.
+
+Phase 006 explicitly implements the extended review-board workflow from issues
+#21–#24: 3–5 member boards, Chair/Secretary roles, active/history assignments
+and board-linked scoring. Keep the legacy single-evaluator path only for
+registrations that do not have a board.

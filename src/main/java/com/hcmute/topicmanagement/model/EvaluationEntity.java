@@ -25,6 +25,10 @@ public class EvaluationEntity extends BaseEntity {
     @JoinColumn(name = "board_id")
     private ReviewBoardEntity board;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_member_id")
+    private ReviewBoardMemberEntity boardMember;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "lecturer_id", nullable = false)
     private UserEntity lecturer;
@@ -80,6 +84,14 @@ public class EvaluationEntity extends BaseEntity {
 
     public void setBoard(ReviewBoardEntity board) {
         this.board = board;
+    }
+
+    public ReviewBoardMemberEntity getBoardMember() {
+        return boardMember;
+    }
+
+    public void setBoardMember(ReviewBoardMemberEntity boardMember) {
+        this.boardMember = boardMember;
     }
 
     public String getComment() {

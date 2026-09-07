@@ -114,17 +114,19 @@ POST /api/seed/users
 POST /api/seed/registration-periods
 POST /api/seed/student-groups
 POST /api/seed/topics
+POST /api/seed/topic-registrations
+POST /api/seed/review-boards
 POST /api/seed/announcements
 ```
 
 Các API seed fixture có thể chạy lại; riêng `/api/seed/ddl` là bước destructive
 drop/recreate schema. Các bước còn lại tạo/cập nhật roles, permissions, 15
 departments, 4 faculty-head accounts, 16 lecturer accounts, 50 student accounts,
-8 topics, 13 supervisor assignments và 2 published announcements.
+8 topics, 13 supervisor assignments, 3 approved registrations, 2 review boards with 6 members/evaluations và 2 published announcements.
 `POST /api/admin/seed`
 là API reset/reseed đầy đủ: truncate 18 bảng của schema revised trong một
-transaction, sau đó tạo lại 4 roles, 24 permissions, 15 departments và 71 tài
-khoản (gồm 4 faculty heads, 16 lecturers, 50 students, admin và 2 announcements).
+transaction, sau đó tạo lại 4 roles, 26 permissions, 15 departments và 71 tài
+khoản (gồm 4 faculty heads, 16 lecturers, 50 students, admin), 3 approved registrations, 2 review boards với 6 board members/evaluations và 2 announcements.
 Đây là thao
 tác destructive dành
 cho local; không gọi trên database có dữ liệu cần giữ. Khi xoá hẳn database,

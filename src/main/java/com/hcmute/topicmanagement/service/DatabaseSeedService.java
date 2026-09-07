@@ -18,6 +18,10 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import com.hcmute.topicmanagement.model.DepartmentEntity;
+import com.hcmute.topicmanagement.model.EvaluationEntity;
+import com.hcmute.topicmanagement.model.ReviewBoardEntity;
+import com.hcmute.topicmanagement.model.ReviewBoardMemberEntity;
+import com.hcmute.topicmanagement.model.TopicRegistrationEntity;
 import com.hcmute.topicmanagement.model.AnnouncementEntity;
 import com.hcmute.topicmanagement.model.PermissionEntity;
 import com.hcmute.topicmanagement.model.RegistrationPeriodEntity;
@@ -32,12 +36,19 @@ import com.hcmute.topicmanagement.model.enums.AnnouncementScope;
 import com.hcmute.topicmanagement.model.enums.AnnouncementStatus;
 import com.hcmute.topicmanagement.model.enums.PeriodType;
 import com.hcmute.topicmanagement.model.enums.RegistrationPeriodStatus;
+import com.hcmute.topicmanagement.model.enums.ReviewBoardMemberRole;
+import com.hcmute.topicmanagement.model.enums.ReviewBoardStatus;
+import com.hcmute.topicmanagement.model.enums.TopicRegistrationStatus;
 import com.hcmute.topicmanagement.model.enums.TopicStatus;
 import com.hcmute.topicmanagement.repository.DepartmentRepository;
 import com.hcmute.topicmanagement.repository.AnnouncementRepository;
 import com.hcmute.topicmanagement.repository.PermissionRepository;
 import com.hcmute.topicmanagement.repository.RegistrationPeriodRepository;
 import com.hcmute.topicmanagement.repository.RolePermissionRepository;
+import com.hcmute.topicmanagement.repository.EvaluationRepository;
+import com.hcmute.topicmanagement.repository.ReviewBoardMemberRepository;
+import com.hcmute.topicmanagement.repository.ReviewBoardRepository;
+import com.hcmute.topicmanagement.repository.TopicRegistrationRepository;
 import com.hcmute.topicmanagement.repository.RoleRepository;
 import com.hcmute.topicmanagement.repository.StudentGroupRepository;
 import com.hcmute.topicmanagement.repository.TopicRepository;
@@ -121,16 +132,20 @@ public class DatabaseSeedService {
             new PermissionSeed("RESULT_VIEW", "View results", "Results",
                     "View published results for permitted users."),
             new PermissionSeed("ANNOUNCEMENT_MANAGE", "Manage announcements", "Announcements",
-                    "Create, update, publish, and hide announcements within the user's management scope."));
+                    "Create, update, publish, and hide announcements within the user's management scope."),
+            new PermissionSeed("REVIEW_BOARD_VIEW", "View review boards", "Review boards",
+                    "View review boards visible in the user's faculty scope."),
+            new PermissionSeed("REVIEW_BOARD_MANAGE", "Manage review boards", "Review boards",
+                    "Create boards, assign members, and move board lifecycle status."));
 
     private static final List<String> LECTURER_PERMISSIONS = List.of(
-            "TOPIC_PROPOSE", "TOPIC_VIEW", "REPORT_VIEW", "EVALUATION_SUBMIT", "RESULT_VIEW");
+            "TOPIC_PROPOSE", "TOPIC_VIEW", "REPORT_VIEW", "EVALUATION_SUBMIT", "RESULT_VIEW", "REVIEW_BOARD_VIEW");
 
     private static final Map<String, List<String>> ROLE_PERMISSIONS = Map.of(
             "ADMIN", allPermissionCodes(),
             "FACULTY_HEAD", withLecturerPermissions(
                     "PERIOD_MANAGE", "SUPERVISOR_MANAGE", "TOPIC_REVIEW", "REGISTRATION_REVIEW",
-                    "ANNOUNCEMENT_MANAGE"),
+                    "ANNOUNCEMENT_MANAGE", "REVIEW_BOARD_MANAGE"),
             "LECTURER", LECTURER_PERMISSIONS,
             "STUDENT", List.of(
                     "TOPIC_VIEW", "GROUP_MANAGE", "REGISTRATION_SUBMIT", "REPORT_SUBMIT", "REPORT_VIEW",
@@ -356,6 +371,10 @@ public class DatabaseSeedService {
     private final PermissionRepository permissionRepository;
     private final RegistrationPeriodRepository registrationPeriodRepository;
     private final RolePermissionRepository rolePermissionRepository;
+    private final TopicRegistrationRepository topicRegistrationRepository;
+    private final EvaluationRepository evaluationRepository;
+    private final ReviewBoardRepository reviewBoardRepository;
+    private final ReviewBoardMemberRepository reviewBoardMemberRepository;
     private final DepartmentRepository departmentRepository;
     private final StudentGroupRepository studentGroupRepository;
     private final TopicRepository topicRepository;
@@ -372,6 +391,10 @@ public class DatabaseSeedService {
             RegistrationPeriodRepository registrationPeriodRepository,
             RolePermissionRepository rolePermissionRepository,
             DepartmentRepository departmentRepository,
+            TopicRegistrationRepository topicRegistrationRepository,
+            EvaluationRepository evaluationRepository,
+            ReviewBoardRepository reviewBoardRepository,
+            ReviewBoardMemberRepository reviewBoardMemberRepository,
             StudentGroupRepository studentGroupRepository,
             TopicRepository topicRepository,
             UserRepository userRepository,
@@ -382,6 +405,10 @@ public class DatabaseSeedService {
         this.permissionRepository = permissionRepository;
         this.registrationPeriodRepository = registrationPeriodRepository;
         this.rolePermissionRepository = rolePermissionRepository;
+        this.topicRegistrationRepository = topicRegistrationRepository;
+        this.evaluationRepository = evaluationRepository;
+        this.reviewBoardRepository = reviewBoardRepository;
+        this.reviewBoardMemberRepository = reviewBoardMemberRepository;
         this.departmentRepository = departmentRepository;
         this.studentGroupRepository = studentGroupRepository;
         this.topicRepository = topicRepository;
@@ -402,6 +429,8 @@ public class DatabaseSeedService {
         List<StudentGroupEntity> studentGroups = seedStudentGroups();
         List<TopicEntity> topics = seedTopics();
         List<AnnouncementEntity> announcements = seedAnnouncements();
+        List<TopicRegistrationEntity> registrations = seedTopicRegistrations();
+        List<ReviewBoardEntity> boards = seedReviewBoards();
         entityManager.clear();
 
         return new SeedResult(
@@ -414,6 +443,9 @@ public class DatabaseSeedService {
                 studentGroups.size(),
                 topics.size(),
                 topics.stream().mapToInt(topic -> topic.getSupervisors().size()).sum(),
+                registrations.size(),
+                boards.size(),
+                (int) reviewBoardMemberRepository.count(),
                 countUsersWithRole("FACULTY_HEAD"),
                 countUsersWithRole("LECTURER"),
                 countUsersWithRole("STUDENT"),
@@ -504,6 +536,21 @@ public class DatabaseSeedService {
     public SeedStepResult seedTopicsStep() {
         List<TopicEntity> topics = seedTopics();
         return new SeedStepResult("topics", topics.size(), LocalDateTime.now());
+    }
+
+    @Transactional
+    public SeedStepResult seedTopicRegistrationsStep() {
+        List<TopicRegistrationEntity> registrations = seedTopicRegistrations();
+        return new SeedStepResult("topic-registrations", registrations.size(), LocalDateTime.now());
+    }
+
+    @Transactional
+    public SeedStepResult seedReviewBoardsStep() {
+        if (topicRegistrationRepository.count() == 0) {
+            seedTopicRegistrations();
+        }
+        List<ReviewBoardEntity> boards = seedReviewBoards();
+        return new SeedStepResult("review-boards", boards.size(), LocalDateTime.now());
     }
 
     @Transactional
@@ -651,6 +698,92 @@ public class DatabaseSeedService {
         return topicRepository.saveAllAndFlush(topics);
     }
 
+    private List<TopicRegistrationEntity> seedTopicRegistrations() {
+        RegistrationPeriodEntity period = registrationPeriodRepository.findByNameIgnoreCase(SEEDED_PERIOD_NAME)
+                .orElseThrow(() -> new IllegalStateException("Seed registration periods before registrations."));
+        return List.of(
+                upsertSeedRegistration(period, "Nhóm Phoenix", "Nền tảng quản lý đề tài và tiến độ khóa luận"),
+                upsertSeedRegistration(period, "Nhóm Nova", "Phát hiện bất thường trong kết quả học tập"),
+                upsertSeedRegistration(period, "Nhóm Atlas", "Ứng dụng quản lý quy trình thực tập doanh nghiệp"));
+    }
+
+    private TopicRegistrationEntity upsertSeedRegistration(
+            RegistrationPeriodEntity period, String groupName, String topicTitle) {
+        StudentGroupEntity group = studentGroupRepository
+                .findByRegistrationPeriod_IdAndNameIgnoreCase(period.getId(), groupName)
+                .orElseThrow(() -> new IllegalStateException("Seed student group before registration: " + groupName));
+        TopicEntity topic = topicRepository.findFirstByTitleIgnoreCase(topicTitle)
+                .orElseThrow(() -> new IllegalStateException("Seed topic before registration: " + topicTitle));
+        TopicRegistrationEntity registration = topicRegistrationRepository
+                .findByStudentGroup_IdAndRegistrationPeriod_IdOrderBySubmittedAtDesc(group.getId(), period.getId())
+                .stream().filter(existing -> existing.getTopic().getId().equals(topic.getId())).findFirst()
+                .orElseGet(() -> new TopicRegistrationEntity(group, topic, period, group.getLeader()));
+        registration.setStudentGroup(group);
+        registration.setTopic(topic);
+        registration.setRegistrationPeriod(period);
+        registration.setSubmittedBy(group.getLeader());
+        registration.setStatus(TopicRegistrationStatus.APPROVED);
+        registration.setRejectionReason(null);
+        return topicRegistrationRepository.saveAndFlush(registration);
+    }
+
+    private List<ReviewBoardEntity> seedReviewBoards() {
+        List<ReviewBoardSeed> seeds = List.of(
+                new ReviewBoardSeed("Nhóm Phoenix", "Nền tảng quản lý đề tài và tiến độ khóa luận",
+                        "nguyen.van.khang", LocalDateTime.now().plusDays(3),
+                        List.of(new BoardMemberSeed("nguyen.thanh.binh", ReviewBoardMemberRole.CHAIR),
+                                new BoardMemberSeed("dang.minh.tri", ReviewBoardMemberRole.SECRETARY),
+                                new BoardMemberSeed("bui.thanh.ha", ReviewBoardMemberRole.MEMBER))),
+                new ReviewBoardSeed("Nhóm Atlas", "Ứng dụng quản lý quy trình thực tập doanh nghiệp",
+                        "le.quang.huy", LocalDateTime.now().plusDays(6),
+                        List.of(new BoardMemberSeed("phan.tuan.anh", ReviewBoardMemberRole.CHAIR),
+                                new BoardMemberSeed("huynh.thi.my.linh", ReviewBoardMemberRole.SECRETARY),
+                                new BoardMemberSeed("le.quang.huy", ReviewBoardMemberRole.MEMBER))));
+        RegistrationPeriodEntity period = registrationPeriodRepository.findByNameIgnoreCase(SEEDED_PERIOD_NAME)
+                .orElseThrow(() -> new IllegalStateException("Seed registration periods before boards."));
+        List<ReviewBoardEntity> boards = new ArrayList<>();
+        for (ReviewBoardSeed seed : seeds) {
+            StudentGroupEntity group = studentGroupRepository
+                    .findByRegistrationPeriod_IdAndNameIgnoreCase(period.getId(), seed.groupName())
+                    .orElseThrow(() -> new IllegalStateException("Seed group before board: " + seed.groupName()));
+            TopicEntity topic = topicRepository.findFirstByTitleIgnoreCase(seed.topicTitle())
+                    .orElseThrow(() -> new IllegalStateException("Seed topic before board: " + seed.topicTitle()));
+            TopicRegistrationEntity registration = topicRegistrationRepository
+                    .findByStudentGroup_IdAndRegistrationPeriod_IdOrderBySubmittedAtDesc(group.getId(), period.getId())
+                    .stream().filter(existing -> existing.getTopic().getId().equals(topic.getId())).findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Seed registration before board: " + seed.groupName()));
+            UserEntity creator = requireSeedUser(seed.creatorLogin());
+            ReviewBoardEntity board = reviewBoardRepository.findByTopicRegistration_Id(registration.getId())
+                    .orElseGet(() -> new ReviewBoardEntity(registration, creator));
+            board.setTopicRegistration(registration);
+            board.setCreatedBy(creator);
+            board.setScheduledAt(seed.scheduledAt());
+            board.setStatus(ReviewBoardStatus.ACTIVE);
+            board = reviewBoardRepository.saveAndFlush(board);
+            ReviewBoardEntity savedBoard = board;
+            Map<String, UserEntity> members = seed.members().stream()
+                    .collect(Collectors.toMap(BoardMemberSeed::login, member -> requireSeedUser(member.login())));
+            for (BoardMemberSeed memberSeed : seed.members()) {
+                UserEntity lecturer = members.get(memberSeed.login());
+                ReviewBoardMemberEntity member = reviewBoardMemberRepository
+                        .findByBoard_IdAndLecturer_Id(board.getId(), lecturer.getId())
+                        .orElseGet(() -> new ReviewBoardMemberEntity(savedBoard, lecturer));
+                member.setMemberRole(memberSeed.role());
+                member.setActive(true);
+                member.setEndedAt(null);
+                reviewBoardMemberRepository.saveAndFlush(member);
+                EvaluationEntity evaluation = evaluationRepository
+                        .findByTopicRegistration_IdAndLecturer_IdAndBoard_Id(
+                                registration.getId(), lecturer.getId(), board.getId())
+                        .orElseGet(() -> new EvaluationEntity(registration, lecturer));
+                evaluation.setBoard(board);
+                evaluation.setBoardMember(member);
+                evaluationRepository.saveAndFlush(evaluation);
+            }
+            boards.add(board);
+        }
+        return boards;
+    }
     private List<AnnouncementEntity> seedAnnouncements() {
         Map<String, DepartmentEntity> departments = departmentsByCode();
         List<AnnouncementEntity> announcements = ANNOUNCEMENTS.stream()
@@ -828,6 +961,9 @@ public class DatabaseSeedService {
             int studentGroups,
             int topics,
             int topicSupervisors,
+            int registrations,
+            int reviewBoards,
+            int reviewBoardMembers,
             int facultyHeads,
             int lecturers,
             int students,
@@ -862,6 +998,17 @@ public class DatabaseSeedService {
     }
 
     private record StudentGroupSeed(String name, String leaderLogin, List<String> memberLogins) {
+    }
+
+    private record ReviewBoardSeed(
+            String groupName,
+            String topicTitle,
+            String creatorLogin,
+            LocalDateTime scheduledAt,
+            List<BoardMemberSeed> members) {
+    }
+
+    private record BoardMemberSeed(String login, ReviewBoardMemberRole role) {
     }
 
     private record AnnouncementSeed(

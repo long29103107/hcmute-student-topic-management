@@ -12,11 +12,17 @@ public interface ReviewBoardMemberRepository extends JpaRepository<ReviewBoardMe
 
     List<ReviewBoardMemberEntity> findByBoard_IdOrderByAssignedAtAsc(Long boardId);
 
+    List<ReviewBoardMemberEntity> findByBoard_IdAndActiveTrueOrderByMemberRoleAscAssignedAtAsc(Long boardId);
+
     Optional<ReviewBoardMemberEntity> findByBoard_IdAndLecturer_Id(Long boardId, Long lecturerId);
 
     boolean existsByBoard_IdAndLecturer_Id(Long boardId, Long lecturerId);
 
+    boolean existsByBoard_IdAndLecturer_IdAndActiveTrue(Long boardId, Long lecturerId);
+
     long countByBoard_Id(Long boardId);
 
     long countByBoard_IdAndMemberRole(Long boardId, ReviewBoardMemberRole memberRole);
+
+    long countByBoard_IdAndMemberRoleAndActiveTrue(Long boardId, ReviewBoardMemberRole memberRole);
 }

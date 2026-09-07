@@ -83,3 +83,15 @@ does not silently impersonate another user's ownership relationship.
   have a submitted score, records publisher/time/status, and cannot be repeated
   without an audited action. Student queries are relationship-scoped through
   group membership and return only `PUBLISHED` results.
+
+
+## Review board permissions (Issues #21–#24)
+
+- `REVIEW_BOARD_VIEW` is assigned to Admin, Faculty Head and Lecturer. Admin
+  sees all boards, Faculty Head sees their department, and Lecturer sees only
+  active board memberships.
+- `REVIEW_BOARD_MANAGE` is assigned to Admin and Faculty Head. Admin can manage
+  every department; Faculty Head can create/update/status-change boards only
+  for their own department.
+- Server validation rejects unapproved registrations, duplicate/invalid members,
+  students, inactive accounts, cross-department accounts and topic supervisors.

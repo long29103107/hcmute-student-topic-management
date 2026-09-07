@@ -67,6 +67,15 @@ public class DatabaseSeedStepController {
         return databaseSeedService.seedTopicsStep();
     }
 
+    @PostMapping("/topic-registrations")
+    public SeedStepResult seedTopicRegistrations() {
+        return databaseSeedService.seedTopicRegistrationsStep();
+    }
+
+    @PostMapping("/review-boards")
+    public SeedStepResult seedReviewBoards() {
+        return databaseSeedService.seedReviewBoardsStep();
+    }
     @PostMapping("/announcements")
     public SeedStepResult seedAnnouncements() {
         return databaseSeedService.seedAnnouncementsStep();

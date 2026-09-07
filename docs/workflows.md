@@ -10,14 +10,16 @@ Faculty Head/Admin creates and opens a period
   -> Group leader submits one topic registration
   -> Faculty Head approves registration
   -> Group leader submits report
-  -> Faculty Head assigns a lecturer for the MVP evaluation
-  -> Assigned lecturer enters score and comment
+  -> Faculty Head creates a review board and assigns Chair/Secretary/members
+  -> Assigned board members enter score and comment
+  -> Faculty Head completes the board
   -> Faculty Head publishes the evaluation result
   -> Group members view their result
 ```
 
-The full board workflow (3–5 lecturers, chair, secretary and multiple
-assignments) is a Should Have extension. It must not block the MVP workflow.
+The full board workflow is implemented as Phase 006. The legacy single-evaluator
+path remains supported for existing registrations without a board, while board
+registrations use active member-linked evaluations.
 
 ## Registration period status contract
 
@@ -219,3 +221,20 @@ only members of the group attached to that topic registration may view it.
 Admin, Faculty Head and assigned academic roles may have operational access as
 defined in the authorization matrix, but student-facing privacy rules remain
 server enforced.
+
+
+## Review board lifecycle (Issues #21–#24)
+
+```text
+DRAFT -> ASSIGNED -> SCHEDULED -> ACTIVE -> COMPLETED -> PUBLISHED -> CLOSED
+```
+
+A board belongs to exactly one approved registration. Faculty Head management is
+department-scoped; Admin management is cross-department. A valid composition has
+3–5 unique active Lecturer/Faculty Head accounts from the topic department, one
+`CHAIR`, one `SECRETARY`, and no topic supervisor. Member removal is historical
+(`active=false`, `ended_at` set), so evaluation/audit context is not lost.
+
+Board creation materializes one evaluation row per active member and links it to
+the board member. Scoring is accepted only for that active member while the board
+is `ACTIVE` or `COMPLETED`; after publication or closure the evaluation is read-only.

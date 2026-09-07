@@ -66,15 +66,18 @@ revised schema does not have a separate Student Profile entity.
 
 ## Evaluation and result
 
-- `ReviewBoardEntity` is unique per topic registration and references its
-  creator, schedule and status.
-- `ReviewBoardMemberEntity` links lecturers to a board and stores `MEMBER`,
-  `CHAIR` or `SECRETARY`. The database prevents duplicate lecturer membership;
-  Service rules enforce 3–5 members and exactly one chair/secretary when the
-  extended board flow is enabled.
+- `ReviewBoardEntity` is unique per approved topic registration and references its
+  creator, schedule and lifecycle status (`DRAFT`, `ASSIGNED`, `SCHEDULED`,
+  `ACTIVE`, `COMPLETED`, `PUBLISHED`, `CLOSED`).
+- `ReviewBoardMemberEntity` links active or historical Lecturer/Faculty Head
+  assignments to a board and stores `MEMBER`, `CHAIR` or `SECRETARY`. Service
+  rules enforce 3–5 active same-department members, exactly one Chair/Secretary,
+  exclusion of topic supervisors and inactive-member history on reassignment.
 - `EvaluationEntity` is one lecturer's score/comment. A registration may have
   multiple evaluations, with uniqueness per `(registration_id, lecturer_id)`;
-  `board_id` is nullable for the MVP assignment path.
+  board-created rows link both nullable-compatible `board_id` and
+  `board_member_id`. Only the active linked member may score while the board is
+  `ACTIVE` or `COMPLETED`.
 - `RegistrationResultEntity` uses a shared primary key (`registration_id`) and
   stores the aggregate score, final comment and finalization/publication audit
   fields. `average_score` belongs here, not on individual evaluations.
@@ -109,6 +112,7 @@ StudentGroup * ── * User (group_members)
 TopicRegistration 1 ── * Report
 TopicRegistration 1 ── 0..1 ReviewBoard 1 ── * ReviewBoardMember * ── 1 User
 TopicRegistration 1 ── * Evaluation * ── 1 User
+Evaluation * ── 0..1 ReviewBoardMember
 TopicRegistration 1 ── 0..1 RegistrationResult
 User 1 ── * Announcement
 Department 1 ── * Announcement (department scope only)

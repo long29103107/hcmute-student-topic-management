@@ -19,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.hcmute.topicmanagement.model.DepartmentEntity;
@@ -37,6 +38,7 @@ import com.hcmute.topicmanagement.security.DatabaseUserPrincipal;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class DatabaseSeedControllerTest {
 
     @Autowired
@@ -91,6 +93,8 @@ class DatabaseSeedControllerTest {
                 .andExpect(content().string(containsString("POST /api/seed/registration-periods")))
                 .andExpect(content().string(containsString("POST /api/seed/student-groups")))
                 .andExpect(content().string(containsString("POST /api/seed/topics")))
+                .andExpect(content().string(containsString("POST /api/seed/topic-registrations")))
+                .andExpect(content().string(containsString("POST /api/seed/review-boards")))
                 .andExpect(content().string(containsString("POST /api/seed/announcements")))
                 .andExpect(content().string(containsString("data-seed-action")))
                 .andExpect(content().string(containsString("Available seed APIs")))
@@ -109,6 +113,8 @@ class DatabaseSeedControllerTest {
                 "/api/seed/registration-periods",
                 "/api/seed/student-groups",
                 "/api/seed/topics",
+                "/api/seed/topic-registrations",
+                "/api/seed/review-boards",
                 "/api/seed/announcements");
 
         for (String endpoint : endpoints) {
@@ -131,7 +137,7 @@ class DatabaseSeedControllerTest {
                 .andExpect(status().isNotFound());
 
         org.assertj.core.api.Assertions.assertThat(roleRepository.count()).isEqualTo(4);
-        org.assertj.core.api.Assertions.assertThat(permissionRepository.count()).isEqualTo(24);
+        org.assertj.core.api.Assertions.assertThat(permissionRepository.count()).isEqualTo(26);
         org.assertj.core.api.Assertions.assertThat(departmentRepository.count()).isEqualTo(15);
         org.assertj.core.api.Assertions.assertThat(registrationPeriodRepository.count()).isEqualTo(1);
         org.assertj.core.api.Assertions.assertThat(studentGroupRepository.count()).isEqualTo(4);
@@ -228,7 +234,7 @@ class DatabaseSeedControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tablesReset").value(18))
                 .andExpect(jsonPath("$.roles").value(4))
-                .andExpect(jsonPath("$.permissions").value(24))
+                .andExpect(jsonPath("$.permissions").value(26))
                 .andExpect(jsonPath("$.departments").value(15))
                 .andExpect(jsonPath("$.users").value(71))
                 .andExpect(jsonPath("$.registrationPeriods").value(1))
@@ -242,7 +248,7 @@ class DatabaseSeedControllerTest {
                 .andExpect(jsonPath("$.studentProfiles").doesNotExist());
 
         org.assertj.core.api.Assertions.assertThat(roleRepository.count()).isEqualTo(4);
-        org.assertj.core.api.Assertions.assertThat(permissionRepository.count()).isEqualTo(24);
+        org.assertj.core.api.Assertions.assertThat(permissionRepository.count()).isEqualTo(26);
         org.assertj.core.api.Assertions.assertThat(userRepository.count()).isEqualTo(71);
         org.assertj.core.api.Assertions.assertThat(departmentRepository.count()).isEqualTo(15);
         org.assertj.core.api.Assertions.assertThat(registrationPeriodRepository.count()).isEqualTo(1);

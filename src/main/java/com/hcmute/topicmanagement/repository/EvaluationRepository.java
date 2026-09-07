@@ -23,4 +23,9 @@ public interface EvaluationRepository extends JpaRepository<EvaluationEntity, Lo
     List<EvaluationEntity> findByLecturer_IdAndStatus(Long lecturerId, EvaluationStatus status);
 
     List<EvaluationEntity> findByBoard_IdAndStatus(Long boardId, EvaluationStatus status);
+
+    Optional<EvaluationEntity> findByTopicRegistration_IdAndLecturer_IdAndBoard_Id(
+            Long registrationId, Long lecturerId, Long boardId);
+
+    List<EvaluationEntity> findByBoard_IdOrderByCreatedAtAsc(Long boardId);
 }

@@ -11,11 +11,9 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "review_board_members", uniqueConstraints = @UniqueConstraint(
-        name = "uk_review_board_members_board_lecturer", columnNames = {"board_id", "lecturer_id"}))
+@Table(name = "review_board_members")
 public class ReviewBoardMemberEntity extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -32,6 +30,12 @@ public class ReviewBoardMemberEntity extends BaseEntity {
 
     @Column(name = "assigned_at", nullable = false)
     private LocalDateTime assignedAt;
+
+    @Column(nullable = false)
+    private boolean active = true;
+
+    @Column(name = "ended_at")
+    private LocalDateTime endedAt;
 
     protected ReviewBoardMemberEntity() {
     }
@@ -72,5 +76,21 @@ public class ReviewBoardMemberEntity extends BaseEntity {
 
     public void setAssignedAt(LocalDateTime assignedAt) {
         this.assignedAt = assignedAt;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public LocalDateTime getEndedAt() {
+        return endedAt;
+    }
+
+    public void setEndedAt(LocalDateTime endedAt) {
+        this.endedAt = endedAt;
     }
 }

@@ -316,3 +316,15 @@ When REST endpoints are implemented, verify at least:
   other-group results remain hidden.
 - Focused, full regression, package and `git diff --check` results are recorded
   in the Phase 004 task note.
+
+
+## Review board workflow (Issues #21–#24)
+
+The board flow is now implemented and should be smoke-tested after the local seed reset:
+
+- `POST /api/admin/seed` reports 3 approved registrations, 2 review boards, 6 active board members and 6 linked evaluation rows.
+- Faculty Head opens `/faculty/boards` and sees only boards in their department; Admin sees all boards.
+- A board is created only for an approved registration, with 3–5 unique active Lecturer/Faculty Head members, exactly one Chair and one Secretary, same-department membership and no topic supervisor.
+- Board status moves forward only; removing a member deactivates the old row and keeps its assignment history.
+- `/lecturer/scoring` and the scoring REST endpoints expose/accept only the active board member assignment while the board is `ACTIVE` or `COMPLETED`; supervisor and unassigned-member attempts are rejected.
+- `ReviewBoardControllerTest` covers SSR/REST scope, page rendering, invalid composition, evaluation linking and cross-department denial.

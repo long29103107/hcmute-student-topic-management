@@ -315,9 +315,9 @@
             </ul>
           </details>
 
-          <details sec:authorize="hasAnyRole('ADMIN', 'FACULTY_HEAD')" data-sidebar-group th:open="${pageTitle == 'My department' or pageTitle == 'Registration period management' or pageTitle == 'Supervisor assignments' or pageTitle == 'Topic review' or pageTitle == 'Registration review' or pageTitle == 'Evaluator assignments' or pageTitle == 'Publish topics' or pageTitle == 'Result publication'}">
+          <details sec:authorize="hasAnyRole('ADMIN', 'FACULTY_HEAD')" data-sidebar-group th:open="${pageTitle == 'My department' or pageTitle == 'Registration period management' or pageTitle == 'Supervisor assignments' or pageTitle == 'Topic review' or pageTitle == 'Registration review' or pageTitle == 'Evaluator assignments' or pageTitle == 'Review boards' or pageTitle == 'Publish topics' or pageTitle == 'Result publication'}">
             <summary class="group flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:bg-gray-50 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                      th:classappend="${pageTitle == 'My department' or pageTitle == 'Registration period management' or pageTitle == 'Supervisor assignments' or pageTitle == 'Topic review' or pageTitle == 'Registration review' or pageTitle == 'Evaluator assignments' or pageTitle == 'Publish topics' or pageTitle == 'Result publication' ? 'bg-blue-50 text-blue-700' : ''}">
+                      th:classappend="${pageTitle == 'My department' or pageTitle == 'Registration period management' or pageTitle == 'Supervisor assignments' or pageTitle == 'Topic review' or pageTitle == 'Registration review' or pageTitle == 'Evaluator assignments' or pageTitle == 'Review boards' or pageTitle == 'Publish topics' or pageTitle == 'Result publication' ? 'bg-blue-50 text-blue-700' : ''}">
               <span data-sidebar-label>Faculty workflow</span>
               <svg data-sidebar-label data-sidebar-chevron class="h-4 w-4 shrink-0 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m6 9 6 6 6-6"/>
@@ -392,7 +392,18 @@
                   <span class="ms-3" data-sidebar-label>Registration review</span>
                 </a>
               </li>
-              <li sec:authorize="hasAuthority('ANNOUNCEMENT_MANAGE')">
+              <li sec:authorize="hasAuthority('REVIEW_BOARD_VIEW')">
+                <a
+                  th:href="@{/faculty/boards}"
+                  th:aria-current="${pageTitle == 'Review boards' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'Review boards' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Review boards' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 3h12v18H6zM9 7h6m-6 4h6m-6 4h4"/></svg>
+                  <span class="ms-3" data-sidebar-label>Review boards</span>
+                </a>
+              </li>              <li sec:authorize="hasAuthority('ANNOUNCEMENT_MANAGE')">
                 <a
                   th:href="@{/announcements/manage}"
                   th:aria-current="${pageTitle == 'Manage announcements' ? 'page' : null}"

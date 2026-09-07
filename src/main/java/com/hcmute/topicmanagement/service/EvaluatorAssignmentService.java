@@ -11,11 +11,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.hcmute.topicmanagement.model.DepartmentEntity;
 import com.hcmute.topicmanagement.model.EvaluationEntity;
+import com.hcmute.topicmanagement.model.ReviewBoardMemberEntity;
 import com.hcmute.topicmanagement.model.TopicRegistrationEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
 import com.hcmute.topicmanagement.model.enums.TopicRegistrationStatus;
 import com.hcmute.topicmanagement.repository.EvaluationRepository;
+import com.hcmute.topicmanagement.repository.ReviewBoardMemberRepository;
 import com.hcmute.topicmanagement.repository.TopicRegistrationRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
 
@@ -26,14 +28,17 @@ public class EvaluatorAssignmentService {
     private final EvaluationRepository evaluationRepository;
     private final TopicRegistrationRepository topicRegistrationRepository;
     private final UserRepository userRepository;
+    private final ReviewBoardMemberRepository reviewBoardMemberRepository;
 
     public EvaluatorAssignmentService(
             EvaluationRepository evaluationRepository,
             TopicRegistrationRepository topicRegistrationRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            ReviewBoardMemberRepository reviewBoardMemberRepository) {
         this.evaluationRepository = evaluationRepository;
         this.topicRegistrationRepository = topicRegistrationRepository;
         this.userRepository = userRepository;
+        this.reviewBoardMemberRepository = reviewBoardMemberRepository;
     }
 
     @PreAuthorize("hasAuthority('REGISTRATION_REVIEW')")
@@ -92,9 +97,24 @@ public class EvaluatorAssignmentService {
                     "A topic supervisor cannot be assigned as that topic's evaluator.");
         }
 
-        EvaluationEntity evaluation = evaluationRepository
-                .findFirstByTopicRegistration_IdOrderByCreatedAtAsc(registrationId)
-                .orElseGet(() -> new EvaluationEntity(registration, evaluator));
+        EvaluationEntity evaluation;
+        if (registration.getReviewBoard() != null) {
+            ReviewBoardMemberEntity boardMember = reviewBoardMemberRepository
+                    .findByBoard_IdAndLecturer_Id(registration.getReviewBoard().getId(), evaluator.getId())
+                    .filter(ReviewBoardMemberEntity::isActive)
+                    .orElseThrow(() -> new EvaluatorAssignmentValidationException(
+                            "This registration is managed by its review board; select an active board member."));
+            evaluation = evaluationRepository
+                    .findByTopicRegistration_IdAndLecturer_IdAndBoard_Id(
+                            registrationId, evaluator.getId(), registration.getReviewBoard().getId())
+                    .orElseGet(() -> new EvaluationEntity(registration, evaluator));
+            evaluation.setBoard(registration.getReviewBoard());
+            evaluation.setBoardMember(boardMember);
+        } else {
+            evaluation = evaluationRepository
+                    .findFirstByTopicRegistration_IdOrderByCreatedAtAsc(registrationId)
+                    .orElseGet(() -> new EvaluationEntity(registration, evaluator));
+        }
         evaluation.setLecturer(evaluator);
         return toSummary(evaluationRepository.saveAndFlush(evaluation));
     }
