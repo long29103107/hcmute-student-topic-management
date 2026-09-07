@@ -34,7 +34,7 @@ class DatabaseSchemaServiceTest {
         SeedStepResult result = new DatabaseSchemaService(dataSource).recreateSchema();
 
         verify(dropStatement).execute("SET FOREIGN_KEY_CHECKS = 0");
-        verify(dropStatement).execute("DROP TABLE IF EXISTS `registration_results`, `evaluations`, "
+        verify(dropStatement).execute("DROP TABLE IF EXISTS `announcements`, `registration_results`, `evaluations`, "
                 + "`review_board_members`, `review_boards`, `reports`, `topic_registrations`, "
                 + "`group_members`, `topic_supervisors`, `student_groups`, `topics`, "
                 + "`registration_periods`, `departments`, `user_roles`, `role_permissions`, "
@@ -56,6 +56,6 @@ class DatabaseSchemaServiceTest {
                 + "    CONSTRAINT uk_roles_code UNIQUE (code)\n"
                 + ") ENGINE = InnoDB");
         assertThat(result.step()).isEqualTo("ddl");
-        assertThat(result.count()).isEqualTo(17);
+        assertThat(result.count()).isEqualTo(18);
     }
 }

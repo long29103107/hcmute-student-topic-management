@@ -2,10 +2,10 @@
 
 ## Vision alignment
 
-This is the user-selected contract task for the Announcement bundle in the
-later academic-workflow roadmap. It prepares the shared vocabulary and server
-authorization contract for the backend task without adding the persistence,
-service, SSR or REST implementation owned by the following tasks.
+This is the user-selected contract for the Announcement bundle in the
+academic-workflow roadmap. The shared vocabulary, authorization contract,
+SSR pages and REST adapters are implemented by the Phase 005 announcement
+tasks.
 
 ## Domain fields
 
@@ -67,5 +67,7 @@ This contract task owns:
 - the `ANNOUNCEMENT_MANAGE` seeded permission and Admin/Faculty Head mapping;
 - this documentation and focused seed authorization coverage.
 
-The following task owns the `announcements` table, JPA entity/repository,
-service transitions, published-scope queries and operation endpoints.
+Issue #19 owns the SSR and REST adapters for the existing entity, repository
+and service operations. Issue #20 owns representative local seed fixtures,
+authorization/controller regression tests and the dashboard announcement
+rendering.

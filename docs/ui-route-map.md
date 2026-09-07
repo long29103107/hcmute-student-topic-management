@@ -8,8 +8,8 @@ and reuse the same Service layer.
 
 For the course-project MVP, implement only routes needed for the core flow:
 periods, topics, groups, registrations, reports and simple evaluations/results.
-Board management, advanced announcements and optional polish routes are Should
-Have unless explicitly selected.
+The Announcement bundle is explicitly selected for Phase 005 and is listed
+below as an implemented extension.
 
 ## Public/authentication
 
@@ -33,7 +33,7 @@ Have unless explicitly selected.
 |---|---|---|
 | GET | `/` | `HomeController` → redirects to the role-aware dashboard |
 | GET | `/dashboard` | `HomeController` → `dashboard/admin.html`, `dashboard/faculty-head.html`, `dashboard/lecturer.html` or `dashboard/student.html` based on the authenticated role |
-| GET | `/announcements` | published announcements |
+| GET | `/announcements` | `AnnouncementController` → published announcements visible to the authenticated user's school/department scope |
 | GET | `/topics` | `TopicCatalogController` → published topic list filtered by keyword, department and valid student registration period |
 | GET | `/topics/view?id=...` | topic detail |
 
@@ -63,7 +63,9 @@ Have unless explicitly selected.
 | GET/POST | `/faculty/registrations/evaluators`, `/faculty/registrations/{id}/evaluator` | `EvaluatorAssignmentController` → approved-registration evaluator queue and modal assignment/change flow |
 | GET/POST | `/faculty/boards` | `ReviewBoardController` → full board/member/topic assignment (Should Have) |
 | GET/POST | `/faculty/results`, `/faculty/results/{id}/publish` | `ResultController` → scoped result publication queue and final publish action |
-| GET/POST | `/announcements/manage` | `AnnouncementController` → advanced create/edit/hide/publish (Should Have) |
+| GET | `/announcements/manage` | `AnnouncementController` → management queue and create/edit forms |
+| POST | `/announcements/manage`, `/announcements/manage/update` | `AnnouncementController` → create draft or update an announcement through PRG |
+| POST | `/announcements/manage/publish`, `/announcements/manage/hide` | `AnnouncementController` → confirmed publish/hide transitions with CSRF |
 
 ## Lecturer
 
@@ -94,7 +96,7 @@ not replace the Thymeleaf flow or duplicate Service rules.
 |---|---|---|---|
 | POST | `/api/auth/login` | authenticate and create session | anonymous |
 | POST | `/api/auth/logout` | invalidate session | authenticated |
-| POST | `/api/seed/ddl` | drop the 17 revised-schema tables, then recreate the MySQL schema from `database/1.ddl.sql` | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true`; destructive local operation |
+| POST | `/api/seed/ddl` | drop the 18 revised-schema tables, then recreate the MySQL schema from `database/1.ddl.sql` | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true`; destructive local operation |
 | POST | `/api/seed/permissions` | create or update local permission fixtures | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
 | POST | `/api/seed/roles` | create or update local role fixtures | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
 | POST | `/api/seed/role-permissions` | recreate role-permission fixture assignments | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
@@ -102,8 +104,14 @@ not replace the Thymeleaf flow or duplicate Service rules.
 | POST | `/api/seed/registration-periods` | create or update the local open registration-period fixture | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
 | POST | `/api/seed/student-groups` | create or update four local student-group fixtures with seeded memberships | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
 | POST | `/api/seed/topics` | create or update eight local topic fixtures and their one-to-two supervisor assignments | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
-| POST | `/api/admin/seed` | truncate all 17 revised-schema tables and recreate local identity, academic topic, supervisor and student-group fixtures; response includes `tablesReset`, `roles`, `permissions`, `users`, `registrationPeriods`, `studentGroups`, `topics` and `topicSupervisors` | ADMIN only + CSRF; local destructive operation |
+| POST | `/api/seed/announcements` | create or update the school-wide and CNTT published announcement fixtures | ADMIN only + CSRF by default; anonymous local bootstrap with `SEED_PUBLIC_ENABLED=true` |
+| POST | `/api/admin/seed` | truncate all 18 revised-schema tables and recreate local identity, academic topic, supervisor, student-group and announcement fixtures; response includes `tablesReset`, `roles`, `permissions`, `users`, `registrationPeriods`, `studentGroups`, `topics`, `topicSupervisors` and `announcements` | ADMIN only + CSRF; local destructive operation |
 | GET | `/api/announcements` | published announcements | authenticated |
+| GET | `/api/announcements/manage` | management-visible announcements in the actor's scope | `ANNOUNCEMENT_MANAGE` |
+| POST | `/api/announcements/manage` | create a draft from { title, content, scope, departmentId } | `ANNOUNCEMENT_MANAGE` + CSRF |
+| PUT | `/api/announcements/manage/{id}` | update title/content/scope while preserving lifecycle status | `ANNOUNCEMENT_MANAGE` + CSRF |
+| POST | `/api/announcements/manage/{id}/publish` | publish a draft or hidden announcement | `ANNOUNCEMENT_MANAGE` + CSRF |
+| POST | `/api/announcements/manage/{id}/hide` | hide a published announcement | `ANNOUNCEMENT_MANAGE` + CSRF |
 | GET | `/api/topics` | published topics filtered by keyword, period or department; the server only returns PUBLISHED topics in an OPEN period with an active student window | `TOPIC_VIEW` |
 | POST | `/api/faculty/topics/{id}/publish`, `/api/topics/{id}/publish` | publish an APPROVED topic; Admin can publish across departments and Faculty Head is scoped to their department | `TOPIC_REVIEW` + Admin/Faculty Head role + CSRF |
 | GET/POST | `/api/faculty/periods` | planned REST adapter; current registration-period CRUD is available through `/faculty/periods` | Faculty Head/Admin |

@@ -19,6 +19,7 @@ public class DatabaseSchemaService {
 
     private static final String DDL_RESOURCE = "database/1.ddl.sql";
     private static final List<String> SCHEMA_TABLES = List.of(
+            "announcements",
             "registration_results",
             "evaluations",
             "review_board_members",

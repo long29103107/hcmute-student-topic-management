@@ -132,6 +132,27 @@ CREATE TABLE IF NOT EXISTS registration_periods (
         (lecturer_registration_start, lecturer_registration_end)
 ) ENGINE = InnoDB;
 
+CREATE TABLE IF NOT EXISTS announcements (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    scope VARCHAR(20) NOT NULL,
+    department_id BIGINT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
+    author_id BIGINT NOT NULL,
+    published_at DATETIME(6) NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    CONSTRAINT pk_announcements PRIMARY KEY (id),
+    CONSTRAINT fk_announcements_department FOREIGN KEY (department_id)
+        REFERENCES departments (id),
+    CONSTRAINT fk_announcements_author FOREIGN KEY (author_id)
+        REFERENCES users (id),
+    INDEX idx_announcements_status_scope (status, scope),
+    INDEX idx_announcements_department_status (department_id, status),
+    INDEX idx_announcements_author (author_id)
+) ENGINE = InnoDB;
+
 CREATE TABLE IF NOT EXISTS topics (
     id BIGINT NOT NULL AUTO_INCREMENT,
     period_id BIGINT NOT NULL,

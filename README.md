@@ -90,7 +90,7 @@ mvn spring-boot:run
 ### Seed dữ liệu local qua API
 
 Mặc định, sau khi có một tài khoản `ADMIN` đang đăng nhập, mở `/seed` và bấm
-**Run seed pipeline**. Mỗi lần chạy pipeline sẽ xoá toàn bộ 17 bảng của schema
+**Run seed pipeline**. Mỗi lần chạy pipeline sẽ xoá toàn bộ 18 bảng của schema
 revised, chạy lại `database/1.ddl.sql` và tạo lại toàn bộ fixture local. Nếu cần
 bootstrap database local trước khi có tài khoản,
 có thể bật tạm migration anonymous bằng biến môi trường:
@@ -111,15 +111,21 @@ POST /api/seed/roles
 POST /api/seed/role-permissions
 POST /api/seed/departments
 POST /api/seed/users
+POST /api/seed/registration-periods
+POST /api/seed/student-groups
+POST /api/seed/topics
+POST /api/seed/announcements
 ```
 
 Các API seed fixture có thể chạy lại; riêng `/api/seed/ddl` là bước destructive
 drop/recreate schema. Các bước còn lại tạo/cập nhật roles, permissions, 15
-departments, 4 faculty-head accounts, 16 lecturer accounts và 50 student accounts.
+departments, 4 faculty-head accounts, 16 lecturer accounts, 50 student accounts,
+8 topics, 13 supervisor assignments và 2 published announcements.
 `POST /api/admin/seed`
-là API reset/reseed đầy đủ: truncate 17 bảng của schema revised trong một
+là API reset/reseed đầy đủ: truncate 18 bảng của schema revised trong một
 transaction, sau đó tạo lại 4 roles, 24 permissions, 15 departments và 71 tài
-khoản (gồm 4 faculty heads, 16 lecturers, 50 students và admin). Đây là thao
+khoản (gồm 4 faculty heads, 16 lecturers, 50 students, admin và 2 announcements).
+Đây là thao
 tác destructive dành
 cho local; không gọi trên database có dữ liệu cần giữ. Khi xoá hẳn database,
 hãy chạy `POST /api/seed/ddl` trước rồi mới chạy các bước seed fixture. Khi không
@@ -146,7 +152,7 @@ Schema revised được quản lý explicit bằng `database/1.ddl.sql`; Hiberna
 `ddl-auto=none` và Flyway được tắt cho đến khi project có migration riêng. App
 không tự reset schema khi khởi động; thao tác drop/recreate chỉ chạy khi Admin
 chủ động bấm seed pipeline.
-Schema hiện có 17 bảng, bao gồm `review_boards`, `review_board_members`,
+Schema hiện có 18 bảng, bao gồm `announcements`, `review_boards`, `review_board_members`,
 `evaluations` theo lecturer và `registration_results`.
 
 Các route hiện có:

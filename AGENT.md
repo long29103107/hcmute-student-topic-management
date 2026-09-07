@@ -67,7 +67,7 @@ MVC chạy được end-to-end với các thực thể lõi:
   the generated student email is stored in `users.email_or_code`.
 - Normal User edit never changes the MSSV/login identifier. A future MSSV change
   must be a separately authorized action/API.
-- The admin-only `/seed` page destructively drops and recreates the 17 revised
+- The admin-only `/seed` page destructively drops and recreates the 18 revised
   schema tables through `POST /api/seed/ddl`, then invokes the permissions,
   roles, role-permissions, departments, users and registration-periods endpoints
   in that order with

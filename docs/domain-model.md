@@ -1,6 +1,6 @@
 # Domain model
 
-The Java model is mapped with Jakarta Persistence to the revised 17-table MySQL
+The Java model is mapped with Jakarta Persistence to the revised 18-table MySQL
 schema. Authentication and academic workflow data share `UserEntity`; the
 revised schema does not have a separate Student Profile entity.
 
@@ -92,9 +92,9 @@ revised schema does not have a separate Student Profile entity.
   management is limited to the user's department. Students and Lecturers have
   no management permission but can read published announcements allowed by
   their school/department visibility.
-- The persistent entity and service/repository operations are intentionally
-  owned by the next Announcement backend task. This task fixes the shared
-  status, scope and authorization vocabulary before that implementation.
+- `AnnouncementEntity`, `AnnouncementRepository` and `AnnouncementService` persist
+  the lifecycle and enforce management scope. Published queries include school-wide
+  announcements plus department announcements for the current user's department.
 
 ## Relationships
 

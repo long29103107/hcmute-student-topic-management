@@ -498,3 +498,44 @@ factual and free of secrets. Update this file after every code or UI update.
 - Verification: focused `DatabaseSeedControllerTest` and full `mvn test` pass;
   `git diff --check` passes. MySQL/Tomcat smoke was not run for this contract-
   and seed-only change.
+
+## 2026-09-07 — Announcement backend (Issue #18)
+
+- Added the MySQL/JPA `announcements` table and `AnnouncementEntity`, including
+  author, optional department scope, lifecycle status and publication audit time.
+- Added `AnnouncementRepository` and transactional `AnnouncementService` for
+  create, update, publish, hide, republish and published-scope queries. Admin
+  sees all announcements; Faculty Head is limited to department-scoped rows in
+  the user's department; readers receive school-wide plus matching department
+  announcements only.
+- Added focused `AnnouncementServiceTest` coverage for lifecycle transitions,
+  invalid input/transitions, management scope and published visibility. Updated
+  schema/seed table-count documentation and tests from 17 to 18.
+
+## 2026-09-07 — Announcement UI and REST adapters (Issue #19)
+
+- Added `/announcements` reader UI and `/announcements/manage` Admin/Faculty
+  Head management UI with create, edit, publish and hide actions.
+- Added REST reader and management adapters under `/api/announcements`; both
+  adapters delegate to `AnnouncementService`, so lifecycle, scope and
+  authorization rules remain server-side and shared.
+- Added a real published-announcement panel to all four role dashboards,
+  scoped by the authenticated user's department, plus sidebar navigation and
+  a confirmation modal for publish/hide.
+- Updated `docs/announcement-contract.md`, `docs/ui-route-map.md`,
+  `docs/verification.md` and Phase 005 task record.
+- Verification: `AnnouncementControllerTest` passes 4/4 and compile passes.
+
+## 2026-09-07 — Announcement seed and regression coverage (Issue #20)
+
+- Added idempotent school-wide and CNTT announcement fixtures and
+  `POST /api/seed/announcements`; reset/reseed now reports two announcements.
+- Extended seed page and README pipeline instructions; repeated fixture seeding
+  updates the same announcement rows instead of creating duplicates.
+- Added request-level coverage for reader scope filtering, manager lifecycle
+  actions, management authorization, CSRF and draft/hidden visibility.
+- Updated `docs/verification.md` and Phase 005 task record.
+- Verification: `DatabaseSeedControllerTest` passes 3/3,
+  `AnnouncementControllerTest` passes 4/4 and `mvn -q -DskipTests compile`
+  passes. Full suite, package, diff check and browser smoke remain before
+  ticket closeout.

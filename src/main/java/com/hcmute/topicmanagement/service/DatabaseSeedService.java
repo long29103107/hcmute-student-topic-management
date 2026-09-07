@@ -18,6 +18,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import com.hcmute.topicmanagement.model.DepartmentEntity;
+import com.hcmute.topicmanagement.model.AnnouncementEntity;
 import com.hcmute.topicmanagement.model.PermissionEntity;
 import com.hcmute.topicmanagement.model.RegistrationPeriodEntity;
 import com.hcmute.topicmanagement.model.RoleEntity;
@@ -27,10 +28,13 @@ import com.hcmute.topicmanagement.model.TopicEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
 import com.hcmute.topicmanagement.model.enums.GroupStatus;
+import com.hcmute.topicmanagement.model.enums.AnnouncementScope;
+import com.hcmute.topicmanagement.model.enums.AnnouncementStatus;
 import com.hcmute.topicmanagement.model.enums.PeriodType;
 import com.hcmute.topicmanagement.model.enums.RegistrationPeriodStatus;
 import com.hcmute.topicmanagement.model.enums.TopicStatus;
 import com.hcmute.topicmanagement.repository.DepartmentRepository;
+import com.hcmute.topicmanagement.repository.AnnouncementRepository;
 import com.hcmute.topicmanagement.repository.PermissionRepository;
 import com.hcmute.topicmanagement.repository.RegistrationPeriodRepository;
 import com.hcmute.topicmanagement.repository.RolePermissionRepository;
@@ -52,6 +56,7 @@ public class DatabaseSeedService {
     private static final String SEEDED_PERIOD_NAME = "Đợt đăng ký đề tài học kỳ 1 năm học 2026-2027";
 
     private static final List<String> TABLES = List.of(
+            "announcements",
             "registration_results",
             "evaluations",
             "review_board_members",
@@ -282,6 +287,20 @@ public class DatabaseSeedService {
                     TopicStatus.DRAFT,
                     List.of("nguyen.thi.thu", "ta.minh.quan")));
 
+    private static final List<AnnouncementSeed> ANNOUNCEMENTS = List.of(
+            new AnnouncementSeed(
+                    "Thông báo mở đợt đăng ký đề tài học kỳ 1 năm học 2026-2027",
+                    "Sinh viên kiểm tra nhóm, chọn đề tài và hoàn tất đăng ký trong thời gian mở của đợt đăng ký.",
+                    AnnouncementScope.SCHOOL,
+                    null,
+                    "admin"),
+            new AnnouncementSeed(
+                    "CNTT: Lịch hướng dẫn đăng ký đề tài",
+                    "Khoa CNTT tổ chức buổi hướng dẫn đăng ký đề tài và giải đáp thắc mắc cho sinh viên trong khoa.",
+                    AnnouncementScope.DEPARTMENT,
+                    "CNTT",
+                    "nguyen.van.khang@lecturer.hcmute.edu.vn"));
+
     private static final List<StudentGroupSeed> STUDENT_GROUPS = List.of(
             new StudentGroupSeed("Nhóm Phoenix", "24110000", List.of("24110001", "24110002")),
             new StudentGroupSeed("Nhóm Orion", "24110003", List.of("24110004", "24110005")),
@@ -332,6 +351,7 @@ public class DatabaseSeedService {
     }
 
     private final DataSource dataSource;
+    private final AnnouncementRepository announcementRepository;
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
     private final RegistrationPeriodRepository registrationPeriodRepository;
@@ -346,6 +366,7 @@ public class DatabaseSeedService {
 
     public DatabaseSeedService(
             DataSource dataSource,
+            AnnouncementRepository announcementRepository,
             RoleRepository roleRepository,
             PermissionRepository permissionRepository,
             RegistrationPeriodRepository registrationPeriodRepository,
@@ -356,6 +377,7 @@ public class DatabaseSeedService {
             UserRepository userRepository,
             UserRoleRepository userRoleRepository) {
         this.dataSource = dataSource;
+        this.announcementRepository = announcementRepository;
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
         this.registrationPeriodRepository = registrationPeriodRepository;
@@ -379,6 +401,7 @@ public class DatabaseSeedService {
         seedRegistrationPeriods();
         List<StudentGroupEntity> studentGroups = seedStudentGroups();
         List<TopicEntity> topics = seedTopics();
+        List<AnnouncementEntity> announcements = seedAnnouncements();
         entityManager.clear();
 
         return new SeedResult(
@@ -394,6 +417,7 @@ public class DatabaseSeedService {
                 countUsersWithRole("FACULTY_HEAD"),
                 countUsersWithRole("LECTURER"),
                 countUsersWithRole("STUDENT"),
+                announcements.size(),
                 LocalDateTime.now());
     }
 
@@ -480,6 +504,12 @@ public class DatabaseSeedService {
     public SeedStepResult seedTopicsStep() {
         List<TopicEntity> topics = seedTopics();
         return new SeedStepResult("topics", topics.size(), LocalDateTime.now());
+    }
+
+    @Transactional
+    public SeedStepResult seedAnnouncementsStep() {
+        List<AnnouncementEntity> announcements = seedAnnouncements();
+        return new SeedStepResult("announcements", announcements.size(), LocalDateTime.now());
     }
 
     private void truncateAllTables() {
@@ -619,6 +649,45 @@ public class DatabaseSeedService {
                 })
                 .toList();
         return topicRepository.saveAllAndFlush(topics);
+    }
+
+    private List<AnnouncementEntity> seedAnnouncements() {
+        Map<String, DepartmentEntity> departments = departmentsByCode();
+        List<AnnouncementEntity> announcements = ANNOUNCEMENTS.stream()
+                .map(seed -> {
+                    DepartmentEntity department = seed.departmentCode() == null
+                            ? null
+                            : departments.get(seed.departmentCode().toUpperCase(Locale.ROOT));
+                    if (seed.departmentCode() != null && department == null) {
+                        throw new IllegalStateException(
+                                "Seed department before announcement: " + seed.departmentCode());
+                    }
+                    UserEntity author = userRepository.findByLoginIdentifier(seed.authorLogin())
+                            .orElseThrow(() -> new IllegalStateException(
+                                    "Seed users before announcement: " + seed.authorLogin()));
+                    AnnouncementEntity announcement = seed.scope() == AnnouncementScope.SCHOOL
+                            ? announcementRepository
+                                    .findByTitleIgnoreCaseAndScopeAndDepartmentIsNull(seed.title(), seed.scope())
+                                    .orElseGet(() -> new AnnouncementEntity(
+                                            seed.title(), seed.content(), seed.scope(), null, author))
+                            : announcementRepository
+                                    .findByTitleIgnoreCaseAndScopeAndDepartment_Id(
+                                            seed.title(), seed.scope(), department.getId())
+                                    .orElseGet(() -> new AnnouncementEntity(
+                                            seed.title(), seed.content(), seed.scope(), department, author));
+                    announcement.setTitle(seed.title());
+                    announcement.setContent(seed.content());
+                    announcement.setScope(seed.scope());
+                    announcement.setDepartment(department);
+                    announcement.setAuthor(author);
+                    announcement.setStatus(AnnouncementStatus.PUBLISHED);
+                    if (announcement.getPublishedAt() == null) {
+                        announcement.setPublishedAt(LocalDateTime.now().minusDays(1));
+                    }
+                    return announcement;
+                })
+                .toList();
+        return announcementRepository.saveAllAndFlush(announcements);
     }
 
     private List<StudentGroupEntity> seedStudentGroups() {
@@ -762,6 +831,7 @@ public class DatabaseSeedService {
             int facultyHeads,
             int lecturers,
             int students,
+            int announcements,
             LocalDateTime completedAt) {
     }
 
@@ -792,5 +862,13 @@ public class DatabaseSeedService {
     }
 
     private record StudentGroupSeed(String name, String leaderLogin, List<String> memberLogins) {
+    }
+
+    private record AnnouncementSeed(
+            String title,
+            String content,
+            AnnouncementScope scope,
+            String departmentCode,
+            String authorLogin) {
     }
 }

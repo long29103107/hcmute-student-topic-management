@@ -83,6 +83,20 @@
               </li>
             </ul>
           </div>
+          <div>
+            <a
+              th:href="@{/announcements}"
+              th:aria-current="${pageTitle == 'Announcements' ? 'page' : null}"
+              class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+              data-sidebar-link
+              th:classappend="${pageTitle == 'Announcements' ? 'bg-blue-50 text-blue-700' : ''}"
+            >
+              <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Announcements' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Zm-8.5 13h5"/>
+              </svg>
+              <span class="ms-3" data-sidebar-label>Announcements</span>
+            </a>
+          </div>
           </details>
 
           <details sec:authorize="hasRole('STUDENT') and hasAuthority('GROUP_MANAGE')" data-sidebar-group th:open="${pageTitle == 'My groups' or pageTitle == 'My registrations' or pageTitle == 'Register topic' or pageTitle == 'My results'}">
@@ -376,6 +390,18 @@
                 >
                   <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Registration review' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5h6m-9 4h12M6 13h8m-8 4h5m7.5-2.5 1.5 1.5 3-3"/></svg>
                   <span class="ms-3" data-sidebar-label>Registration review</span>
+                </a>
+              </li>
+              <li sec:authorize="hasAuthority('ANNOUNCEMENT_MANAGE')">
+                <a
+                  th:href="@{/announcements/manage}"
+                  th:aria-current="${pageTitle == 'Manage announcements' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'Manage announcements' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Manage announcements' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 5h16M4 9h16M4 13h10m-10 4h7"/></svg>
+                  <span class="ms-3" data-sidebar-label>Manage announcements</span>
                 </a>
               </li>
               <li sec:authorize="hasAuthority('REGISTRATION_REVIEW')">

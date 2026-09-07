@@ -77,7 +77,8 @@ public class SecurityConfig {
                     auth.requestMatchers("/lecturer/**", "/api/lecturer/**")
                             .hasAnyRole("ADMIN", "LECTURER", "FACULTY_HEAD");
                     auth.requestMatchers("/student/**", "/api/student/**").hasAnyRole("ADMIN", "STUDENT");
-                    auth.requestMatchers("/announcements/manage", "/api/announcements/manage/**")
+                    auth.requestMatchers("/announcements/manage", "/announcements/manage/**",
+                                    "/api/announcements/manage", "/api/announcements/manage/**")
                             .hasAnyRole("ADMIN", "FACULTY_HEAD");
                     auth.anyRequest().authenticated();
                 })

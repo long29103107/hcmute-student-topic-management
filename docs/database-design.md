@@ -8,12 +8,13 @@ backed up and recreated from the DDL before starting the application.
 
 ## Schema groups
 
-The revised schema contains 17 tables:
+The revised schema contains 18 tables:
 
 | Group | Tables | Purpose |
 |---|---|---|
 | Identity | `users`, `roles`, `permissions`, `user_roles`, `role_permissions` | Accounts and RBAC |
 | Academic setup | `departments`, `registration_periods`, `topics`, `topic_supervisors` | Periods, topics and supervisors |
+| Announcements | `announcements` | School- or department-scoped notification lifecycle |
 | Student workflow | `student_groups`, `group_members`, `topic_registrations`, `reports` | Group execution, registration and report metadata |
 | Evaluation | `review_boards`, `review_board_members`, `evaluations`, `registration_results` | Board assignment, lecturer scores and final result publication |
 
@@ -59,6 +60,7 @@ Entities use `snake_case` column names explicitly where Java naming differs:
 | `ReviewBoardEntity` / `ReviewBoardMemberEntity` | `review_boards` / `review_board_members` | One board per registration and many lecturer members |
 | `EvaluationEntity` | `evaluations` | Many lecturer evaluations per registration |
 | `RegistrationResultEntity` | `registration_results` | Shared primary key one-to-one result per registration |
+| `AnnouncementEntity` | `announcements` | Author, visibility scope and draft/publication lifecycle |
 
 `RoleEntity`, `PermissionEntity`, `UserRoleEntity` and
 `RolePermissionEntity` map the identity catalog and assignment tables.
@@ -88,7 +90,7 @@ Run the DDL on a new MySQL schema:
 mysql -u root -p < database/1.ddl.sql
 ```
 
-The local seed pipeline drops all 17 revised-schema tables with foreign-key
+The local seed pipeline drops all 18 revised-schema tables with foreign-key
 checks disabled, recreates the schema from `database/1.ddl.sql`, and then
 recreates identity and academic fixtures. It does not migrate arbitrary legacy
 data. The application does not perform this destructive reset on startup.

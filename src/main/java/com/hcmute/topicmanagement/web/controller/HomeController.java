@@ -6,14 +6,17 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import com.hcmute.topicmanagement.service.DashboardService;
+import com.hcmute.topicmanagement.service.AnnouncementService;
 
 @Controller
 public class HomeController {
 
     private final DashboardService dashboardService;
+    private final AnnouncementService announcementService;
 
-    public HomeController(DashboardService dashboardService) {
+    public HomeController(DashboardService dashboardService, AnnouncementService announcementService) {
         this.dashboardService = dashboardService;
+        this.announcementService = announcementService;
     }
 
     @GetMapping("/")
@@ -27,6 +30,7 @@ public class HomeController {
         model.addAttribute("applicationName", "HCMUTE Student Topic Management");
         model.addAttribute("pageTitle", "Dashboard");
         model.addAttribute("dashboard", dashboard.data());
+        model.addAttribute("announcements", announcementService.listPublished(authentication.getName()));
         return "dashboard/" + dashboard.template();
     }
 }

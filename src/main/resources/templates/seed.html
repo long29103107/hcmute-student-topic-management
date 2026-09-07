@@ -26,7 +26,7 @@
             </svg>
             <div>
                 <h2 class="font-semibold">Run this on a local database</h2>
-                <p class="mt-1 leading-5">Every run drops all 17 project tables and recreates them before restoring the local fixture roles, permissions, departments, accounts, student groups and topics. All existing data is deleted.</p>
+                <p class="mt-1 leading-5">Every run drops all 18 project tables and recreates them before restoring the local fixture roles, permissions, departments, accounts, student groups, topics and announcements. All existing data is deleted.</p>
             </div>
         </div>
 
@@ -119,6 +119,15 @@
                         <span class="w-fit rounded-full bg-gray-200 px-2.5 py-1 text-xs font-medium text-gray-700" data-seed-step-status>Pending</span>
                     </div>
                 </li>
+                <li class="rounded-lg border border-gray-200 bg-gray-50 p-4" data-seed-step data-seed-endpoint="/api/seed/announcements" data-seed-label="Seed announcements">
+                    <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                        <div class="flex min-w-0 items-start gap-3">
+                            <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-800">10</span>
+                            <div class="min-w-0"><h3 class="font-semibold text-gray-900">Seed announcements</h3><p class="mt-1 font-mono text-xs text-gray-600">POST /api/seed/announcements</p></div>
+                        </div>
+                        <span class="w-fit rounded-full bg-gray-200 px-2.5 py-1 text-xs font-medium text-gray-700" data-seed-step-status>Pending</span>
+                    </div>
+                </li>
             </ol>
 
             <div class="mt-6 flex flex-col gap-4 border-t border-gray-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
@@ -129,7 +138,7 @@
                 <button type="button"
                         class="inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-200 disabled:cursor-not-allowed disabled:opacity-60"
                         data-seed-action data-seed-run
-                        data-seed-confirm="Drop all 17 project tables, recreate the schema, and restore local seed fixtures? All existing data will be deleted.">
+                        data-seed-confirm="Drop all 18 project tables, recreate the schema, and restore local seed fixtures? All existing data will be deleted.">
                     <svg class="me-2 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M5.5 15A7.5 7.5 0 0 0 19 9M18.5 9A7.5 7.5 0 0 0 5 15"/></svg>
                     Run seed pipeline
                 </button>

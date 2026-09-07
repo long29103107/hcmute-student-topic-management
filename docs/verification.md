@@ -34,7 +34,7 @@ profile, system properties or environment variables. Never commit credentials.
 Verify at least:
 
 - schema can be created from the repository resources;
-- the Admin seed pipeline drops all 17 revised-schema tables, recreates them
+- the Admin seed pipeline drops all 18 revised-schema tables, recreates them
   from the DDL, and restores the local fixtures;
 - foreign keys/unique constraints exist;
 - transaction rollback leaves no partial group, registration or evaluation;
@@ -60,6 +60,25 @@ With the executable JAR running:
    the extended board workflow is enabled.
 9. Final average/publication/result visibility follow the configured policy.
 10. Published announcements are visible; hidden announcements are not.
+
+## Announcement delivery and seed checklist (Issues #19/#20)
+
+The `AnnouncementControllerTest` suite covers the selected Phase 005 delivery
+slice:
+
+- `/announcements` renders only published school-wide and matching-department
+  notices; draft, hidden and cross-department notices remain absent.
+- `/announcements/manage` is limited to Admin/Faculty Head managers and
+  exposes create/edit forms plus confirmation UI for publish/hide.
+- SSR create, update, publish and hide actions use PRG and CSRF and delegate
+  to the same transactional `AnnouncementService` used by REST.
+- `GET /api/announcements` applies the same visibility scope; management REST
+  routes require `ANNOUNCEMENT_MANAGE`, and state-changing requests require
+  CSRF.
+- The seed pipeline creates one school-wide and one CNTT announcement, and
+  rerunning it keeps the fixture count at two.
+- Each of the four role dashboards renders the scoped published announcement
+  panel from the shared service; the empty state is explicit.
 
 ## Registration Period CRUD checklist (Issue #2)
 
@@ -118,7 +137,7 @@ request-level assertions:
 - The seed pipeline restores `TOPIC_REVIEW` for Admin/Faculty Head, excludes it
   from Lecturer, and restores three pending review fixtures; the authorized
   sidebar entry is rendered by the review page test.
-- `DatabaseSchemaServiceTest` verifies that the pipeline drops all 17 project
+- `DatabaseSchemaServiceTest` verifies that the pipeline drops all 18 project
   tables before executing the DDL.
 
 ## Topic Publication and Published Query checklist (Issue #7 / 002_004)

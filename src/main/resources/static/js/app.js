@@ -475,6 +475,89 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    document.querySelectorAll('[data-announcement-scope-form]').forEach((form) => {
+        const scope = form.querySelector('[data-announcement-scope]');
+        const department = form.querySelector('[data-announcement-department]');
+        if (!scope || !department) {
+            return;
+        }
+        const syncDepartment = () => {
+            const schoolWide = scope.value === 'SCHOOL';
+            department.disabled = schoolWide;
+            department.required = !schoolWide;
+            if (schoolWide) {
+                department.value = '';
+            }
+        };
+        scope.addEventListener('change', syncDepartment);
+        syncDepartment();
+    });
+
+    const announcementModal = document.querySelector('[data-announcement-confirm-modal]');
+    const announcementForms = [...document.querySelectorAll('[data-announcement-action-form]')];
+    if (announcementModal && announcementForms.length > 0) {
+        const modalTitle = announcementModal.querySelector('[data-announcement-modal-title]');
+        const modalDescription = announcementModal.querySelector('[data-announcement-modal-description]');
+        const announcementTitle = announcementModal.querySelector('[data-announcement-modal-announcement-title]');
+        const confirmButton = announcementModal.querySelector('[data-announcement-modal-confirm]');
+        const cancelButton = announcementModal.querySelector('[data-announcement-modal-cancel]');
+        let pendingForm;
+        let lastFocusedButton;
+
+        const closeModal = () => {
+            announcementModal.classList.add('hidden');
+            announcementModal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('overflow-hidden');
+            pendingForm = undefined;
+            lastFocusedButton?.focus();
+        };
+
+        const openModal = (form, button) => {
+            const action = form.dataset.announcementAction === 'hide' ? 'hide' : 'publish';
+            pendingForm = form;
+            lastFocusedButton = button;
+            modalTitle.textContent = action === 'hide' ? 'Hide announcement?' : 'Publish announcement?';
+            modalDescription.textContent = action === 'hide'
+                ? 'End users will no longer see this announcement.'
+                : 'End users in the selected scope will be able to see this announcement.';
+            announcementTitle.textContent = form.dataset.announcementTitle || 'this announcement';
+            confirmButton.textContent = action === 'hide' ? 'Hide announcement' : 'Publish announcement';
+            announcementModal.classList.remove('hidden');
+            announcementModal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('overflow-hidden');
+            window.setTimeout(() => cancelButton?.focus(), 0);
+        };
+
+        announcementForms.forEach((form) => {
+            form.addEventListener('submit', (event) => {
+                if (form.dataset.announcementConfirmed === 'true') {
+                    delete form.dataset.announcementConfirmed;
+                    return;
+                }
+                event.preventDefault();
+                openModal(form, form.querySelector('button[type="submit"]'));
+            });
+        });
+        announcementModal.querySelectorAll('[data-announcement-modal-close]').forEach((button) => {
+            button.addEventListener('click', closeModal);
+        });
+        cancelButton?.addEventListener('click', closeModal);
+        confirmButton?.addEventListener('click', () => {
+            if (!pendingForm) {
+                return;
+            }
+            const formToSubmit = pendingForm;
+            formToSubmit.dataset.announcementConfirmed = 'true';
+            closeModal();
+            formToSubmit.requestSubmit();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !announcementModal.classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+    }
+
     const topicSubmitModal = document.querySelector('[data-topic-submit-confirm-modal]');
     const topicSubmitForms = [...document.querySelectorAll('[data-submit-review-form]')];
     if (topicSubmitModal && topicSubmitForms.length > 0) {
