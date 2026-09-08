@@ -1,135 +1,58 @@
 ---
 phase: 001
-title: Identity and Access — Users, Roles, Permissions and Login
-status: complete
-created_at: 2026-08-20
-updated_at: 2026-09-04
-current_task: 001_006
-task_count: 6
-done_count: 6
-depends_on: []
+title: Academic Foundation
+status: completed
+source: GitHub Project #5 Kanban
+task_count: 3
+done_count: 3
 ---
 
 # Phase 001 Summary
 
-## Vision alignment
+Scanned from the Project #5 Kanban on 2026-09-08. The phase prefix is
+001_xxx and all three cards are Done.
 
-This phase delivers the active `Identity and access` milestone in
-[`PRODUCT_VISION.md`](../../../PRODUCT_VISION.md). No task from later product
-areas may be added here without an explicit user decision.
+## Goal
 
-## Phase Goal
+Establish departments, registration periods, timeline rules, state transitions
+and permission boundaries used by later academic workflows.
 
-Complete Login, User, and seed-managed Role/Permission modules, including
-server-side authorization, as one usable identity-and-access foundation.
+## Ticket index
 
-## Phase Done Criteria
+### 001_001 — Department CRUD
 
-- Login/logout/session and protected-route behavior are verified.
-- Users can be safely created, viewed, edited, activated/deactivated or deleted
-  according to the data policy; credentials are securely reset.
-- Student creation requires a unique MSSV, uses it as the login identifier,
-  auto-assigns `STUDENT`, generates a readonly
-  `<MSSV>@student.hcmute.edu.vn` email and leaves the password unset until an
-  administrator sets it. Lecturer creation auto-assigns `LECTURER` and accepts
-  a manually entered email/password. The directory separates student,
-  lecturer-capability view (including Faculty Head accounts) and reuses the
-  same account modal template.
-- Student MSSV is stored as the immutable unique `users.login_identifier`; the
-  revised schema has no separate Student Profile table.
-- Users without a configured password cannot authenticate; setting a password
-  is an explicit edit/reset action.
-- `FACULTY_HEAD` and `LECTURER` remain shared access roles in `roles` and
-  `user_roles`; the default Faculty Head permission bundle includes all
-  Lecturer permissions plus faculty/registration workflow permissions. The
-  bundle is explicit in `role_permissions`, and Faculty Head assignment is
-  separate from Add Lecturer.
-- Roles and permissions are system-managed seed data; administrators can view
-  the catalog and maintain role-permission assignments, while catalog changes
-  require a reviewed seed/schema change rather than runtime CRUD.
-- Role/permission changes are enforced by server-side checks, not hidden UI.
-- All mutations have server validation, authorization and meaningful feedback.
-- Local identity fixtures can be reset reproducibly through the seed pipeline;
-  anonymous access is supported for local bootstrap, while shared/staging/
-  production deployments must disable it and require an authenticated admin.
-  The API truncates the fixed application table set before reseeding.
-- Relevant tests and `mvn test` pass; skipped environment checks are recorded.
+Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/1
 
-## Delivered outcome
+- Faculty Head can create, edit, view and deactivate departments.
+- Department code and name are required, correctly formatted and unique.
+- A department referenced by topics cannot be hard-deleted.
+- Backend permission and CSRF protect mutations.
+- CRUD, duplicate, unauthorized, CSRF and deactivation cases are tested.
 
-After completing Phase 001, the application has a usable, server-authorized
-identity-and-access foundation:
+### 001_002 — Registration Period CRUD
 
-- Users can sign in, sign out and use protected routes with session-aware
-  access-denied behavior.
-- The system provides the `ADMIN`, `FACULTY_HEAD`, `LECTURER` and `STUDENT`
-  role model, with seed-managed permissions and full operational capability
-  for Admin.
-- Administrators can manage user accounts, including creation, editing,
-  activation/deactivation, safe deletion and explicit credential reset.
-- Student accounts use an immutable MSSV login identifier and generated
-  `@student.hcmute.edu.vn` email; lecturer-capability accounts are available in
-  the lecturer directory, including Faculty Head accounts.
-- Server-side validation, authorization, CSRF protection, password hashing and
-  reproducible local identity seeding are in place and covered by verification.
+Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/2
 
-This phase intentionally provides the access foundation only. Departments,
-registration periods, topics, groups, registrations, reports, evaluations,
-results, announcements and dashboards belong to later academic-workflow
-phases.
+- Faculty Head can create and update DATN and KLTN periods.
+- Lecturer/student windows, current status and creator are persisted.
+- Backend permission and CSRF protect mutations.
+- Type, creator, status and unauthorized cases are tested.
 
-## Scope
+### 001_003 — Timeline Rules & Permission Tests
 
-In: User and Login CRUD/authorization, plus seed-managed Role/Permission
-catalog and role-permission assignment.
+Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/3
 
-Out: departments, periods, topics, groups, registrations, reports, evaluations,
-results, announcements, dashboards, email and audit logging.
+- Reviewer deadline and council report date apply only to KLTN.
+- Invalid timeline ordering, missing fields and invalid state transitions are
+  rejected server-side.
+- Shared period-open/domain rules are available to later modules.
+- DATN/KLTN, timeline, status, permission, CSRF and boundary-time cases are
+  covered.
 
-## Task Index
+## Verification
 
-| Task | Title | Status | Done At |
-|---|---|---|---|
-| 001_001 | Reconcile identity baseline and persistence contracts | completed | 2026-08-30 |
-| 001_002 | Login, logout, session and protected-route behavior | completed | 2026-08-30 |
-| 001_003 | Role-aware User CRUD, MSSV handling, status and credential reset | completed | 2026-08-30 |
-| 001_004 | Seed-managed role/permission catalog and assignment policy | completed | 2026-08-30 |
-| 001_005 | Permission enforcement and cross-route authorization audit | completed | 2026-08-30 |
-| 001_006 | Identity-and-access verification and phase closure | completed | 2026-08-30 |
-
-## Current Task
-
-`001_006` — run final verification and close the identity-and-access phase.
-Do not start academic-workflow work in this phase.
-
-The identity seed source of truth is `DatabaseSeedService`; the only database
-script kept in the repository is `database/1.ddl.sql`. Existing databases must
-be recreated or brought to the current schema before starting the application;
-the deleted legacy `database/4.update-ddl.sql` is not part of the pipeline.
-Shared admin feedback now uses the reusable layout toast fragment for success,
-warning and error flash messages; form validation feedback remains inline.
-Student and lecturer directories now have typed canonical routes and separate
-controller/form models; the combined `/admin/users` route remains only for
-legacy compatibility.
-
-## Next Task Proposal
-
-Phase 001 is complete. Move academic workflow work to the next explicitly
-selected milestone. The existing role/permission catalog remains seed-managed
-by design; do not create runtime CRUD tickets for it.
-
-## Verification Evidence
-
-- `mvn test` — pass, 42 tests, 0 failures, 0 errors, 0 skipped.
-- `mvn package -DskipTests` — pass; produced
-  `target/student-topic-management-0.0.1-SNAPSHOT.jar` as an executable
-  Spring Boot JAR.
-- `git diff --check` — pass.
-- MySQL and deployed-browser/Tomcat smoke checks — not run in this workspace;
-  the automated suite uses H2 and the runbook records the required environment
-  checks for handoff.
-
-## Task Notes
-
-Each task note must use `.okf/templates/task.md`, begin with `Vision alignment`,
-and reference the specific row in `PRODUCT_VISION.md` it advances.
+- DepartmentControllerTest
+- RegistrationPeriodControllerTest
+- SecurityConfigTest
+- DatabaseSchemaServiceTest
+- All three Kanban cards are Done.

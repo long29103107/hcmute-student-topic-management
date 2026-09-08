@@ -25,7 +25,7 @@ vision or explicitly chooses it.
 ## Required reads
 
 1. `PRODUCT_VISION.md`
-2. `REQUEST.md`
+2. `.okf/README.md`
 3. `.okf/standards/architecture.md`
 4. `.okf/standards/api-design.md`
 5. Relevant `docs/` and phase summary

@@ -13,4 +13,5 @@ MySQL. Store bytes in a configured non-public filesystem location unless a
 later approved decision selects another storage provider. Never use the
 original filename as the path.
 
-The exact report file type and maximum size remain open per `REQUEST.md`.
+The exact report file type and maximum size remain open per the project memory
+in `.okf/README.md`.

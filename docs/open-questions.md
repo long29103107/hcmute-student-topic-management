@@ -1,4 +1,4 @@
-# Open questions carried from REQUEST.md
+# Open questions carried from project memory
 
 These questions are intentionally not resolved by the spec clone. A code task
 may prepare a seam/configuration, but must not silently choose a mandatory rule.
@@ -16,7 +16,8 @@ may prepare a seam/configuration, but must not silently choose a mandatory rule.
 
 When an answer is confirmed:
 
-1. Update `REQUEST.md` or record the confirmed decision in `.okf/decisions/`.
+1. Record the confirmed decision in `.okf/decisions/` and update
+   `.okf/README.md`.
 2. Update this table, `docs/domain-model.md`, `docs/workflows.md` and the
    affected phase task.
 3. Add/adjust database constraints and tests in the same task.

@@ -1,7 +1,7 @@
 # Agent Instructions
 
 Đây là entry point cho coding agent làm việc trong repository này. Giữ file
-này đồng bộ với `REQUEST.md`, `README.md` và `.okf/`.
+này đồng bộ với `README.md`, `PRODUCT_VISION.md` và `.okf/`.
 
 ## Mission
 
@@ -12,9 +12,9 @@ Maven/executable JAR với embedded Tomcat, HTML/CSS/JS, Tailwind CSS, Flowbite
 và Java Mail tùy chọn.
 
 `PRODUCT_VISION.md` là nguồn sự thật ưu tiên cho product scope, milestone và
-việc tạo task. `REQUEST.md` và `docs/` là tài liệu tham chiếu cho implementation
-và business rules khi không mâu thuẫn với Product Vision. Những điểm chưa rõ
-không được tự biến thành quy tắc nghiệp vụ bắt buộc.
+việc tạo task. `.okf/README.md`, phase summaries và `docs/` là tài liệu tham
+chiếu cho implementation và business rules khi không mâu thuẫn với Product
+Vision. Những điểm chưa rõ không được tự biến thành quy tắc nghiệp vụ bắt buộc.
 
 ## Course-project MVP boundary
 
@@ -23,7 +23,8 @@ MVC chạy được end-to-end với các thực thể lõi:
 `User`, `Department`, `RegistrationPeriod`, `Topic`, `StudentGroup`,
 `TopicRegistration`, `Report` và `Evaluation`.
 
-- Chỉ xây module/bảng/màn hình cần cho Must Have trong `REQUEST.md`.
+- Chỉ xây module/bảng/màn hình cần cho Must Have trong `.okf/README.md` và
+  phase/task đang được user chọn.
 - Bản MVP dùng một phiên đánh giá và ít nhất một giảng viên được phân công;
   không tự mở rộng thành hội đồng 3–5 người, chair/secretary hoặc nhiều tầng
   reviewer nếu task/rubric chưa yêu cầu.
@@ -85,7 +86,7 @@ MVC chạy được end-to-end với các thực thể lõi:
 Trước khi tạo task/plan hoặc thay đổi code, đọc:
 
 1. `PRODUCT_VISION.md`
-2. `REQUEST.md`
+2. `.okf/README.md`
 3. `.okf/standards/architecture.md`
 4. `.okf/standards/coding-style.md`
 5. `.okf/standards/testing.md`
@@ -104,13 +105,13 @@ Trước khi tạo task/plan hoặc thay đổi code, đọc:
 - Không lưu mật khẩu plaintext; không commit secret, password, token hoặc
   file `.env`.
 - Không đưa SPA, microservices, Docker hoặc hạ tầng ngoài phạm vi vào code nếu
-  task không được cập nhật rõ trong `REQUEST.md`.
+  task không được cập nhật rõ trong `PRODUCT_VISION.md` hoặc `.okf/README.md`.
 - Không tạo task mới ngoài active milestone trong `PRODUCT_VISION.md`. Mỗi task
   hoặc plan mới phải ghi rõ `Vision alignment`, outcome và out-of-scope boundary.
 - Không sửa/khôi phục thay đổi không liên quan của người dùng.
 - Khi hoàn thành task, cập nhật tài liệu/phase summary phù hợp sau khi đã verification.
-- Sau mỗi lần update code hoặc UI, cập nhật document liên quan và ghi một entry
-  ngắn vào `AGENT_MEMORY.md` để các lượt làm việc sau giữ được context.
+- Sau mỗi lần update code hoặc UI, cập nhật `PHASE_SUMMARY.md` trong phase tương
+  ứng dưới `.okf/phase/` để các lượt làm việc sau giữ được context.
 - Feedback sau các thao tác quản trị dùng fragment toast tái sử dụng tại
   `src/main/resources/templates/fragments/toast.html`; layout đọc các flash
   attribute `successMessage`, `warningMessage`, `errorMessage`. Logic đóng và

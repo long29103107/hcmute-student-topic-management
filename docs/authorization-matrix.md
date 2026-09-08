@@ -59,7 +59,8 @@ does not silently impersonate another user's ownership relationship.
   document whether they are Admin-wide operational views or remain
   relationship-scoped.
 - The exact approver model when giáo vụ/trưởng bộ môn exists is open; do not add
-  those roles until `REQUEST.md` is confirmed.
+  those roles until the decision is recorded in `.okf/decisions/` and
+  `.okf/README.md`.
 - Issue #13 adds the seeded `REPORT_VIEW` capability for report
   metadata/download checks. Student access is limited to group members;
   Lecturer access is limited to supervisors/evaluators; Faculty Head access is

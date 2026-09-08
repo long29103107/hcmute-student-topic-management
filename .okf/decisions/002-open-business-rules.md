@@ -4,7 +4,7 @@ Status: Accepted
 
 ## Context
 
-`REQUEST.md` lists six questions that need lecturer confirmation: multiple
+The project memory lists six questions that need lecturer confirmation: multiple
 groups per topic, member invitation, grading scale/rounding, board-required
 topic types, report file limits, and approver roles.
 

@@ -19,7 +19,7 @@ Before creating or proposing a task, every agent must:
 4. Add a `Vision alignment` section to the task or plan with the milestone,
    user outcome and explicit out-of-scope boundary.
 
-Do not create work from historical phase files alone. `REQUEST.md`, `docs/`
+Do not create work from historical phase files alone. `.okf/README.md`, `docs/`
 and `.okf/standards/` remain implementation and business-rule references when
 they do not conflict with this vision. An explicit user decision overrides all
 repository planning documents.
@@ -167,8 +167,8 @@ active milestone is complete and the user chooses the next scope.
 | Optional | Dashboard statistics, activity log, email notification, AJAX search and report-version history. |
 
 When one of these bundles is selected, refine it into small tasks in this file
-first, set it as the active milestone, then add the matching task notes to the
-current phase. Do not revive the deleted historical phase files.
+first, set it as the active milestone, then add the matching task summary to
+the current phase. Do not revive the deleted historical phase files.
 
 ## Task quality gate
 

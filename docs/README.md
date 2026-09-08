@@ -1,12 +1,12 @@
 # Project specification map
 
-`REQUEST.md` vẫn là nguồn sự thật cao nhất. Các tài liệu dưới đây là bản phân
+`.okf/README.md` là project memory cho yêu cầu và business rules. Các tài liệu dưới đây là bản phân
 rã để lập kế hoạch và sinh code, không mở rộng phạm vi sản phẩm.
 
 Đây là đồ án môn học nên mặc định triển khai MVP: luồng đăng nhập → đợt → đề
 tài → nhóm → đăng ký → báo cáo → đánh giá/kết quả. Không tự mở rộng thành hệ
 thống production với hội đồng nhiều tầng, dashboard, audit log, email hoặc
-nhiều phiên bản báo cáo nếu chưa được chọn trong `REQUEST.md`.
+nhiều phiên bản báo cáo nếu chưa được chọn trong Product Vision hoặc project memory.
 
 | Tài liệu | Dùng khi |
 |---|---|
@@ -20,5 +20,5 @@ nhiều phiên bản báo cáo nếu chưa được chọn trong `REQUEST.md`.
 | [`verification.md`](verification.md) | Chọn test/build/smoke cho task |
 
 Các tên Java, route và trạng thái có chữ “đề xuất” là hợp đồng kỹ thuật tạm
-thời; phải giữ đúng nghiệp vụ của `REQUEST.md` và cập nhật đồng bộ khi code
+thời; phải giữ đúng nghiệp vụ của project memory và cập nhật đồng bộ khi code
 được scaffold.

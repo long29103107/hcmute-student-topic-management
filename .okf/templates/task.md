@@ -36,7 +36,7 @@ Out:
 - `.okf/standards/mail-design.md` for Java Mail work
 - `.okf/standards/testing.md`
 - `PRODUCT_VISION.md`
-- `REQUEST.md`
+- `.okf/README.md`
 
 ## Affected Files
 

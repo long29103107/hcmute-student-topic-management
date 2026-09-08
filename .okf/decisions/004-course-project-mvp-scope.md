@@ -41,5 +41,5 @@ decision.
 - **Nice to Have:** dashboards, activity logs, email, AJAX search and multiple
   report versions.
 
-Detailed capabilities remain documented in `REQUEST.md`; this decision controls
+Detailed capabilities remain documented in `.okf/README.md` and `docs/`; this decision controls
 implementation depth and prevents scope expansion during planning/review.

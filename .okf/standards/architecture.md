@@ -2,8 +2,8 @@
 
 ## Course-project MVP boundary
 
-Use the smallest architecture that demonstrates the core flow in
-`REQUEST.md`. The revised schema and current JPA model also include
+Use the smallest architecture that demonstrates the core flow in the project
+memory in `.okf/README.md`. The revised schema and current JPA model also include
 ReviewBoard, ReviewBoardMember and RegistrationResult so the evaluation
 extension can be mapped without denormalizing scores.
 

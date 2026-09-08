@@ -4,7 +4,7 @@
 
 `Chapter 00 - Introduction.pdf` is a course-outline reference. It identifies
 technologies taught in the subject; it does not override project-specific
-business requirements in `REQUEST.md`.
+business requirements in the project memory at `.okf/README.md`.
 
 ## Technologies identified in the course outline
 
@@ -15,7 +15,7 @@ business requirements in `REQUEST.md`.
 - UI library content with Bootstrap and jQuery.
 - Java Mail.
 
-## Project decisions derived from the course and REQUEST
+## Project decisions derived from the course and project memory
 
 | Course topic | Project use |
 |---|---|
@@ -33,11 +33,11 @@ disabled until versioned migrations are introduced.
 
 ## Scope guardrails
 
-- `REQUEST.md` controls roles, business rules, data relationships and Must
-  Have acceptance criteria.
+- `.okf/README.md` controls the migrated roles, business rules and data
+  relationships; `PRODUCT_VISION.md` controls scope and priority.
 - The course outline does not require every chapter technology to be a
   Must Have feature. Spring MVC/REST are architectural tools; Java Mail stays
-  optional because email is Nice to Have in `REQUEST.md`.
+  optional because email is Nice to Have in the project memory.
 - The project remains one deployable MVC monolith. Do not introduce a SPA,
   microservices, Docker/Kubernetes or a separate REST service.
 - SSR and REST adapters must call the same Service layer so validation,

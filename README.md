@@ -13,16 +13,16 @@ product roadmap và chỉ được mở sau khi user chọn scope tiếp theo.
 
 - `PRODUCT_VISION.md` là nguồn ưu tiên để agent tạo task, plan hoặc quyết định
   product scope.
-- `REQUEST.md` là tài liệu tham chiếu về yêu cầu và business rules khi không
-  mâu thuẫn với Product Vision.
+- `.okf/README.md` chứa project memory về yêu cầu, business rules và workflow;
+  các phase summary ghi implementation memory chi tiết.
 - `.okf/` chứa quy trình spec-driven: standards, agents, workflows, phase và
   task notes.
 - `docs/` chứa đặc tả miền, workflow, phân quyền, dữ liệu, màn hình và các
   quyết định cần giữ ổn định khi sinh code; `docs/course-alignment.md` phân
   biệt nội dung môn học với yêu cầu project.
 
-Đọc theo thứ tự: `PRODUCT_VISION.md` → `REQUEST.md` → `.okf/README.md` → phase
-`001` → tài liệu liên quan trong `docs/`.
+Đọc theo thứ tự: `PRODUCT_VISION.md` → `.okf/README.md` → phase summary liên
+quan → tài liệu liên quan trong `docs/`.
 
 ## Stack dùng trong project
 

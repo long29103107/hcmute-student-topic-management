@@ -30,6 +30,7 @@ must call the same Service layer.
 - Spring MVC controllers and REST controllers are adapters only; server-side
   validation and authorization in Service are authoritative.
 - Thymeleaf views are placed under `src/main/resources/templates`.
-- Every future phase must state why a new dependency is within `REQUEST.md`.
+- Every future phase must state why a new dependency is within the project
+  memory in `.okf/README.md` and the active Product Vision milestone.
 - Client-side validation/AJAX may improve UX later, but may not become a second
   business implementation.
