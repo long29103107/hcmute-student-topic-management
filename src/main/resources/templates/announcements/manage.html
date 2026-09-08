@@ -6,56 +6,101 @@
 <body>
 <main layout:fragment="content" class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
     <section aria-labelledby="page-title">
-        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
                 <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Faculty workflow / Updates</p>
                 <h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Manage announcements</h1>
                 <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500">Create, update, publish or hide notices within your management scope.</p>
             </div>
-            <span class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1.5 text-sm font-medium text-blue-800"
-                  th:text="${#lists.size(announcements) + ' announcements'}">0 announcements</span>
+            <button type="button" data-modal-target="create-announcement-modal" data-modal-toggle="create-announcement-modal"
+                    class="inline-flex w-fit shrink-0 items-center justify-center rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                Create announcement
+            </button>
         </div>
 
-        <section class="mb-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="create-announcement-heading">
-            <div class="mb-5">
-                <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">New notice</p>
-                <h2 id="create-announcement-heading" class="text-xl font-semibold text-gray-900">Create announcement</h2>
+        <div id="create-announcement-modal" tabindex="-1" aria-hidden="true" role="dialog" aria-modal="true"
+             aria-labelledby="create-announcement-modal-title" aria-describedby="create-announcement-modal-description"
+             class="fixed inset-0 z-50 hidden h-full w-full overflow-y-auto bg-gray-900/50 p-4">
+            <div class="relative mx-auto w-full max-w-4xl">
+                <div class="rounded-lg border border-gray-200 bg-white shadow-xl">
+                    <div class="flex items-start justify-between border-b border-gray-200 px-6 py-5">
+                        <div>
+                            <h2 id="create-announcement-modal-title" class="text-xl font-semibold text-gray-900">Create announcement</h2>
+                            <p id="create-announcement-modal-description" class="mt-1 text-sm text-gray-500">Create a draft for the selected audience.</p>
+                        </div>
+                        <button type="button" data-modal-hide="create-announcement-modal"
+                                class="rounded-lg p-2 text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-900" aria-label="Close create announcement dialog">
+                            <span aria-hidden="true" class="text-xl leading-none">×</span>
+                        </button>
+                    </div>
+                    <form method="post" th:action="@{/announcements/manage}" class="grid gap-5 p-6 lg:grid-cols-2" data-announcement-scope-form>
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <div class="lg:col-span-2">
+                            <label for="announcement-title" class="mb-2 block text-sm font-medium text-gray-900">Title</label>
+                            <input id="announcement-title" name="title" type="text" maxlength="255" required class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" placeholder="Announcement title">
+                        </div>
+                        <div class="lg:col-span-2">
+                            <label for="announcement-content" class="mb-2 block text-sm font-medium text-gray-900">Content</label>
+                            <textarea id="announcement-content" name="content" rows="6" maxlength="20000" required class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" placeholder="Write the notice content"></textarea>
+                        </div>
+                        <div>
+                            <label for="announcement-scope" class="mb-2 block text-sm font-medium text-gray-900">Audience</label>
+                            <select id="announcement-scope" name="scope" required data-announcement-scope class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500">
+                                <option th:each="scope : ${scopes}" th:value="${scope.name()}" th:text="${scope.name() == 'SCHOOL' ? 'School-wide' : 'Department'}">Department</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="announcement-department" class="mb-2 block text-sm font-medium text-gray-900">Department</label>
+                            <select id="announcement-department" name="departmentId" required data-announcement-department class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Select department</option>
+                                <option th:each="department : ${departments}" th:value="${department.id}" th:text="${department.code + ' · ' + department.name}">CNTT · Công nghệ thông tin</option>
+                            </select>
+                        </div>
+                        <div class="flex justify-end gap-3 border-t border-gray-200 pt-5 lg:col-span-2">
+                            <button type="button" data-modal-hide="create-announcement-modal" class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+                            <button type="submit" class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300">Save draft</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <form method="post" th:action="@{/announcements/manage}" data-announcement-scope-form>
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                <div class="grid gap-5 lg:grid-cols-2">
-                    <div class="lg:col-span-2">
-                        <label for="announcement-title" class="mb-2 block text-sm font-medium text-gray-900">Title</label>
-                        <input id="announcement-title" name="title" type="text" maxlength="255" required class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" placeholder="Announcement title">
-                    </div>
-                    <div class="lg:col-span-2">
-                        <label for="announcement-content" class="mb-2 block text-sm font-medium text-gray-900">Content</label>
-                        <textarea id="announcement-content" name="content" rows="5" maxlength="20000" required class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" placeholder="Write the notice content"></textarea>
-                    </div>
-                    <div>
-                        <label for="announcement-scope" class="mb-2 block text-sm font-medium text-gray-900">Audience</label>
-                        <select id="announcement-scope" name="scope" required data-announcement-scope class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500">
-                            <option th:each="scope : ${scopes}" th:value="${scope.name()}" th:text="${scope.name() == 'SCHOOL' ? 'School-wide' : 'Department'}">School-wide</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="announcement-department" class="mb-2 block text-sm font-medium text-gray-900">Department</label>
-                        <select id="announcement-department" name="departmentId" required data-announcement-department class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500">
-                            <option value="">Select department</option>
-                            <option th:each="department : ${departments}" th:value="${department.id}" th:text="${department.code + ' · ' + department.name}">CNTT · Công nghệ thông tin</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="mt-5 flex justify-end">
-                    <button type="submit" class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300">Save draft</button>
-                </div>
-            </form>
-        </section>
+        </div>
 
         <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm" aria-labelledby="announcements-heading">
-            <div class="border-b border-gray-200 p-5 sm:p-6">
-                <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Directory</p>
-                <h2 id="announcements-heading" class="text-xl font-semibold text-gray-900">Announcement queue</h2>
+            <div class="flex flex-col gap-4 border-b border-gray-200 p-5 sm:p-6">
+                <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+                    <div>
+                        <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Directory</p>
+                        <h2 id="announcements-heading" class="text-xl font-semibold text-gray-900">Announcement queue</h2>
+                    </div>
+                    <span class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1.5 text-sm font-medium text-blue-800"
+                          th:text="${announcementPage.totalItems + ' announcements'}">0 announcements</span>
+                </div>
+                <form class="grid gap-3 lg:grid-cols-6" th:if="${announcementPage.totalItems > 0}" th:action="@{/announcements/manage}" method="get">
+                    <label class="sr-only" for="announcement-search">Search announcements</label>
+                    <input id="announcement-search" name="search" type="search" th:value="${announcementSearch}" placeholder="Search title, content, status or department"
+                           class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 lg:col-span-2">
+                    <label class="sr-only" for="announcement-sort">Sort announcements</label>
+                    <select id="announcement-sort" name="sort" class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500">
+                        <option value="updated" th:selected="${announcementSort == 'updated'}">Recently updated</option>
+                        <option value="title" th:selected="${announcementSort == 'title'}">Title</option>
+                        <option value="status" th:selected="${announcementSort == 'status'}">Status</option>
+                        <option value="scope" th:selected="${announcementSort == 'scope'}">Audience</option>
+                        <option value="department" th:selected="${announcementSort == 'department'}">Department</option>
+                        <option value="author" th:selected="${announcementSort == 'author'}">Author</option>
+                    </select>
+                    <label class="sr-only" for="announcement-direction">Sort direction</label>
+                    <select id="announcement-direction" name="direction" class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500">
+                        <option value="desc" th:selected="${announcementDirection == 'desc'}">Descending</option>
+                        <option value="asc" th:selected="${announcementDirection == 'asc'}">Ascending</option>
+                    </select>
+                    <label class="sr-only" for="announcement-size">Announcements per page</label>
+                    <select id="announcement-size" name="size" class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500">
+                        <option value="10" th:selected="${announcementPage.size == 10}">10 / page</option>
+                        <option value="20" th:selected="${announcementPage.size == 20}">20 / page</option>
+                        <option value="50" th:selected="${announcementPage.size == 50}">50 / page</option>
+                    </select>
+                    <button type="submit" class="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300">Search</button>
+                </form>
             </div>
             <div class="divide-y divide-gray-100" th:if="${!#lists.isEmpty(announcements)}">
                 <article class="p-5 sm:p-6" th:each="announcement : ${announcements}">
@@ -84,7 +129,7 @@
                                         <textarea name="content" rows="5" maxlength="20000" required class="mb-3 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900" th:text="${announcement.content}"></textarea>
                                         <label class="mb-2 block text-sm font-medium text-gray-900">Audience</label>
                                         <select name="scope" required data-announcement-scope class="mb-3 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900">
-                                            <option value="SCHOOL" th:selected="${announcement.scopeCode == 'SCHOOL'}">School-wide</option>
+                                            <option value="SCHOOL" th:if="${canManageSchoolWide}" th:selected="${announcement.scopeCode == 'SCHOOL'}">School-wide</option>
                                             <option value="DEPARTMENT" th:selected="${announcement.scopeCode == 'DEPARTMENT'}">Department</option>
                                         </select>
                                         <label class="mb-2 block text-sm font-medium text-gray-900">Department</label>
@@ -110,7 +155,22 @@
                     </div>
                 </article>
             </div>
-            <p class="px-6 py-14 text-center text-sm text-gray-500" th:if="${#lists.isEmpty(announcements)}">No announcements have been created in your management scope.</p>
+            <div class="px-6 py-14 text-center" th:if="${#lists.isEmpty(announcements)}">
+                <p class="text-sm text-gray-500"
+               th:text="${#strings.isEmpty(announcementSearch) ? 'No announcements have been created in your management scope.' : 'No announcements match your search.'}">No announcements have been created in your management scope.</p>
+                <a class="mt-3 inline-block text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline"
+                   th:if="${!#strings.isEmpty(announcementSearch)}" th:href="@{/announcements/manage}">Clear filters</a>
+            </div>
+            <div class="flex flex-col items-center justify-between gap-3 border-t border-gray-200 px-6 py-4 text-sm text-gray-500 sm:flex-row" th:if="${announcementPage.totalItems > 0}">
+                <span th:text="${'Showing ' + (announcementPage.page * announcementPage.size + 1) + '-' + (announcementPage.page * announcementPage.size + #lists.size(announcements)) + ' of ' + announcementPage.totalItems}">Showing 1-1 of 1</span>
+                <nav aria-label="Announcement pagination" th:if="${announcementPage.totalPages > 1}">
+                    <ul class="inline-flex -space-x-px text-sm">
+                        <li><a class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100" th:classappend="${!announcementPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}" th:href="@{/announcements/manage(page=${announcementPage.page - 1},size=${announcementPage.size},search=${announcementSearch},sort=${announcementSort},direction=${announcementDirection})}">Previous</a></li>
+                        <li th:each="pageNumber : ${#numbers.sequence(0, announcementPage.totalPages - 1)}"><a class="border border-gray-300 px-3 py-2 leading-tight hover:bg-gray-100" th:classappend="${pageNumber == announcementPage.page ? 'bg-blue-50 text-blue-700' : 'bg-white text-gray-500'}" th:href="@{/announcements/manage(page=${pageNumber},size=${announcementPage.size},search=${announcementSearch},sort=${announcementSort},direction=${announcementDirection})}" th:text="${pageNumber + 1}">1</a></li>
+                        <li><a class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100" th:classappend="${!announcementPage.hasNext ? 'pointer-events-none opacity-50' : ''}" th:href="@{/announcements/manage(page=${announcementPage.page + 1},size=${announcementPage.size},search=${announcementSearch},sort=${announcementSort},direction=${announcementDirection})}">Next</a></li>
+                    </ul>
+                </nav>
+            </div>
         </section>
     </section>
 

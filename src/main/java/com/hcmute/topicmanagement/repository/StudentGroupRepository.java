@@ -35,6 +35,24 @@ public interface StudentGroupRepository extends JpaRepository<StudentGroupEntity
             + "join fetch g.registrationPeriod "
             + "join fetch g.createdBy "
             + "join fetch g.leader "
+            + "left join fetch g.members "
+            + "order by g.createdAt desc")
+    List<StudentGroupEntity> findAllWithDetails();
+
+    @Query("select distinct g from StudentGroupEntity g "
+            + "join fetch g.registrationPeriod "
+            + "join fetch g.createdBy "
+            + "join fetch g.leader "
+            + "join g.members scopedMember "
+            + "left join fetch g.members "
+            + "where scopedMember.department.id = :departmentId "
+            + "order by g.createdAt desc")
+    List<StudentGroupEntity> findForDepartmentWithDetails(@Param("departmentId") Long departmentId);
+
+    @Query("select distinct g from StudentGroupEntity g "
+            + "join fetch g.registrationPeriod "
+            + "join fetch g.createdBy "
+            + "join fetch g.leader "
             + "join g.members relatedMember "
             + "left join fetch g.members "
             + "where relatedMember.id = :studentId")

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.hcmute.topicmanagement.model.RegistrationPeriodEntity;
+import com.hcmute.topicmanagement.model.DepartmentEntity;
 import com.hcmute.topicmanagement.model.RoleEntity;
 import com.hcmute.topicmanagement.model.StudentGroupEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
@@ -65,6 +66,36 @@ public class StudentGroupService {
         return new StudentGroupPage(
                 filtered.subList(from, to), safePage, safeSize, totalItems, totalPages,
                 normalizedSearch, normalizedSort, normalizedDirection);
+    }
+
+    @PreAuthorize("hasAuthority('GROUP_READ')")
+    public GroupDirectoryPage listFacultyPage(
+            String actorEmail, String search, int page, int size, String sort, String direction) {
+        UserEntity actor = findActiveActor(actorEmail);
+        GroupDirectoryScope scope = groupDirectoryScope(actor);
+        String normalizedSearch = normalizeSearch(search);
+        String normalizedSort = normalizeSort(sort);
+        String normalizedDirection = normalizeDirection(direction);
+        int safeSize = Math.min(Math.max(size, 5), 100);
+
+        List<StudentGroupSummary> filtered = (scope.isAdmin()
+                ? studentGroupRepository.findAllWithDetails()
+                : scope.hasDepartmentScope()
+                        ? studentGroupRepository.findForDepartmentWithDetails(scope.departmentId())
+                        : List.<StudentGroupEntity>of()).stream()
+                .map(group -> toSummary(group, null))
+                .filter(group -> matchesSearch(group, normalizedSearch))
+                .sorted(groupComparator(normalizedSort, normalizedDirection))
+                .toList();
+
+        int totalItems = filtered.size();
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / safeSize));
+        int safePage = Math.min(Math.max(page, 0), totalPages - 1);
+        int from = Math.min(safePage * safeSize, totalItems);
+        int to = Math.min(from + safeSize, totalItems);
+        return new GroupDirectoryPage(
+                filtered.subList(from, to), safePage, safeSize, totalItems, totalPages,
+                normalizedSearch, normalizedSort, normalizedDirection, scope.label());
     }
 
     @PreAuthorize("hasRole('STUDENT') and hasAuthority('GROUP_MANAGE')")
@@ -187,6 +218,21 @@ public class StudentGroupService {
             throw new StudentGroupAccessException("The group management account has no active role.");
         }
         return actor;
+    }
+
+    private static GroupDirectoryScope groupDirectoryScope(UserEntity actor) {
+        if (hasActiveRole(actor, "ADMIN")) {
+            return new GroupDirectoryScope(true, null, "Admin · all departments");
+        }
+        if (!hasActiveRole(actor, "FACULTY_HEAD")) {
+            throw new StudentGroupAccessException("Only Admin or Faculty Head can view student groups.");
+        }
+        DepartmentEntity department = actor.getDepartment();
+        if (department == null || department.getId() == null) {
+            return new GroupDirectoryScope(false, null, "Faculty Head · no department assigned");
+        }
+        return new GroupDirectoryScope(false, department.getId(),
+                "Faculty Head · " + department.getCode() + " · " + department.getName());
     }
 
     private RegistrationPeriodEntity requireOpenStudentPeriod(Long periodId) {
@@ -363,6 +409,54 @@ public class StudentGroupService {
     }
 
     public record PeriodOption(Long id, String name, String type) {
+    }
+
+    private record GroupDirectoryScope(boolean admin, Long departmentId, String label) {
+        boolean isAdmin() {
+            return admin;
+        }
+
+        boolean hasDepartmentScope() {
+            return departmentId != null;
+        }
+    }
+
+    public static final class GroupDirectoryPage {
+        private final List<StudentGroupSummary> groups;
+        private final int page;
+        private final int size;
+        private final int totalItems;
+        private final int totalPages;
+        private final String search;
+        private final String sort;
+        private final String direction;
+        private final String scopeLabel;
+
+        public GroupDirectoryPage(
+                List<StudentGroupSummary> groups, int page, int size, int totalItems, int totalPages,
+                String search, String sort, String direction, String scopeLabel) {
+            this.groups = List.copyOf(groups);
+            this.page = page;
+            this.size = size;
+            this.totalItems = totalItems;
+            this.totalPages = totalPages;
+            this.search = search;
+            this.sort = sort;
+            this.direction = direction;
+            this.scopeLabel = scopeLabel;
+        }
+
+        public List<StudentGroupSummary> getGroups() { return groups; }
+        public int getPage() { return page; }
+        public int getSize() { return size; }
+        public int getTotalItems() { return totalItems; }
+        public int getTotalPages() { return totalPages; }
+        public String getSearch() { return search; }
+        public String getSort() { return sort; }
+        public String getDirection() { return direction; }
+        public String getScopeLabel() { return scopeLabel; }
+        public boolean isHasPrevious() { return page > 0; }
+        public boolean isHasNext() { return page + 1 < totalPages; }
     }
 
     public static final class StudentGroupPage {

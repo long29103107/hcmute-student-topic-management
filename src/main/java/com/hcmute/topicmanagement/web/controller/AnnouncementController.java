@@ -52,8 +52,15 @@ public class AnnouncementController {
 
     @GetMapping("/manage")
     @PreAuthorize("hasAuthority('ANNOUNCEMENT_MANAGE')")
-    public String manage(Authentication authentication, Model model) {
-        populateManagementModel(authentication, model);
+    public String manage(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "updated") String sort,
+            @RequestParam(defaultValue = "desc") String direction,
+            Model model) {
+        populateManagementModel(authentication, model, page, size, search, sort, direction);
         return "announcements/manage";
     }
 
@@ -140,12 +147,25 @@ public class AnnouncementController {
         return "redirect:/announcements/manage";
     }
 
-    private void populateManagementModel(Authentication authentication, Model model) {
+    private void populateManagementModel(
+            Authentication authentication, Model model, int page, int size,
+            String search, String sort, String direction) {
+        AnnouncementService.AnnouncementManagementPage announcementPage =
+                announcementService.listForManagementPage(
+                        authentication.getName(), search, page, size, sort, direction);
         model.addAttribute("pageTitle", "Manage announcements");
-        model.addAttribute(
-                "announcements", announcementService.listForManagement(authentication.getName()));
+        model.addAttribute("announcementPage", announcementPage);
+        model.addAttribute("announcements", announcementPage.getAnnouncements());
+        model.addAttribute("announcementSearch", announcementPage.getSearch());
+        model.addAttribute("announcementSort", announcementPage.getSort());
+        model.addAttribute("announcementDirection", announcementPage.getDirection());
         model.addAttribute("departments", departmentsFor(authentication.getName()));
-        model.addAttribute("scopes", Arrays.asList(AnnouncementScope.values()));
+        boolean canManageSchoolWide = isAdmin(authentication.getName());
+        model.addAttribute("canManageSchoolWide", canManageSchoolWide);
+        model.addAttribute(
+                "scopes", canManageSchoolWide
+                        ? Arrays.asList(AnnouncementScope.values())
+                        : List.of(AnnouncementScope.DEPARTMENT));
     }
 
     private List<DepartmentEntity> departmentsFor(String email) {
@@ -154,13 +174,20 @@ public class AnnouncementController {
         if (manager == null) {
             return List.of();
         }
-        boolean admin = manager.getUserRoles().stream()
-                .filter(UserRoleEntity::isActive)
-                .map(UserRoleEntity::getRole)
-                .anyMatch(role -> role != null && role.isActive() && "ADMIN".equalsIgnoreCase(role.getCode()));
-        if (admin) {
+        if (isAdmin(manager)) {
             return departmentRepository.findByActiveTrueOrderByNameAsc();
         }
         return manager.getDepartment() == null ? List.of() : List.of(manager.getDepartment());
+    }
+
+    private boolean isAdmin(String email) {
+        return isAdmin(userRepository.findByEmailIgnoreCaseWithRolesAndDepartment(email).orElse(null));
+    }
+
+    private boolean isAdmin(UserEntity user) {
+        return user != null && user.getUserRoles().stream()
+                .filter(UserRoleEntity::isActive)
+                .map(UserRoleEntity::getRole)
+                .anyMatch(role -> role != null && role.isActive() && "ADMIN".equalsIgnoreCase(role.getCode()));
     }
 }

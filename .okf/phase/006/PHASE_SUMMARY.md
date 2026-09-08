@@ -46,8 +46,10 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/23
 
 - /faculty/boards and /api/faculty/boards expose scoped board management.
 - SSR and REST share server-side validation and authorization.
-- Create/edit uses a full-width popup; Board lecturers uses the same checkbox
-  selector pattern as Assign supervisors.
+- Create/edit uses a centered `max-w-4xl` popup; Board lecturers uses the same
+  checkbox selector pattern as Assign supervisors.
+- The create action sits in the page header and the board queue remains the
+  primary directory card, matching the announcement management layout.
 - Navigation and route/seed documentation are updated.
 
 ### 006_004 — Review Board Evaluation Integration
@@ -65,3 +67,5 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/24
 - EvaluatorAssignmentControllerTest
 - EvaluationScoringControllerTest
 - DatabaseSeedControllerTest
+- Focused UI regression: `mvn '-Dtest=ReviewBoardControllerTest' test` completed
+  with 4 tests passing.

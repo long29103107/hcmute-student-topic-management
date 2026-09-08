@@ -110,7 +110,11 @@ class AnnouncementControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("announcements/manage"))
                 .andExpect(content().string(containsString("data-announcement-confirm-modal")))
-                .andExpect(content().string(containsString("Publish")));
+                .andExpect(content().string(containsString("data-modal-target=\"create-announcement-modal\"")))
+                .andExpect(content().string(containsString("Search announcements")))
+                .andExpect(content().string(containsString("Publish")))
+                .andExpect(content().string(containsString("value=\"SCHOOL\"")))
+                .andExpect(content().string(containsString("School-wide")));
 
         mockMvc.perform(post("/announcements/manage/publish")
                         .with(user(principal(admin, "ADMIN", true)))
@@ -131,6 +135,22 @@ class AnnouncementControllerTest {
         org.assertj.core.api.Assertions.assertThat(
                 announcementRepository.findById(created.getId()).orElseThrow().getStatus())
                 .isEqualTo(AnnouncementStatus.HIDDEN);
+    }
+
+    @Test
+    void facultyHeadManagementUiOnlyOffersDepartmentScope() throws Exception {
+        DepartmentEntity cntt = saveDepartment("CNTT");
+        UserEntity facultyHead = saveUser("FACULTY_HEAD", cntt);
+
+        mockMvc.perform(get("/announcements/manage")
+                        .with(user(principal(facultyHead, "FACULTY_HEAD", true)))
+                        .accept(MediaType.TEXT_HTML))
+                .andExpect(status().isOk())
+                .andExpect(view().name("announcements/manage"))
+                .andExpect(content().string(containsString("value=\"DEPARTMENT\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("value=\"SCHOOL\""))))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("School-wide"))))
+                .andExpect(content().string(containsString("CNTT-")));
     }
 
     @Test

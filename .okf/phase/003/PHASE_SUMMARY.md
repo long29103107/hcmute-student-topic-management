@@ -60,10 +60,40 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/11
 - Registration history is retained and approved registrations are available to
   report/evaluation read-only queries.
 
+### User-selected extension — Faculty Student Group Directory
+
+Vision alignment: the user explicitly selected the later student-group scope
+while the identity milestone remains active. This slice is deliberately
+read-only and does not expand student membership or registration mutations.
+
+- `GROUP_READ` is a separate seeded permission from student `GROUP_MANAGE`;
+  Admin and Faculty Head receive it, while Lecturer and Student do not.
+- `GET /faculty/groups` is server-rendered. Admin sees every group; a Faculty
+  Head sees groups having at least one member in the Faculty Head's department;
+  an unassigned Faculty Head gets an empty scoped directory.
+- Search matches group, registration period, leader and member names/logins.
+  Sort is allowlisted as `group|period|leader|members|status|created`, and
+  pagination clamps page size to the existing 5–100 server-side range while
+  preserving search/sort/direction in navigation links.
+- The sidebar entry is permission-guarded and the directory is read-only;
+  group creation, membership changes and leadership transitions remain under
+  the existing Student `GROUP_MANAGE` flow.
+
 ## Verification
 
 - StudentGroupControllerTest
+- FacultyStudentGroupControllerTest (faculty scope, Admin scope, permission
+  denial, search, sort and pagination)
 - TopicRegistrationControllerTest
 - TopicRegistrationReviewControllerTest
+- DatabaseSeedControllerTest (27 seeded permissions and Faculty Head
+  `GROUP_READ` assignment)
+- `mvn '-Dtest=FacultyStudentGroupControllerTest' test`
+- `mvn '-Dtest=FacultyStudentGroupControllerTest,StudentGroupControllerTest,DatabaseSeedControllerTest' test`
+- `npm run build:css`
+- A full `mvn test` attempt reached 173 tests but had 12 existing H2 shared-
+  database initialization errors in `RegistrationPeriodControllerTest` and
+  `ReviewBoardControllerTest` (`USERS`, `REGISTRATION_PERIODS` or
+  `ANNOUNCEMENTS` not found); the focused group/seed suite remains green.
 - Permissions, lifecycle, privacy, deadlines, leadership transfer,
-  one-group-per-period and concurrency are covered.
+  one-group-per-period and concurrency are covered by the existing group tests.

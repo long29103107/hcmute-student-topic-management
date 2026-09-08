@@ -121,6 +121,39 @@ class AnnouncementServiceTest {
 
     @Test
     @WithMockUser(authorities = "ANNOUNCEMENT_MANAGE")
+    void managementPageSearchesSortsAndPaginatesWithinManagerScope() {
+        UserEntity admin = saveUser("ADMIN", null);
+        for (int index = 0; index < 12; index++) {
+            announcementService.create(
+                    admin.getEmailOrCode(), String.format("Alpha notice %02d", index),
+                    "Searchable announcement content.", AnnouncementScope.SCHOOL, null);
+        }
+        announcementService.create(
+                admin.getEmailOrCode(), "Other notice", "Different announcement content.",
+                AnnouncementScope.SCHOOL, null);
+
+        AnnouncementService.AnnouncementManagementPage firstPage =
+                announcementService.listForManagementPage(
+                        admin.getEmailOrCode(), "alpha", 0, 5, "title", "asc");
+
+        assertThat(firstPage.getTotalItems()).isEqualTo(12);
+        assertThat(firstPage.getTotalPages()).isEqualTo(3);
+        assertThat(firstPage.getAnnouncements())
+                .extracting(AnnouncementSummary::getTitle)
+                .containsExactly(
+                        "Alpha notice 00", "Alpha notice 01", "Alpha notice 02",
+                        "Alpha notice 03", "Alpha notice 04");
+
+        AnnouncementService.AnnouncementManagementPage lastPage =
+                announcementService.listForManagementPage(
+                        admin.getEmailOrCode(), "alpha", 2, 5, "title", "asc");
+        assertThat(lastPage.getAnnouncements())
+                .extracting(AnnouncementSummary::getTitle)
+                .containsExactly("Alpha notice 10", "Alpha notice 11");
+    }
+
+    @Test
+    @WithMockUser(authorities = "ANNOUNCEMENT_MANAGE")
     void publishedQueryReturnsSchoolAndMatchingDepartmentAnnouncementsOnly() {
         DepartmentEntity it = saveDepartment("IT");
         DepartmentEntity business = saveDepartment("BUS");

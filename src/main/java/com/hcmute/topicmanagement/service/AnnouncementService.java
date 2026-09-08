@@ -1,7 +1,10 @@
 package com.hcmute.topicmanagement.service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -42,9 +45,39 @@ public class AnnouncementService {
     @PreAuthorize("hasAuthority('ANNOUNCEMENT_MANAGE')")
     public List<AnnouncementSummary> listForManagement(String managerEmail) {
         UserEntity manager = findActiveManager(managerEmail);
-        return announcementRepository.findAllWithDetailsOrderByUpdatedAtDesc().stream()
+        return managementAnnouncements(manager).stream()
+                .map(AnnouncementService::toSummary)
+                .toList();
+    }
+
+    /** Returns a searchable, sortable and paginated management queue. */
+    @PreAuthorize("hasAuthority('ANNOUNCEMENT_MANAGE')")
+    public AnnouncementManagementPage listForManagementPage(
+            String managerEmail, String search, int page, int size, String sort, String direction) {
+        UserEntity manager = findActiveManager(managerEmail);
+        String normalizedSearch = normalizeSearch(search);
+        String normalizedSort = normalizeSort(sort);
+        String normalizedDirection = normalizeDirection(direction);
+        List<AnnouncementSummary> filtered = managementAnnouncements(manager).stream()
                 .filter(announcement -> isInManagementScope(manager, announcement))
                 .map(AnnouncementService::toSummary)
+                .filter(announcement -> matchesSearch(announcement, normalizedSearch))
+                .sorted(announcementComparator(normalizedSort, normalizedDirection))
+                .toList();
+        int safeSize = Math.min(Math.max(size, 5), 50);
+        int totalItems = filtered.size();
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / safeSize));
+        int safePage = Math.min(Math.max(page, 0), totalPages - 1);
+        int from = Math.min(safePage * safeSize, totalItems);
+        int to = Math.min(from + safeSize, totalItems);
+        return new AnnouncementManagementPage(
+                filtered.subList(from, to), safePage, safeSize, totalItems, totalPages,
+                search == null ? "" : search.trim(), normalizedSort, normalizedDirection);
+    }
+
+    private List<AnnouncementEntity> managementAnnouncements(UserEntity manager) {
+        return announcementRepository.findAllWithDetailsOrderByUpdatedAtDesc().stream()
+                .filter(announcement -> isInManagementScope(manager, announcement))
                 .toList();
     }
 
@@ -233,6 +266,58 @@ public class AnnouncementService {
                 .anyMatch(role -> roleCode.equalsIgnoreCase(role.getCode()));
     }
 
+    private static boolean matchesSearch(AnnouncementSummary announcement, String search) {
+        return search.isBlank()
+                || containsIgnoreCase(announcement.getTitle(), search)
+                || containsIgnoreCase(announcement.getContent(), search)
+                || containsIgnoreCase(announcement.getStatusCode(), search)
+                || containsIgnoreCase(announcement.getScopeCode(), search)
+                || containsIgnoreCase(announcement.getDepartmentCode(), search)
+                || containsIgnoreCase(announcement.getDepartmentName(), search)
+                || containsIgnoreCase(announcement.getAuthorName(), search)
+                || containsIgnoreCase(announcement.getAuthorEmail(), search);
+    }
+
+    private static boolean containsIgnoreCase(String value, String search) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(search);
+    }
+
+    private static Comparator<AnnouncementSummary> announcementComparator(String sort, String direction) {
+        Comparator<String> text = Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER);
+        Comparator<AnnouncementSummary> comparator = switch (sort) {
+            case "status" -> Comparator.comparing(AnnouncementSummary::getStatusCode, text)
+                    .thenComparing(AnnouncementSummary::getTitle, text);
+            case "scope" -> Comparator.comparing(AnnouncementSummary::getScopeCode, text)
+                    .thenComparing(AnnouncementSummary::getTitle, text);
+            case "department" -> Comparator.comparing(AnnouncementSummary::getDepartmentCode, text)
+                    .thenComparing(AnnouncementSummary::getDepartmentName, text)
+                    .thenComparing(AnnouncementSummary::getTitle, text);
+            case "author" -> Comparator.comparing(AnnouncementSummary::getAuthorName, text)
+                    .thenComparing(AnnouncementSummary::getTitle, text);
+            case "updated" -> Comparator.comparing(
+                    AnnouncementSummary::getUpdatedAt,
+                    Comparator.nullsLast(Comparator.naturalOrder()))
+                    .thenComparing(AnnouncementSummary::getTitle, text);
+            default -> Comparator.comparing(AnnouncementSummary::getTitle, text)
+                    .thenComparing(AnnouncementSummary::getUpdatedAt,
+                            Comparator.nullsLast(Comparator.naturalOrder()));
+        };
+        return "desc".equals(direction) ? comparator.reversed() : comparator;
+    }
+
+    private static String normalizeSearch(String search) {
+        return search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static String normalizeSort(String sort) {
+        return Set.of("title", "status", "scope", "department", "author", "updated")
+                .contains(sort) ? sort : "updated";
+    }
+
+    private static String normalizeDirection(String direction) {
+        return "asc".equalsIgnoreCase(direction) ? "asc" : "desc";
+    }
+
     private static AnnouncementInput validateInput(String title, String content) {
         String normalizedTitle = title == null ? "" : title.trim();
         String normalizedContent = content == null ? "" : content.trim();
@@ -326,6 +411,41 @@ public class AnnouncementService {
         public LocalDateTime getPublishedAt() { return publishedAt; }
         public LocalDateTime getCreatedAt() { return createdAt; }
         public LocalDateTime getUpdatedAt() { return updatedAt; }
+    }
+
+    public static final class AnnouncementManagementPage {
+        private final List<AnnouncementSummary> announcements;
+        private final int page;
+        private final int size;
+        private final int totalItems;
+        private final int totalPages;
+        private final String search;
+        private final String sort;
+        private final String direction;
+
+        public AnnouncementManagementPage(
+                List<AnnouncementSummary> announcements, int page, int size, int totalItems,
+                int totalPages, String search, String sort, String direction) {
+            this.announcements = List.copyOf(announcements);
+            this.page = page;
+            this.size = size;
+            this.totalItems = totalItems;
+            this.totalPages = totalPages;
+            this.search = search;
+            this.sort = sort;
+            this.direction = direction;
+        }
+
+        public List<AnnouncementSummary> getAnnouncements() { return announcements; }
+        public int getPage() { return page; }
+        public int getSize() { return size; }
+        public int getTotalItems() { return totalItems; }
+        public int getTotalPages() { return totalPages; }
+        public String getSearch() { return search; }
+        public String getSort() { return sort; }
+        public String getDirection() { return direction; }
+        public boolean isHasPrevious() { return page > 0; }
+        public boolean isHasNext() { return page + 1 < totalPages; }
     }
 
     public static class AnnouncementNotFoundException extends RuntimeException {

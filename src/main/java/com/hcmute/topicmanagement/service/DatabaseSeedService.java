@@ -125,6 +125,8 @@ public class DatabaseSeedService {
                     "View topics published for registration."),
             new PermissionSeed("GROUP_MANAGE", "Manage student groups", "Student groups",
                     "Create and manage student group membership."),
+            new PermissionSeed("GROUP_READ", "View student groups", "Student groups",
+                    "View student groups within the user's faculty scope."),
             new PermissionSeed("REGISTRATION_SUBMIT", "Submit topic registrations", "Registrations",
                     "Submit a topic registration for a student group."),
             new PermissionSeed("REPORT_SUBMIT", "Submit reports", "Reports",
@@ -151,7 +153,7 @@ public class DatabaseSeedService {
             "ADMIN", allPermissionCodes(),
             "FACULTY_HEAD", withLecturerPermissions(
                     "PERIOD_MANAGE", "SUPERVISOR_MANAGE", "TOPIC_REVIEW", "REGISTRATION_REVIEW",
-                    "ANNOUNCEMENT_MANAGE", "REVIEW_BOARD_MANAGE"),
+                    "ANNOUNCEMENT_MANAGE", "REVIEW_BOARD_MANAGE", "GROUP_READ"),
             "LECTURER", LECTURER_PERMISSIONS,
             "STUDENT", List.of(
                     "TOPIC_VIEW", "GROUP_MANAGE", "REGISTRATION_SUBMIT", "REPORT_SUBMIT", "REPORT_VIEW",
@@ -314,13 +316,22 @@ public class DatabaseSeedService {
                     "Sinh viên kiểm tra nhóm, chọn đề tài và hoàn tất đăng ký trong thời gian mở của đợt đăng ký.",
                     AnnouncementScope.SCHOOL,
                     null,
-                    "admin"),
+                    "admin",
+                    AnnouncementStatus.PUBLISHED),
             new AnnouncementSeed(
                     "CNTT: Lịch hướng dẫn đăng ký đề tài",
                     "Khoa CNTT tổ chức buổi hướng dẫn đăng ký đề tài và giải đáp thắc mắc cho sinh viên trong khoa.",
                     AnnouncementScope.DEPARTMENT,
                     "CNTT",
-                    "nguyen.van.khang@lecturer.hcmute.edu.vn"));
+                    "nguyen.van.khang@lecturer.hcmute.edu.vn",
+                    AnnouncementStatus.PUBLISHED),
+            new AnnouncementSeed(
+                    "CNTT: Dự thảo lịch tư vấn đề tài",
+                    "Bản nháp nội bộ để Trưởng khoa rà soát trước khi phát hành cho sinh viên.",
+                    AnnouncementScope.DEPARTMENT,
+                    "CNTT",
+                    "nguyen.van.khang@lecturer.hcmute.edu.vn",
+                    AnnouncementStatus.DRAFT));
 
     private static final List<StudentGroupSeed> STUDENT_GROUPS = List.of(
             new StudentGroupSeed("Nhóm Phoenix", "24110000", List.of("24110001", "24110002")),
@@ -851,9 +862,14 @@ public class DatabaseSeedService {
                     announcement.setScope(seed.scope());
                     announcement.setDepartment(department);
                     announcement.setAuthor(author);
-                    announcement.setStatus(AnnouncementStatus.PUBLISHED);
-                    if (announcement.getPublishedAt() == null) {
-                        announcement.setPublishedAt(LocalDateTime.now().minusDays(1));
+                    announcement.setStatus(seed.status());
+                    if (seed.status() == AnnouncementStatus.PUBLISHED
+                            || seed.status() == AnnouncementStatus.HIDDEN) {
+                        if (announcement.getPublishedAt() == null) {
+                            announcement.setPublishedAt(LocalDateTime.now().minusDays(1));
+                        }
+                    } else {
+                        announcement.setPublishedAt(null);
                     }
                     return announcement;
                 })
@@ -1061,6 +1077,7 @@ public class DatabaseSeedService {
             String content,
             AnnouncementScope scope,
             String departmentCode,
-            String authorLogin) {
+            String authorLogin,
+            AnnouncementStatus status) {
     }
 }

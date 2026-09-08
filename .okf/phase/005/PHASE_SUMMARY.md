@@ -42,6 +42,18 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/18
 Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/19
 
 - Admin/Faculty Head can manage announcements through SSR.
+- The management UI exposes `SCHOOL` scope only to Admin; Faculty Head sees
+  and selects only `DEPARTMENT` announcements in their own department.
+- Create announcement opens a centered `max-w-4xl` popup; the management queue
+  supports server-side search, sorting/direction and pagination while
+  preserving scope.
+- The management page follows the portal directory layout: the create action
+  sits in the page header, the queue remains a single directory card, and
+  filters stay hidden for an empty queue and become a responsive grid when
+  announcements exist.
+- The Faculty workflow sidebar opens automatically on the management page, so
+  Faculty Heads can find the announcement entry after their seeded permission
+  bundle is loaded.
 - Publish/hide actions have confirmation UI and CSRF protection.
 - Reader SSR/REST and dashboards use the same scoped service rules.
 
@@ -50,6 +62,8 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/19
 Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/20
 
 - Seed is repeatable without duplicate announcements.
+- Seed restores two `PUBLISHED` announcements and one `DRAFT` announcement;
+  rerunning it resets lifecycle status and clears `publishedAt` for drafts.
 - Admin/Faculty Head and cross-department boundaries are tested.
 - Published notices render on dashboards/list pages.
 - Verification and route documentation are updated.
@@ -60,3 +74,12 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/20
 - AnnouncementControllerTest
 - DatabaseSeedControllerTest
 - DatabaseSchemaServiceTest
+- Focused regression run: `mvn '-Dtest=AnnouncementServiceTest,AnnouncementControllerTest' test`
+- The focused run completed with 11 tests passing.
+- Tailwind assets rebuilt successfully with `npm run build:css`.
+- Seed, announcement-controller, and security regression run:
+  `mvn '-Dtest=DatabaseSeedControllerTest,AnnouncementControllerTest,SecurityConfigTest' test`
+  completed with 23 tests passing; the seed asserts `ANNOUNCEMENT_MANAGE` for
+  `FACULTY_HEAD` and not for `LECTURER` or `STUDENT`.
+- Seed fixture verification: `mvn '-Dtest=DatabaseSeedControllerTest' test`
+  completed with 3 tests passing.

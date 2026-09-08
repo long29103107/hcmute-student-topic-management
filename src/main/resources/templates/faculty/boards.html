@@ -7,13 +7,19 @@
 <body>
 <main layout:fragment="content" class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
     <section aria-labelledby="page-title">
-        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
                 <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Faculty workflow / Review boards</p>
                 <h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Review boards</h1>
                 <p class="mt-3 max-w-3xl text-sm leading-6 text-gray-500">Create one board for each approved registration and assign 3–5 lecturers with exactly one Chair and one Secretary.</p>
             </div>
-            <span class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800" th:text="${boardScope}">Faculty Head · CNTT</span>
+            <div class="flex flex-wrap items-center gap-3">
+                <span class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800" th:text="${boardScope}">Faculty Head · CNTT</span>
+                <button sec:authorize="hasAuthority('REVIEW_BOARD_MANAGE')" type="button" data-modal-target="create-board-modal" data-modal-toggle="create-board-modal"
+                        class="inline-flex w-fit shrink-0 items-center justify-center rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                    Create board
+                </button>
+            </div>
         </div>
 
         <div class="mb-6 flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-5 text-blue-900" role="status">
@@ -21,22 +27,10 @@
             <span>Only approved registrations in your management scope are available. Topic supervisors and lecturers outside the topic department are rejected by the server.</span>
         </div>
 
-        <section sec:authorize="hasAuthority('REVIEW_BOARD_MANAGE')" class="mb-6 flex flex-col justify-between gap-4 rounded-lg border border-gray-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center" aria-labelledby="create-board-heading">
-            <div>
-                <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Board setup</p>
-                <h2 id="create-board-heading" class="text-xl font-semibold text-gray-900">Create review board</h2>
-                <p class="mt-2 text-sm text-gray-500">The server validates department scope, active lecturer capability, member count, role uniqueness, and supervisor exclusion.</p>
-            </div>
-            <button type="button" data-modal-target="create-board-modal" data-modal-toggle="create-board-modal"
-                    class="inline-flex w-fit shrink-0 items-center justify-center rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300">
-                Create board
-            </button>
-        </section>
-
         <div sec:authorize="hasAuthority('REVIEW_BOARD_MANAGE')" id="create-board-modal" tabindex="-1" aria-hidden="true" role="dialog" aria-modal="true"
              aria-labelledby="create-board-modal-title" aria-describedby="create-board-modal-description"
              class="fixed inset-0 z-50 hidden h-full w-full overflow-y-auto bg-gray-900/50 p-4">
-            <div class="relative w-full">
+            <div class="relative mx-auto w-full max-w-4xl">
                 <div class="rounded-lg border border-gray-200 bg-white shadow-xl">
                     <div class="flex items-start justify-between border-b border-gray-200 px-6 py-5">
                         <div>
