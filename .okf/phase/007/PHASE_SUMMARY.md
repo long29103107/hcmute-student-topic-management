@@ -42,12 +42,21 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/26
   one published result at average 8.50 and one active board with drafts.
 - The authenticated login-to-/student/results journey and manual workflow
   documentation are covered.
+- `docs/AI_WORKFLOW_GUIDE.md` provides the teammate/AI handoff: end-to-end
+  overview, roles and permissions, state gates, step-by-step main flows,
+  verification checklist and a reusable task prompt.
+- `docs/HUMAN_WORKFLOW.md` provides the browser-based manual runbook: exact
+  seed accounts, password preparation, login/logout order, page actions,
+  expected state changes, negative checks and the complete topic-to-result flow.
 
 ## Verification
 
 - ResultPublicationControllerTest
 - DatabaseSeedControllerTest
 - ReviewBoardControllerTest
+- `SETUP_GUIDE.md` reconciled with the current 18-table schema, 12-step seed
+  pipeline, 28 permissions, 71 users, group/topic/registration fixtures,
+  review-board result fixtures, announcement states and seed security modes.
 - Full Maven/package/static checks were recorded during implementation.
 - Browser automation was unavailable; MockMvc covers the authenticated
   SSR/REST journey and negative authorization paths.
