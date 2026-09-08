@@ -33,9 +33,9 @@ liệu mới để kiểm thử đầy đủ từ đầu đến cuối.
 
 ### 2.2 Tài khoản nghiệp vụ
 
-Các tài khoản dưới đây có sẵn sau seed. Source chỉ công khai plaintext của
-Admin; password seed của staff/student là hash local. Vì vậy, sau khi đăng
-nhập Admin, hãy đặt password test `TestPass123!` cho các tài khoản cần dùng.
+Các tài khoản dưới đây có sẵn sau seed. Sau khi đăng nhập Admin, hãy đặt
+password `admin123` cho các tài khoản cần dùng. Toàn bộ kịch bản trong tài liệu
+này dùng thống nhất password `admin123` để đổi account nhanh.
 
 | Vai trò | Email đăng nhập | Phạm vi / mục đích |
 |---|---|---|
@@ -52,19 +52,19 @@ nhập Admin, hãy đặt password test `TestPass123!` cho các tài khoản c�
 | Student | `24110007@student.hcmute.edu.vn` | Thành viên cho flow mới |
 | Student | `24110008@student.hcmute.edu.vn` | Thành viên cho flow mới |
 
-### 2.3 Đặt password cho account test
+### 2.3 Đặt password `admin123` cho account test
 
 Thực hiện một lần sau mỗi lần reset seed:
 
 1. Đăng nhập bằng Admin.
 2. Vào `/admin/lecturers`.
 3. Search từng Faculty Head/Lecturer ở bảng account.
-4. Bấm action password/reset password, nhập `TestPass123!` hai lần và lưu.
+4. Bấm action password/reset password, nhập `admin123` hai lần và lưu.
 5. Vào `/admin/students`.
 6. Search `24110000`, `24110001`, `24110006`, `24110007`, `24110008`.
-7. Đặt cùng password `TestPass123!` và lưu.
-8. Không dùng `admin123` cho các account nghiệp vụ; đó chỉ là password local
-   ban đầu của Admin.
+7. Đặt cùng password `admin123` và lưu.
+8. Sau bước này, tất cả account trong kịch bản đều đăng nhập bằng password
+   `admin123`.
 
 Mỗi lần đổi vai trò, luôn bấm Logout rồi đăng nhập lại. Không mở nhiều account
 trong cùng một session/cửa sổ nếu chưa chắc cookie của browser đã được tách.
@@ -115,7 +115,7 @@ Trạng thái cần quan sát:
 2. Đăng nhập Admin.
 3. Mở lần lượt `/admin/departments`, `/admin/lecturers`,
    `/admin/students` để kiểm tra account và department.
-4. Đặt password cho các account ở mục 2.3.
+4. Đặt password `admin123` cho các account ở mục 2.3.
 5. Logout Admin.
 
 **Kết quả mong đợi:** database có dữ liệu fixture; Admin vào được dashboard và
@@ -124,7 +124,7 @@ các trang administration; account chưa được đặt password không thể l
 ### Bước 1 — Kiểm tra kỳ đăng ký
 
 **Đăng nhập:** Faculty Head CNTT
-`nguyen.van.khang@lecturer.hcmute.edu.vn` / `TestPass123!`.
+`nguyen.van.khang@lecturer.hcmute.edu.vn` / `admin123`.
 
 1. Mở `/faculty/periods`.
 2. Tìm `Đợt đăng ký đề tài học kỳ 1 năm học 2026-2027`.
@@ -141,7 +141,7 @@ period trong form tạo group/đăng ký topic.
 ### Bước 2 — Lecturer tạo và submit đề tài
 
 **Đăng nhập:** Lecturer CNTT
-`nguyen.thanh.binh@lecturer.hcmute.edu.vn` / `TestPass123!`.
+`nguyen.thanh.binh@lecturer.hcmute.edu.vn` / `admin123`.
 
 1. Mở `/lecturer/topics`.
 2. Bấm `Add topic proposal`.
@@ -194,7 +194,7 @@ Student trong thời gian student window đang mở.
 
 ### Bước 5 — Student tạo group và join member
 
-**Đăng nhập:** Student `24110006@student.hcmute.edu.vn` / `TestPass123!`.
+**Đăng nhập:** Student `24110006@student.hcmute.edu.vn` / `admin123`.
 
 1. Mở `/student/groups`.
 2. Bấm tạo group.
@@ -373,13 +373,13 @@ Không cần tạo dữ liệu mới nếu chỉ muốn smoke test:
 | Announcement department draft | Faculty Head CNTT mở `/announcements/manage` |
 
 Khi cần chạy lại happy path, seed lại database để xoá các record test và đưa
-toàn bộ trạng thái về fixture ban đầu. Nhớ đặt lại password cho account nghiệp
-vụ sau mỗi lần seed.
+toàn bộ trạng thái về fixture ban đầu. Nhớ đặt lại password `admin123` cho
+account nghiệp vụ sau mỗi lần seed.
 
 ## 6. Checklist nghiệm thu cuối
 
 - [ ] Admin login bằng `admin@hcmute.edu.vn / admin123`.
-- [ ] Staff/student login bằng password đã được Admin reset.
+- [ ] Staff/student login bằng password `admin123` đã được Admin reset.
 - [ ] Faculty Head chỉ thấy và sửa được dữ liệu trong department của mình.
 - [ ] Lecturer tạo, sửa khi còn draft, submit được topic.
 - [ ] Faculty Head approve, gán supervisor và publish được topic.
@@ -400,4 +400,3 @@ vụ sau mỗi lần seed.
 - [AI_WORKFLOW_GUIDE.md](AI_WORKFLOW_GUIDE.md) — handoff cho AI/teammate khi
   implement hoặc tiếp tục task.
 - [PRODUCT_VISION.md](../PRODUCT_VISION.md) — phạm vi sản phẩm và business flow.
-

@@ -288,8 +288,10 @@ Mục tiêu: tạo schema, fixture và tài khoản local để test UI/API.
 8. Đăng nhập local bằng:
    - Email: admin@hcmute.edu.vn
    - Password: admin123
-9. Khi xong bootstrap, restart với SEED_PUBLIC_ENABLED=false.
-10. Không chạy DDL hoặc /api/admin/seed trên database có dữ liệu cần giữ.
+9. Dùng Admin mở /admin/lecturers và /admin/students, đặt password `admin123`
+   cho các Faculty Head, Lecturer và Student account cần chạy workflow.
+10. Khi xong bootstrap, restart với SEED_PUBLIC_ENABLED=false.
+11. Không chạy DDL hoặc /api/admin/seed trên database có dữ liệu cần giữ.
 
 Fixture expected: 4 roles, 28 permissions, 15 departments, 71 users, 1 open
 period, 4 groups, 8 topics, 13 supervisor assignments, 3 approved
@@ -310,7 +312,7 @@ registrations, 2 boards, 6 board members/evaluations, 3 announcements và
    - Quản lý LECTURER và FACULTY_HEAD accounts.
    - Tạo Lecturer bằng email lecturer.
    - Chọn role/capability theo flow được phép.
-   - Set password ở action riêng.
+   - Set password ở action riêng; workflow local dùng `admin123` thống nhất.
 4. Dùng /admin/roles để xem role và permission mapping.
 5. Dùng /admin/departments để Admin tạo/sửa/deactivate department.
 6. Không tạo system role/permission mới bằng runtime CRUD; thay đổi catalog
@@ -582,6 +584,5 @@ Khi task liên quan một flow, gửi thêm các file module tương ứng. Ví 
 - Không reset, drop hoặc seed database có dữ liệu thật nếu chưa được xác nhận.
 - Không xem file Markdown lịch sử là source of truth nếu code/test hiện tại
   đã thay đổi.
-
 
 
