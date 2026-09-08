@@ -127,6 +127,8 @@ public class DatabaseSeedService {
                     "Create and manage student group membership."),
             new PermissionSeed("GROUP_READ", "View student groups", "Student groups",
                     "View student groups within the user's faculty scope."),
+            new PermissionSeed("GROUP_UPDATE", "Update student groups", "Student groups",
+                    "Update student group name, leader, and lifecycle status within the user's faculty scope."),
             new PermissionSeed("REGISTRATION_SUBMIT", "Submit topic registrations", "Registrations",
                     "Submit a topic registration for a student group."),
             new PermissionSeed("REPORT_SUBMIT", "Submit reports", "Reports",
@@ -153,7 +155,7 @@ public class DatabaseSeedService {
             "ADMIN", allPermissionCodes(),
             "FACULTY_HEAD", withLecturerPermissions(
                     "PERIOD_MANAGE", "SUPERVISOR_MANAGE", "TOPIC_REVIEW", "REGISTRATION_REVIEW",
-                    "ANNOUNCEMENT_MANAGE", "REVIEW_BOARD_MANAGE", "GROUP_READ"),
+                    "ANNOUNCEMENT_MANAGE", "REVIEW_BOARD_MANAGE", "GROUP_READ", "GROUP_UPDATE"),
             "LECTURER", LECTURER_PERMISSIONS,
             "STUDENT", List.of(
                     "TOPIC_VIEW", "GROUP_MANAGE", "REGISTRATION_SUBMIT", "REPORT_SUBMIT", "REPORT_VIEW",

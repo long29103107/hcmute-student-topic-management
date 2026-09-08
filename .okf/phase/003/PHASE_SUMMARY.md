@@ -63,8 +63,8 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/11
 ### User-selected extension — Faculty Student Group Directory
 
 Vision alignment: the user explicitly selected the later student-group scope
-while the identity milestone remains active. This slice is deliberately
-read-only and does not expand student membership or registration mutations.
+while the identity milestone remains active. The directory is read-only for
+viewers and does not expand student membership or registration mutations.
 
 - `GROUP_READ` is a separate seeded permission from student `GROUP_MANAGE`;
   Admin and Faculty Head receive it, while Lecturer and Student do not.
@@ -75,9 +75,27 @@ read-only and does not expand student membership or registration mutations.
   Sort is allowlisted as `group|period|leader|members|status|created`, and
   pagination clamps page size to the existing 5–100 server-side range while
   preserving search/sort/direction in navigation links.
-- The sidebar entry is permission-guarded and the directory is read-only;
-  group creation, membership changes and leadership transitions remain under
-  the existing Student `GROUP_MANAGE` flow.
+- The sidebar entry is permission-guarded. Group creation, membership changes
+  and leadership transitions remain under the existing Student `GROUP_MANAGE`
+  flow; authorized `GROUP_UPDATE` users can edit directory group metadata.
+- The directory header and rows share one responsive grid with matching
+  `Group`, `Period`, `Leader`, `Status`, `Created` and action columns. Member
+  chips are intentionally omitted from the list; the edit modal still loads
+  the complete member list so a valid member can be selected as leader.
+- Each directory card exposes an inline circular edit action that opens the
+  scoped modal. The direct `GET /faculty/groups/{id}` detail route remains
+  available for deep links, repeats the server-side department-scope check,
+  renders the registration period, leader and complete member list, and
+  redirects out-of-scope or missing groups to the existing forbidden/not-found
+  pages.
+- The directory follows the admin student-directory interaction pattern:
+  search is a compact GET form, sort choices are link-based toggles with
+  direction indicators, and pagination preserves search/sort state.
+- `GROUP_UPDATE` is a separate permission from `GROUP_READ`. Admin and Faculty
+  Head receive it in the seed role map; the edit icon and CSRF-protected modal
+  save are hidden/blocked without it. Updates are scoped server-side and allow
+  only a valid group name, active member as leader, and `ACTIVE`/`COMPLETED`/
+  `INACTIVE` status.
 
 ## Verification
 
@@ -86,9 +104,13 @@ read-only and does not expand student membership or registration mutations.
   denial, search, sort and pagination)
 - TopicRegistrationControllerTest
 - TopicRegistrationReviewControllerTest
-- DatabaseSeedControllerTest (27 seeded permissions and Faculty Head
-  `GROUP_READ` assignment)
-- `mvn '-Dtest=FacultyStudentGroupControllerTest' test`
+- DatabaseSeedControllerTest (28 seeded permissions and Faculty Head
+  `GROUP_READ`/`GROUP_UPDATE` assignments)
+- `mvn '-Dtest=FacultyStudentGroupControllerTest,DatabaseSeedControllerTest' test`
+  (8 tests, including authorized persistence and read-only denial)
+- `mvn '-Dtest=FacultyStudentGroupControllerTest' test` (5 tests, including
+  detail rendering, modal trigger markup, authorized edit persistence,
+  pagination state and cross-department denial)
 - `mvn '-Dtest=FacultyStudentGroupControllerTest,StudentGroupControllerTest,DatabaseSeedControllerTest' test`
 - `npm run build:css`
 - A full `mvn test` attempt reached 173 tests but had 12 existing H2 shared-

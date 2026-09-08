@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head><title>Student group details</title></head>
+<body>
+<main layout:fragment="content" class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+    <section aria-labelledby="page-title">
+        <a class="inline-flex items-center text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline"
+           th:href="@{/faculty/groups}">
+            <span aria-hidden="true" class="me-2">←</span>Back to student groups
+        </a>
+
+        <div class="mt-6 mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <div>
+                <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Faculty workflow / Students</p>
+                <h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Student group details</h1>
+                <p class="mt-3 max-w-3xl text-sm leading-6 text-gray-500">Read-only information about this student group, its registration period and members.</p>
+            </div>
+            <span class="inline-flex w-fit items-center rounded-full px-3 py-1.5 text-sm font-medium"
+                  th:classappend="${group.statusCode == 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : group.statusCode == 'COMPLETED' ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-700'}"
+                  th:text="${group.statusLabel}">Active</span>
+        </div>
+
+        <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm" aria-labelledby="group-heading">
+            <div class="border-b border-gray-200 p-5 sm:p-6">
+                <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h2 id="group-heading" class="text-2xl font-semibold text-gray-900" th:text="${group.name}">Group Phoenix</h2>
+                            <span class="text-sm text-gray-500" th:text="${'ID #' + group.id}">ID #1</span>
+                        </div>
+                        <p class="mt-2 text-sm text-gray-500" th:text="${group.periodName + ' · ' + group.periodType}">Registration period · COURSE</p>
+                    </div>
+                    <div class="text-left text-sm sm:text-right">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Created</p>
+                        <p class="mt-1 text-gray-700" th:text="${#temporals.format(group.createdAt, 'dd/MM/yyyy HH:mm')}">01/09/2026 10:00</p>
+                        <p class="mt-1 text-xs text-gray-500" th:text="${'by ' + group.createdByName}">by Student</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,1.2fr)]">
+                <section class="rounded-lg bg-gray-50 p-5" aria-labelledby="leader-heading">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Leader</p>
+                    <h3 id="leader-heading" class="mt-2 text-lg font-semibold text-gray-900" th:text="${group.leaderName}">Student leader</h3>
+                    <p class="mt-1 text-sm text-gray-600" th:text="${group.leaderLogin}">student@student.hcmute.edu.vn</p>
+                </section>
+
+                <section class="rounded-lg border border-gray-200 p-5" aria-labelledby="members-heading">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Members</p>
+                            <h3 id="members-heading" class="mt-1 text-lg font-semibold text-gray-900">Group members</h3>
+                        </div>
+                        <span class="text-sm font-medium text-gray-500" th:text="${group.memberCount + ' / ' + group.maxMembers}">3 / 3</span>
+                    </div>
+                    <ul class="mt-4 divide-y divide-gray-100" th:if="${!#lists.isEmpty(group.members)}">
+                        <li class="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0 last:pb-0" th:each="member : ${group.members}">
+                            <span class="font-medium text-gray-900" th:text="${member.fullName}">Student</span>
+                            <span class="text-sm text-gray-500">
+                                <span th:text="${member.login}">student@student.hcmute.edu.vn</span>
+                                <span class="ms-1 font-medium text-blue-700" th:if="${member.leader}">· Leader</span>
+                            </span>
+                        </li>
+                    </ul>
+                    <p class="mt-4 text-sm text-gray-500" th:if="${#lists.isEmpty(group.members)}">This group has no members.</p>
+                </section>
+            </div>
+        </section>
+    </section>
+</main>
+</body>
+</html>

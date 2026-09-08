@@ -98,6 +98,47 @@ public class StudentGroupService {
                 normalizedSearch, normalizedSort, normalizedDirection, scope.label());
     }
 
+    @PreAuthorize("hasAuthority('GROUP_READ')")
+    public StudentGroupSummary getFacultyDetails(String actorEmail, Long groupId) {
+        UserEntity actor = findActiveActor(actorEmail);
+        GroupDirectoryScope scope = groupDirectoryScope(actor);
+        if (groupId == null) {
+            throw new StudentGroupNotFoundException(null);
+        }
+
+        StudentGroupEntity group = studentGroupRepository.findByIdWithDetails(groupId)
+                .orElseThrow(() -> new StudentGroupNotFoundException(groupId));
+        ensureGroupInScope(group, scope);
+        return toSummary(group, null);
+    }
+
+    @Transactional
+    @PreAuthorize("hasAuthority('GROUP_UPDATE')")
+    public StudentGroupSummary updateFacultyGroup(
+            String actorEmail, Long groupId, String name, Long leaderId, String statusCode) {
+        UserEntity actor = findActiveActor(actorEmail);
+        GroupDirectoryScope scope = groupDirectoryScope(actor);
+        StudentGroupEntity group = findGroup(groupId);
+        ensureGroupInScope(group, scope);
+
+        String normalizedName = normalizeName(name);
+        GroupStatus status = parseGroupStatus(statusCode);
+        UserEntity leader = group.getMembers().stream()
+                .filter(member -> leaderId != null && leaderId.equals(member.getId()))
+                .findFirst()
+                .orElseThrow(() -> new StudentGroupValidationException(
+                        "The selected leader must be a member of this group."));
+        if (!isActiveStudent(leader)) {
+            throw new StudentGroupValidationException(
+                    "The selected leader must be an active student in this group.");
+        }
+
+        group.setName(normalizedName);
+        group.setLeader(leader);
+        group.setStatus(status);
+        return toSummary(studentGroupRepository.saveAndFlush(group), null);
+    }
+
     @PreAuthorize("hasRole('STUDENT') and hasAuthority('GROUP_MANAGE')")
     public List<PeriodOption> listOpenPeriodOptions() {
         return registrationPeriodService.listOpenForStudent(LocalDateTime.now()).stream()
@@ -233,6 +274,17 @@ public class StudentGroupService {
         }
         return new GroupDirectoryScope(false, department.getId(),
                 "Faculty Head · " + department.getCode() + " · " + department.getName());
+    }
+
+    private static void ensureGroupInScope(StudentGroupEntity group, GroupDirectoryScope scope) {
+        if (scope.isAdmin()) {
+            return;
+        }
+        if (!scope.hasDepartmentScope()
+                || group.getMembers().stream().noneMatch(member -> member.getDepartment() != null
+                        && scope.departmentId().equals(member.getDepartment().getId()))) {
+            throw new StudentGroupAccessException("You cannot manage this student group.");
+        }
     }
 
     private RegistrationPeriodEntity requireOpenStudentPeriod(Long periodId) {
@@ -377,6 +429,14 @@ public class StudentGroupService {
 
     private static String normalizeDirection(String direction) {
         return "desc".equalsIgnoreCase(direction == null ? "" : direction.trim()) ? "desc" : "asc";
+    }
+
+    private static GroupStatus parseGroupStatus(String statusCode) {
+        try {
+            return GroupStatus.valueOf(statusCode == null ? "" : statusCode.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException exception) {
+            throw new StudentGroupValidationException("Select a valid group status.");
+        }
     }
 
     private static StudentGroupSummary toSummary(StudentGroupEntity group, Long currentStudentId) {

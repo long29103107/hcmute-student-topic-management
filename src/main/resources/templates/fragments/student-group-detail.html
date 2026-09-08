@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<div th:fragment="groupDetailModal(group, modalId)"
+     th:id="${modalId}" tabindex="-1" aria-hidden="true" role="dialog" aria-modal="true"
+     class="fixed inset-0 z-50 hidden h-full w-full overflow-y-auto overflow-x-hidden bg-gray-900/50 p-4 md:inset-0">
+    <div class="relative mx-auto my-6 w-full max-w-3xl">
+        <div class="relative rounded-lg bg-white shadow">
+            <div class="flex items-start justify-between rounded-t border-b border-gray-200 p-5 sm:p-6">
+                <div class="min-w-0 pe-8">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h2 class="text-xl font-semibold text-gray-900" th:text="${group.name}">Group Phoenix</h2>
+                        <span class="text-sm text-gray-500" th:text="${'ID #' + group.id}">ID #1</span>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500" th:text="${group.periodName + ' · ' + group.periodType}">Registration period · COURSE</p>
+                </div>
+                <button type="button"
+                        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-900"
+                        th:attr="data-modal-hide=${modalId}" aria-label="Close modal">
+                    <svg class="h-3 w-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 12 12M13 1 1 13"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="space-y-5 p-5 sm:p-6">
+                <form sec:authorize="hasAuthority('GROUP_UPDATE')"
+                      class="space-y-5 rounded-lg border border-blue-100 bg-blue-50 p-4 sm:p-5"
+                      th:action="@{/faculty/groups/{id}/edit(id=${group.id})}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input type="hidden" name="page" th:value="${groupPage.page}">
+                    <input type="hidden" name="size" th:value="${groupPage.size}">
+                    <input type="hidden" name="sort" th:value="${groupPage.sort}">
+                    <input type="hidden" name="direction" th:value="${groupPage.direction}">
+                    <input type="hidden" name="search" th:value="${groupSearch}">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-blue-600">Edit group</p>
+                            <p class="mt-1 text-sm text-blue-900">Update the group metadata and keep the leader within the current members.</p>
+                        </div>
+                    </div>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${modalId + '-name'}">Group name</label>
+                            <input class="block w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                                   th:id="${modalId + '-name'}" name="name" type="text" maxlength="150" autocomplete="off" th:value="${group.name}">
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${modalId + '-status'}">Status</label>
+                            <select class="block w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                                    th:id="${modalId + '-status'}" name="status">
+                                <option value="ACTIVE" th:selected="${group.statusCode == 'ACTIVE'}">Active</option>
+                                <option value="COMPLETED" th:selected="${group.statusCode == 'COMPLETED'}">Completed</option>
+                                <option value="INACTIVE" th:selected="${group.statusCode == 'INACTIVE'}">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${modalId + '-leader'}">Leader</label>
+                        <select class="block w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                                th:id="${modalId + '-leader'}" name="leaderId">
+                            <option th:each="member : ${group.members}" th:value="${member.id}" th:text="${member.fullName + ' · ' + member.login}"
+                                    th:selected="${member.leader}">Student leader</option>
+                        </select>
+                        <p class="mt-1 text-xs text-gray-600">Registration period: <span class="font-medium" th:text="${group.periodName + ' · ' + group.periodType}">Registration period · COURSE</span></p>
+                    </div>
+                    <div class="flex flex-wrap justify-end gap-3 border-t border-blue-200 pt-4">
+                        <button type="button" class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100"
+                                th:attr="data-modal-hide=${modalId}">Cancel</button>
+                        <button type="submit" class="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300">Save changes</button>
+                    </div>
+                </form>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-gray-50 p-4 text-sm">
+                    <div>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-gray-400">Created by</span>
+                        <span class="ms-2 font-medium text-gray-900" th:text="${group.createdByName}">Student</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-gray-400">Status</span>
+                        <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
+                              th:classappend="${group.statusCode == 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : group.statusCode == 'COMPLETED' ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-700'}"
+                              th:text="${group.statusLabel}">Active</span>
+                    </div>
+                    <span class="text-xs text-gray-500" th:text="${#temporals.format(group.createdAt, 'dd/MM/yyyy HH:mm')}">01/09/2026 10:00</span>
+                </div>
+
+                <div class="grid gap-5 sm:grid-cols-2">
+                    <section class="rounded-lg bg-gray-50 p-4" th:attr="aria-labelledby=${modalId + '-leader-heading'}">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Leader</p>
+                        <h3 th:id="${modalId + '-leader-heading'}" class="mt-2 font-semibold text-gray-900" th:text="${group.leaderName}">Student leader</h3>
+                        <p class="mt-1 text-sm text-gray-600" th:text="${group.leaderLogin}">student@student.hcmute.edu.vn</p>
+                    </section>
+                    <section class="rounded-lg border border-gray-200 p-4" th:attr="aria-labelledby=${modalId + '-members-heading'}">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Members</p>
+                                <h3 th:id="${modalId + '-members-heading'}" class="mt-1 font-semibold text-gray-900">Group members</h3>
+                            </div>
+                            <span class="text-sm font-medium text-gray-500" th:text="${group.memberCount + ' / ' + group.maxMembers}">3 / 3</span>
+                        </div>
+                        <ul class="mt-3 space-y-2">
+                            <li class="flex flex-wrap items-center justify-between gap-2 text-sm" th:each="member : ${group.members}">
+                                <span class="font-medium text-gray-900" th:text="${member.fullName}">Student</span>
+                                <span class="text-gray-500">
+                                    <span th:text="${member.login}">student@student.hcmute.edu.vn</span>
+                                    <span class="ms-1 font-medium text-blue-700" th:if="${member.leader}">· Leader</span>
+                                </span>
+                            </li>
+                        </ul>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
