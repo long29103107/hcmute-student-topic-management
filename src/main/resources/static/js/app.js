@@ -257,8 +257,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const studentCode = form.querySelector('[data-student-code]');
         const loginIdentifier = form.querySelector('[data-user-login]');
         const email = form.querySelector('[data-user-email]');
-        const emailLabel = form.querySelector('[data-user-email-label]');
-        const emailHelp = form.querySelector('[data-user-email-help]');
+        const emailLabel = form.querySelector('[data-user-email-label-text]');
+        const emailRequired = form.querySelector('[data-user-email-required]');
         const emailTooltip = form.querySelector('[data-user-email-tooltip]');
 
         const syncUserType = () => {
@@ -283,13 +283,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (emailLabel) {
                 emailLabel.textContent = isStudent ? 'Email (generated)' : 'Email';
             }
-            if (emailHelp) {
-                const helpText = isStudent
-                    ? 'Generated from the student code and cannot be edited.'
-                    : 'Enter the lecturer email address.';
-                if (emailTooltip) {
-                    emailTooltip.textContent = helpText;
-                }
+            if (emailRequired) {
+                emailRequired.classList.toggle('hidden', isStudent || !email.required);
+            }
+            if (emailTooltip) {
+                emailTooltip.textContent = isStudent
+                    ? 'Generated from the student code and used for login.'
+                    : 'This email is used for login.';
             }
         };
 

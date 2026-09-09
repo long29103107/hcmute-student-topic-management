@@ -6,7 +6,6 @@
             <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
                 <div>
                     <h2 class="text-xl font-semibold text-gray-900" th:text="${title}">Create user</h2>
-                    <p class="mt-2 text-sm leading-5 text-gray-500" th:text="${editing ? 'Update account details and role assignments.' : (studentAccount == true ? 'Create a Student account. The Student role is assigned automatically.' : 'Create a Lecturer account. The Lecturer role is assigned automatically.')}">Create a local account and choose its system role.</p>
                 </div>
             </div>
         </div>
@@ -22,9 +21,8 @@
 
             <div class="grid gap-5 sm:grid-cols-2" th:classappend="${#fields.hasGlobalErrors() ? 'mt-6' : ''}">
                 <div class="sm:col-span-2" th:if="${studentAccount == true}">
-                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-studentCode'}">Student code (MSSV)</label>
+                    <label class="mb-2 flex items-center gap-1 text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-studentCode'}"><span>Student code (MSSV) <span class="text-red-600" aria-hidden="true">*</span></span><button type="button" class="ui-info-tooltip" aria-label="Student code information"><svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path stroke="currentColor" stroke-linecap="round" stroke-width="1.8" d="M12 10.5v5m0-8h.01"/></svg><span class="ui-info-tooltip-content" role="tooltip" th:text="${editing ? 'MSSV is stored in the account login identifier and cannot be changed here.' : 'Enter the unique 8-digit MSSV. The login email will be generated from it.'}">Enter the unique 8-digit MSSV. The login email will be generated from it.</span></button></label>
                     <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 read-only:cursor-not-allowed read-only:bg-gray-100 read-only:text-gray-500 focus:border-blue-500 focus:ring-blue-500" th:id="${fieldPrefix + '-studentCode'}" type="text" th:field="*{studentCode}" inputmode="numeric" maxlength="8" autocomplete="off" data-student-code required th:readonly="${editing}">
-                    <p class="mt-2 text-xs text-gray-500" th:text="${editing ? 'MSSV is stored in the account login identifier and cannot be changed here.' : 'Enter the unique 8-digit MSSV. The login email will be generated from it.'}">Enter the unique 8-digit MSSV. The login email will be generated from it.</p>
                     <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('studentCode')}" th:errors="*{studentCode}">Student code is invalid.</p>
                 </div>
                 <div class="sm:col-span-2" th:if="${(editing and studentAccount != true and accountType != 'LECTURER') or (!editing and accountType == null and studentAccount != false)}">
@@ -34,32 +32,25 @@
                     <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('loginIdentifier')}" th:errors="*{loginIdentifier}">Login identifier is required.</p>
                 </div>
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-fullName'}">Full name</label>
-                    <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" th:id="${fieldPrefix + '-fullName'}" type="text" th:field="*{fullName}" autocomplete="name">
+                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-fullName'}">Full name <span class="text-red-600" aria-hidden="true">*</span></label>
+                    <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" th:id="${fieldPrefix + '-fullName'}" type="text" th:field="*{fullName}" autocomplete="name" required>
                     <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}">Full name is required.</p>
                 </div>
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-departmentId'}">Department</label>
+                    <label class="mb-2 flex items-center gap-1 text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-departmentId'}"><span>Department</span><button type="button" class="ui-info-tooltip" aria-label="Department information"><svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path stroke="currentColor" stroke-linecap="round" stroke-width="1.8" d="M12 10.5v5m0-8h.01"/></svg><span class="ui-info-tooltip-content" role="tooltip">Assign the account to an active department.</span></button></label>
                     <select class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" th:id="${fieldPrefix + '-departmentId'}" th:field="*{departmentId}">
                         <option value="">Not assigned</option>
                         <option th:each="department : ${departments}" th:value="${department.id}" th:text="${department.code + ' · ' + department.name}">CNTT · Information Technology</option>
                     </select>
-                    <p class="mt-1 text-xs text-gray-500">Assign the account to an active department.</p>
                     <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('departmentId')}" th:errors="*{departmentId}">Department is invalid.</p>
                 </div>
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-emailOrCode'}" data-user-email-label th:text="${studentAccount == true ? 'Email (generated)' : (!editing and accountType == 'LECTURER' ? 'Email (Login identifier)' : 'Email')}">Email</label>
+                    <label class="mb-2 flex items-center gap-1 text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-emailOrCode'}" data-user-email-label><span data-user-email-label-text th:text="${studentAccount == true ? 'Email (generated)' : (!editing and accountType == 'LECTURER' ? 'Email (Login identifier)' : 'Email')}">Email</span><span class="text-red-600" aria-hidden="true" data-user-email-required th:classappend="${studentAccount == true or editing or accountType != 'LECTURER' ? 'hidden' : ''}">*</span><button type="button" class="ui-info-tooltip" aria-label="Email information"><svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path stroke="currentColor" stroke-linecap="round" stroke-width="1.8" d="M12 10.5v5m0-8h.01"/></svg><span class="ui-info-tooltip-content" role="tooltip" data-user-email-tooltip th:text="${studentAccount == true ? 'Generated from the student code and used for login.' : (!editing and accountType == 'LECTURER' ? 'This email is used for login.' : 'Enter the email address used for login.')}">Enter the email address used for login.</span></button></label>
                     <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 read-only:cursor-not-allowed read-only:bg-gray-100 read-only:text-gray-500 focus:border-blue-500 focus:ring-blue-500" th:id="${fieldPrefix + '-emailOrCode'}" type="email" th:field="*{emailOrCode}" autocomplete="email" data-user-email data-student-email-domain="@student.hcmute.edu.vn" th:required="${studentAccount != true}" th:readonly="${studentAccount == true}">
-                    <div class="mt-1" data-user-email-help>
-                        <button type="button" class="ui-info-tooltip" aria-label="Email information">
-                            <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path stroke="currentColor" stroke-linecap="round" stroke-width="1.8" d="M12 10.5v5m0-8h.01"/></svg>
-                            <span class="ui-info-tooltip-content" role="tooltip" data-user-email-tooltip th:text="${studentAccount == true ? 'Generated from the student code and used for login.' : (!editing and accountType == 'LECTURER' ? 'This email is used for login.' : 'Enter the email address used for login.')}">Enter the email address used for login.</span>
-                        </button>
-                    </div>
                     <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('emailOrCode')}" th:errors="*{emailOrCode}">Email address is invalid.</p>
                 </div>
                 <div class="sm:col-span-2" th:if="${(editing and studentAccount != true and accountType != 'LECTURER') or (!editing and accountType == null and studentAccount != false)}">
-                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-password'}" th:text="${editing ? 'New password (optional)' : 'Password'}">Password</label>
+                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-password'}"><span th:text="${editing ? 'New password (optional)' : 'Password'}">Password</span><span class="text-red-600" aria-hidden="true" th:if="${!editing}">*</span></label>
                     <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" th:id="${fieldPrefix + '-password'}" type="password" th:field="*{password}" autocomplete="new-password" th:required="${!editing}">
                     <p class="mt-2 text-xs text-gray-500" th:text="${editing ? 'Leave blank to keep the current password.' : 'Use at least 8 characters.'}">Use at least 8 characters.</p>
                     <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password is invalid.</p>

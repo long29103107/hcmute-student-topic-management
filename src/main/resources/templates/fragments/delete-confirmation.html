@@ -9,7 +9,6 @@
             </button>
             <div class="border-b border-gray-200 px-6 py-5 pe-16">
                 <h2 class="text-xl font-semibold text-gray-900">Delete account?</h2>
-                <p class="mt-2 text-sm text-gray-500">You are about to permanently delete the <span th:text="${accountType}">user</span> account for <span class="font-medium text-gray-700" th:text="${userName}">this account</span>.</p>
             </div>
             <div class="mx-6 mt-5 rounded-lg bg-red-50 p-4 text-sm leading-5 text-red-800">This action cannot be undone. Accounts referenced by existing academic records cannot be deleted; lock the account instead.</div>
             <form class="p-6" th:action="${formAction}" method="post">

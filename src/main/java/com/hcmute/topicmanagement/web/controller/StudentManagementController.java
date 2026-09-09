@@ -42,8 +42,11 @@ public class StudentManagementController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "account") String sort,
             @RequestParam(defaultValue = "asc") String direction,
-            @RequestParam(defaultValue = "") String search, Model model) {
-        UserManagementService.UserDirectoryPage directory = service.listUsersPage("STUDENT", search, page, size, sort, direction);
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(defaultValue = "") String status, Model model) {
+        UserManagementService.UserDirectoryPage directory = service.listUsersPage(
+                "STUDENT", search, departmentId, status, page, size, sort, direction);
         populateDirectory(model, directory, search);
         StudentForm form = new StudentForm();
         model.addAttribute("studentForm", form);

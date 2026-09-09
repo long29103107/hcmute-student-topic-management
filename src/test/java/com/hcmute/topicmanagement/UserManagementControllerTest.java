@@ -147,6 +147,44 @@ class UserManagementControllerTest {
     }
 
     @Test
+    void studentDirectoryCanFilterByDepartmentAndStatus() throws Exception {
+        String suffix = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        DepartmentEntity firstDepartment = departmentRepository.saveAndFlush(
+                new DepartmentEntity("FILTER-A-" + suffix, "Filter A " + suffix));
+        DepartmentEntity secondDepartment = departmentRepository.saveAndFlush(
+                new DepartmentEntity("FILTER-B-" + suffix, "Filter B " + suffix));
+
+        UserEntity activeMatch = saveUser("student-filter-match-" + suffix,
+                "Student Filter Match " + suffix, "STUDENT", "Password123");
+        activeMatch.setDepartment(firstDepartment);
+        userRepository.saveAndFlush(activeMatch);
+
+        UserEntity wrongDepartment = saveUser("student-filter-other-" + suffix,
+                "Student Filter Other " + suffix, "STUDENT", "Password123");
+        wrongDepartment.setDepartment(secondDepartment);
+        userRepository.saveAndFlush(wrongDepartment);
+
+        UserEntity lockedMatch = saveUser("student-filter-locked-" + suffix,
+                "Student Filter Locked " + suffix, "STUDENT", "Password123");
+        lockedMatch.setDepartment(firstDepartment);
+        lockedMatch.setActive(false);
+        userRepository.saveAndFlush(lockedMatch);
+
+        mockMvc.perform(get("/admin/students")
+                        .with(user(admin("USER_READ")))
+                        .param("departmentId", firstDepartment.getId().toString())
+                        .param("status", "ACTIVE"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Student Filter Match " + suffix)))
+                .andExpect(content().string(not(containsString("Student Filter Other " + suffix))))
+                .andExpect(content().string(not(containsString("Student Filter Locked " + suffix))))
+                .andExpect(content().string(containsString("name=\"departmentId\"")))
+                .andExpect(content().string(containsString("name=\"status\"")))
+                .andExpect(content().string(containsString("departmentId=" + firstDepartment.getId())))
+                .andExpect(content().string(containsString("status=ACTIVE")));
+    }
+
+    @Test
     void studentAndLecturerDirectoriesExposeDropdownActionsAndDeleteConfirmation() throws Exception {
         UserEntity student = saveUser("student-actions", "Student Actions", "STUDENT", "Password123");
         UserEntity lecturer = saveUser("lecturer-actions", "Lecturer Actions", "LECTURER", "Password123");
@@ -158,6 +196,10 @@ class UserManagementControllerTest {
                 .andExpect(content().string(containsString(
                         "data-dropdown-toggle=\"user-actions-menu-" + student.getId() + "\"")))
                 .andExpect(content().string(containsString(
+                        "data-modal-target=\"status-user-modal-" + student.getId() + "\"")))
+                .andExpect(content().string(containsString("Lock account?")))
+                .andExpect(content().string(containsString("unable to sign in until it is unlocked again")))
+                .andExpect(content().string(containsString(
                         "data-modal-target=\"delete-user-modal-" + student.getId() + "\"")))
                 .andExpect(content().string(containsString("Delete account?")))
                 .andExpect(content().string(containsString(
@@ -167,6 +209,8 @@ class UserManagementControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(
                         "data-dropdown-toggle=\"user-actions-menu-" + lecturer.getId() + "\"")))
+                .andExpect(content().string(containsString(
+                        "data-modal-target=\"status-user-modal-" + lecturer.getId() + "\"")))
                 .andExpect(content().string(containsString(
                         "data-modal-target=\"delete-user-modal-" + lecturer.getId() + "\"")))
                 .andExpect(content().string(containsString("Delete account?")))
@@ -230,7 +274,9 @@ class UserManagementControllerTest {
                 .andExpect(content().string(not(containsString("New password (optional)"))))
                 .andExpect(content().string(not(containsString("System roles"))))
                 .andExpect(content().string(containsString("Confirm password")))
-                .andExpect(content().string(containsString("name=\"confirmPassword\"")));
+                .andExpect(content().string(containsString("name=\"confirmPassword\"")))
+                .andExpect(content().string(containsString("aria-label=\"Password requirements\"")))
+                .andExpect(content().string(containsString("text-red-600")));
     }
 
     @Test
@@ -292,7 +338,8 @@ class UserManagementControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/user-form"))
                 .andExpect(content().string(containsString("Create account")))
-                .andExpect(content().string(containsString("Student role is assigned automatically")))
+                .andExpect(content().string(not(containsString("Create a Student account. The Student role is assigned automatically."))))
+                .andExpect(content().string(containsString("aria-label=\"Student code information\"")))
                 .andExpect(content().string(not(containsString("Account role"))))
                 .andExpect(content().string(not(containsString("Student profile"))))
                 .andExpect(content().string(not(containsString("data-role-code=\"FACULTY_HEAD\""))));
@@ -405,7 +452,9 @@ class UserManagementControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Student code (MSSV)")))
                 .andExpect(content().string(containsString("data-student-code")))
-                .andExpect(content().string(containsString("Student role is assigned automatically")))
+                .andExpect(content().string(containsString("Enter the unique 8-digit MSSV. The login email will be generated from it.")))
+                .andExpect(content().string(containsString("Assign the account to an active department.")))
+                .andExpect(content().string(containsString("text-red-600")))
                 .andExpect(content().string(not(containsString("Login identifier"))))
                 .andExpect(content().string(not(containsString("Use at least 8 characters."))))
                 .andExpect(content().string(not(containsString("Account role"))));

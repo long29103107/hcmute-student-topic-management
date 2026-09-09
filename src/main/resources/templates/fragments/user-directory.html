@@ -1,34 +1,489 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<body>
-<div th:fragment="directory" class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8" data-user-directory>
-    <section aria-labelledby="page-title">
-        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Administration / Accounts</p><h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl" th:text="${userDirectoryTitle}">Student accounts</h1><p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500" th:text="${userDirectoryDescription}">Create and manage accounts.</p></div><button type="button" class="inline-flex w-fit items-center rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-800" data-modal-target="create-user-modal" data-modal-toggle="create-user-modal" sec:authorize="hasAuthority('USER_CREATE')"><span class="me-2">+</span><span th:text="${userDirectoryTitle == 'Lecturer accounts' ? 'Add lecturer' : (userDirectoryTitle == 'Student accounts' ? 'Add student' : 'Add account')}">Add account</span></button></div>
-        <div class="mb-6 grid min-w-0 gap-4 sm:grid-cols-3" aria-label="Account summary"><div class="min-w-0 rounded-lg border border-gray-200 bg-white p-5 shadow-sm"><span class="text-sm font-medium text-gray-500">All accounts</span><strong class="mt-2 block text-2xl font-bold text-gray-900" th:text="${directoryPage.totalItems}">0</strong></div><div class="min-w-0 rounded-lg border border-green-200 bg-green-50 p-5 shadow-sm"><span class="text-sm font-medium text-green-700">Active</span><strong class="mt-2 block text-2xl font-bold text-green-800" th:text="${activeUserCount}">0</strong></div><div class="min-w-0 rounded-lg border border-yellow-200 bg-yellow-50 p-5 shadow-sm"><span class="text-sm font-medium text-yellow-700">Locked</span><strong class="mt-2 block text-2xl font-bold text-yellow-800" th:text="${lockedUserCount}">0</strong></div></div>
-        <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm" aria-labelledby="directory-heading">
-            <div class="flex flex-col justify-between gap-4 border-b border-gray-200 p-5 sm:flex-row sm:items-end sm:p-6"><div><p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Directory</p><h2 id="directory-heading" class="text-xl font-semibold text-gray-900">Accounts</h2></div><form class="flex w-full gap-2 sm:w-auto" th:action="${directoryPath}" method="get" data-user-search-form><input type="hidden" name="page" value="0"><input type="hidden" name="size" th:value="${directoryPage.size}"><input type="hidden" name="sort" th:value="${directoryPage.sort}"><input type="hidden" name="direction" th:value="${directoryPage.direction}"><label class="relative block min-w-0 flex-1 sm:w-80" for="user-search"><span class="sr-only">Search accounts</span><input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm" id="user-search" name="search" type="search" placeholder="Search accounts" autocomplete="off" th:value="${directorySearch}" data-user-search></label><button class="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800" type="submit">Search</button></form></div>
-            <div class="directory-table-scroll overflow-x-auto" th:if="${!#lists.isEmpty(users)}"><table class="w-full min-w-[1100px] text-left text-sm text-gray-500"><thead class="bg-gray-50 text-xs uppercase text-gray-700"><tr>
-                <th class="px-6 py-3" scope="col"><a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='account',direction=${directoryPage.sort == 'account' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch})}">Account <span th:text="${directoryPage.sort == 'account' ? (directoryPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span></a></th>
-                <th class="px-6 py-3" scope="col" th:if="${userDirectoryTitle != 'Lecturer accounts'}"><a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='studentCode',direction=${directoryPage.sort == 'studentCode' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch})}">MSSV <span th:text="${directoryPage.sort == 'studentCode' ? (directoryPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span></a></th>
-                <th class="px-6 py-3" scope="col"><a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='department',direction=${directoryPage.sort == 'department' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch})}">Department <span th:text="${directoryPage.sort == 'department' ? (directoryPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span></a></th>
-                <th class="px-6 py-3" scope="col" th:if="${userDirectoryTitle != 'Student accounts'}"><a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='roles',direction=${directoryPage.sort == 'roles' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch})}">Roles <span th:text="${directoryPage.sort == 'roles' ? (directoryPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span></a></th>
-                <th class="px-6 py-3" scope="col"><a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='status',direction=${directoryPage.sort == 'status' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch})}">Status <span th:text="${directoryPage.sort == 'status' ? (directoryPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span></a></th><th class="px-6 py-3" scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody>
-                <tr class="border-b border-gray-100 hover:bg-gray-50" th:each="user : ${users}" data-user-row th:attr="data-user-search-value=${user.fullName + ' ' + user.loginIdentifier + ' ' + (user.emailOrCode ?: '') + ' ' + (user.departmentCode ?: '') + ' ' + (user.departmentName ?: '')}">
-                    <td class="px-6 py-4"><strong class="block font-semibold text-gray-900" th:text="${user.fullName}">User</strong><small class="mt-1 block text-gray-500" th:text="${user.emailOrCode ?: '—'}">user@hcmute.edu.vn</small></td>
-                    <td class="px-6 py-4" th:if="${userDirectoryTitle != 'Lecturer accounts'}" th:text="${user.studentCode ?: '—'}">—</td>
-                    <td class="px-6 py-4"><span class="font-medium text-gray-900" th:if="${user.departmentCode != null}" th:text="${user.departmentCode}">CNTT</span><span class="block text-xs text-gray-500" th:if="${user.departmentName != null}" th:text="${user.departmentName}">Information Technology</span><span class="text-gray-400" th:if="${user.departmentCode == null}">Not assigned</span></td>
-                    <td class="px-6 py-4" th:if="${userDirectoryTitle != 'Student accounts'}"><span class="me-1 rounded-full bg-blue-100 px-2.5 py-1 text-xs text-blue-800" th:each="role : ${user.roles}" th:text="${role.name}">Role</span></td>
-                    <td class="px-6 py-4"><span data-user-status th:text="${user.active ? 'Active' : 'Locked'}">Active</span></td>
-                    <td class="px-6 py-4"><div class="flex justify-end"><button type="button" class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100" th:id="${'user-actions-' + user.id}" th:attr="data-dropdown-toggle=${'user-actions-menu-' + user.id},aria-controls=${'user-actions-menu-' + user.id},aria-haspopup='true'">Actions<svg class="ms-2 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/></svg></button><div class="z-10 hidden w-44 divide-y divide-gray-100 rounded-lg bg-white shadow" th:id="${'user-actions-menu-' + user.id}"><ul class="py-2 text-sm text-gray-700" th:attr="aria-labelledby=${'user-actions-' + user.id}"><li sec:authorize="hasAuthority('USER_UPDATE') and hasAuthority('USER_ROLE_ASSIGN')"><button type="button" class="block w-full px-4 py-2 text-left hover:bg-gray-100" th:attr="data-modal-target=${'edit-user-modal-' + user.id},data-modal-toggle=${'edit-user-modal-' + user.id}">Edit</button></li><li sec:authorize="hasAuthority('USER_UPDATE')"><button type="button" class="block w-full px-4 py-2 text-left hover:bg-gray-100" th:attr="data-modal-target=${'set-password-modal-' + user.id},data-modal-toggle=${'set-password-modal-' + user.id}">Set password</button></li><li sec:authorize="hasAuthority('USER_LOCK')"><form class="m-0" th:action="${statusBasePath + '/' + user.id + '/status'}" method="post" th:attr="data-confirm=${user.active ? 'Lock this account?' : 'Unlock this account?'}"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><button class="block w-full px-4 py-2 text-left hover:bg-gray-100" type="submit" th:text="${user.active ? 'Lock' : 'Unlock'}">Lock</button></form></li><li sec:authorize="hasAuthority('USER_DELETE')"><button type="button" class="block w-full px-4 py-2 text-left text-red-700 hover:bg-red-50" th:attr="data-modal-target=${'delete-user-modal-' + user.id},data-modal-toggle=${'delete-user-modal-' + user.id}">Delete</button></li></ul></div></div></td>
+<!doctype html>
+<html
+  lang="en"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <body>
+    <div
+      th:fragment="directory"
+      class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8"
+      data-user-directory
+    >
+      <section aria-labelledby="page-title">
+        <div
+          class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"
+        >
+          <div>
+            <p
+              class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500"
+            >
+              Administration / Accounts
+            </p>
+            <h1
+              id="page-title"
+              class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
+              th:text="${userDirectoryTitle}"
+            >
+              Student accounts
+            </h1>
+          </div>
+          <button
+            type="button"
+            class="inline-flex w-fit items-center rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-800"
+            data-modal-target="create-user-modal"
+            data-modal-toggle="create-user-modal"
+            sec:authorize="hasAuthority('USER_CREATE')"
+          >
+            <span class="me-2">+</span
+            ><span
+              th:text="${userDirectoryTitle == 'Lecturer accounts' ? 'Add lecturer' : (userDirectoryTitle == 'Student accounts' ? 'Add student' : 'Add account')}"
+              >Add account</span
+            >
+          </button>
+        </div>
+        <div
+          class="mb-6 grid min-w-0 gap-4 sm:grid-cols-3"
+          aria-label="Account summary"
+        >
+          <div
+            class="min-w-0 rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+          >
+            <span class="text-sm font-medium text-gray-500">All accounts</span
+            ><strong
+              class="mt-2 block text-2xl font-bold text-gray-900"
+              th:text="${directoryPage.totalItems}"
+              >0</strong
+            >
+          </div>
+          <div
+            class="min-w-0 rounded-lg border border-green-200 bg-green-50 p-5 shadow-sm"
+          >
+            <span class="text-sm font-medium text-green-700">Active</span
+            ><strong
+              class="mt-2 block text-2xl font-bold text-green-800"
+              th:text="${activeUserCount}"
+              >0</strong
+            >
+          </div>
+          <div
+            class="min-w-0 rounded-lg border border-yellow-200 bg-yellow-50 p-5 shadow-sm"
+          >
+            <span class="text-sm font-medium text-yellow-700">Locked</span
+            ><strong
+              class="mt-2 block text-2xl font-bold text-yellow-800"
+              th:text="${lockedUserCount}"
+              >0</strong
+            >
+          </div>
+        </div>
+        <section
+          class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+          aria-label="Account directory"
+        >
+          <div class="border-b border-gray-200 p-5 sm:p-6">
+            <form
+              class="flex w-full flex-col gap-2 justify-end sm:flex-row sm:items-center"
+              th:action="${directoryPath}"
+              method="get"
+              data-user-search-form
+            >
+              <input type="hidden" name="page" value="0" />
+              <input
+                type="hidden"
+                name="size"
+                th:value="${directoryPage.size}"
+              />
+              <input
+                type="hidden"
+                name="sort"
+                th:value="${directoryPage.sort}"
+              />
+              <input
+                type="hidden"
+                name="direction"
+                th:value="${directoryPage.direction}"
+              />
+              <label
+                class="relative block min-w-0 sm:w-64 sm:shrink-0"
+                for="user-department-filter"
+              >
+                <span class="sr-only">Filter by department</span>
+                <select
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
+                  id="user-department-filter"
+                  name="departmentId"
+                >
+                  <option value="">All departments</option>
+                  <option
+                    th:each="department : ${departments}"
+                    th:value="${department.id}"
+                    th:selected="${directoryPage.departmentId != null and directoryPage.departmentId == department.id}"
+                    th:text="${department.code + ' · ' + department.name}"
+                  >
+                    CNTT · Information Technology
+                  </option>
+                </select>
+              </label>
+              <label
+                class="relative block min-w-0 sm:w-64 sm:shrink-0"
+                for="user-status-filter"
+              >
+                <span class="sr-only">Filter by status</span>
+                <select
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
+                  id="user-status-filter"
+                  name="status"
+                >
+                  <option value="" th:selected="${directoryPage.status == ''}">
+                    All statuses
+                  </option>
+                  <option
+                    value="ACTIVE"
+                    th:selected="${directoryPage.status == 'ACTIVE'}"
+                  >
+                    Active
+                  </option>
+                  <option
+                    value="LOCKED"
+                    th:selected="${directoryPage.status == 'LOCKED'}"
+                  >
+                    Locked
+                  </option>
+                </select>
+              </label>
+              <div class="flex w-full shrink-0 justify-end gap-2 sm:w-auto">
+                <label
+                  class="relative block w-full flex-none sm:w-80"
+                  for="user-search"
+                >
+                  <span class="sr-only">Search accounts</span>
+                  <input
+                    class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
+                    id="user-search"
+                    name="search"
+                    type="search"
+                    placeholder="Search accounts"
+                    autocomplete="off"
+                    th:value="${directorySearch}"
+                    data-user-search
+                  />
+                </label>
+                <button
+                  class="shrink-0 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800"
+                  type="submit"
+                >
+                  Search
+                </button>
+              </div>
+            </form>
+          </div>
+          <div
+            class="directory-table-scroll overflow-x-auto"
+            th:if="${!#lists.isEmpty(users)}"
+          >
+            <table
+              class="w-full min-w-[1100px] text-left text-sm text-gray-500"
+            >
+              <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                <tr>
+                  <th class="px-6 py-3" scope="col">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='account',direction=${directoryPage.sort == 'account' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch},departmentId=${directoryPage.departmentId},status=${directoryPage.status})}"
+                      >Account
+                      <span
+                        th:text="${directoryPage.sort == 'account' ? (directoryPage.direction == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      ></a
+                    >
+                  </th>
+                  <th
+                    class="px-6 py-3"
+                    scope="col"
+                    th:if="${userDirectoryTitle != 'Lecturer accounts'}"
+                  >
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='studentCode',direction=${directoryPage.sort == 'studentCode' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch},departmentId=${directoryPage.departmentId},status=${directoryPage.status})}"
+                      >MSSV
+                      <span
+                        th:text="${directoryPage.sort == 'studentCode' ? (directoryPage.direction == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      ></a
+                    >
+                  </th>
+                  <th class="px-6 py-3" scope="col">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='department',direction=${directoryPage.sort == 'department' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch},departmentId=${directoryPage.departmentId},status=${directoryPage.status})}"
+                      >Department
+                      <span
+                        th:text="${directoryPage.sort == 'department' ? (directoryPage.direction == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      ></a
+                    >
+                  </th>
+                  <th
+                    class="px-6 py-3"
+                    scope="col"
+                    th:if="${userDirectoryTitle != 'Student accounts'}"
+                  >
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='roles',direction=${directoryPage.sort == 'roles' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch},departmentId=${directoryPage.departmentId},status=${directoryPage.status})}"
+                      >Roles
+                      <span
+                        th:text="${directoryPage.sort == 'roles' ? (directoryPage.direction == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      ></a
+                    >
+                  </th>
+                  <th class="px-6 py-3" scope="col">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='status',direction=${directoryPage.sort == 'status' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch},departmentId=${directoryPage.departmentId},status=${directoryPage.status})}"
+                      >Status
+                      <span
+                        th:text="${directoryPage.sort == 'status' ? (directoryPage.direction == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      ></a
+                    >
+                  </th>
+                  <th class="px-6 py-3" scope="col">
+                    <span class="sr-only">Actions</span>
+                  </th>
                 </tr>
-            </tbody></table></div>
-            <div class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between" th:if="${directoryPage.totalItems > 0}"><p class="text-gray-500">Showing <span class="font-medium text-gray-900" th:text="${directoryPage.page * directoryPage.size + 1}">1</span>–<span class="font-medium text-gray-900" th:text="${directoryPage.page * directoryPage.size + #lists.size(users)}">10</span> of <span class="font-medium text-gray-900" th:text="${directoryPage.totalItems}">10</span></p><nav aria-label="Pagination"><ul class="inline-flex -space-x-px"><li><a class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100" th:classappend="${!directoryPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}" th:href="@{${directoryPath}(page=${directoryPage.page - 1},size=${directoryPage.size},sort=${directoryPage.sort},direction=${directoryPage.direction},search=${directorySearch})}">Previous</a></li><li th:each="pageNumber : ${#numbers.sequence(0, directoryPage.totalPages - 1)}"><a class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100" th:classappend="${pageNumber == directoryPage.page ? 'bg-blue-50 text-blue-700' : ''}" th:href="@{${directoryPath}(page=${pageNumber},size=${directoryPage.size},sort=${directoryPage.sort},direction=${directoryPage.direction},search=${directorySearch})}" th:text="${pageNumber + 1}">1</a></li><li><a class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100" th:classappend="${!directoryPage.hasNext ? 'pointer-events-none opacity-50' : ''}" th:href="@{${directoryPath}(page=${directoryPage.page + 1},size=${directoryPage.size},sort=${directoryPage.sort},direction=${directoryPage.direction},search=${directorySearch})}">Next</a></li></ul></nav></div>
+              </thead>
+              <tbody>
+                <tr
+                  class="border-b border-gray-100 hover:bg-gray-50"
+                  th:each="user : ${users}"
+                  data-user-row
+                  th:attr="data-user-search-value=${user.fullName + ' ' + user.loginIdentifier + ' ' + (user.emailOrCode ?: '') + ' ' + (user.departmentCode ?: '') + ' ' + (user.departmentName ?: '')}"
+                >
+                  <td class="px-6 py-4">
+                    <strong
+                      class="block font-semibold text-gray-900"
+                      th:text="${user.fullName}"
+                      >User</strong
+                    ><small
+                      class="mt-1 block text-gray-500"
+                      th:text="${user.emailOrCode ?: '—'}"
+                      >user@hcmute.edu.vn</small
+                    >
+                  </td>
+                  <td
+                    class="px-6 py-4"
+                    th:if="${userDirectoryTitle != 'Lecturer accounts'}"
+                    th:text="${user.studentCode ?: '—'}"
+                  >
+                    —
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="font-medium text-gray-900"
+                      th:if="${user.departmentCode != null}"
+                      th:text="${user.departmentCode}"
+                      >CNTT</span
+                    ><span
+                      class="block text-xs text-gray-500"
+                      th:if="${user.departmentName != null}"
+                      th:text="${user.departmentName}"
+                      >Information Technology</span
+                    ><span
+                      class="text-gray-400"
+                      th:if="${user.departmentCode == null}"
+                      >Not assigned</span
+                    >
+                  </td>
+                  <td
+                    class="px-6 py-4"
+                    th:if="${userDirectoryTitle != 'Student accounts'}"
+                  >
+                    <span
+                      class="me-1 rounded-full bg-blue-100 px-2.5 py-1 text-xs text-blue-800"
+                      th:each="role : ${user.roles}"
+                      th:text="${role.name}"
+                      >Role</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      data-user-status
+                      th:text="${user.active ? 'Active' : 'Locked'}"
+                      >Active</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex justify-end">
+                      <button
+                        type="button"
+                        class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                        th:id="${'user-actions-' + user.id}"
+                        th:attr="data-dropdown-toggle=${'user-actions-menu-' + user.id},aria-controls=${'user-actions-menu-' + user.id},aria-haspopup='true'"
+                      >
+                        Actions<svg
+                          class="ms-2 h-4 w-4"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="m19 9-7 7-7-7"
+                          />
+                        </svg>
+                      </button>
+                      <div
+                        class="z-10 hidden w-44 divide-y divide-gray-100 rounded-lg bg-white shadow"
+                        th:id="${'user-actions-menu-' + user.id}"
+                      >
+                        <ul
+                          class="py-2 text-sm text-gray-700"
+                          th:attr="aria-labelledby=${'user-actions-' + user.id}"
+                        >
+                          <li
+                            sec:authorize="hasAuthority('USER_UPDATE') and hasAuthority('USER_ROLE_ASSIGN')"
+                          >
+                            <button
+                              type="button"
+                              class="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                              th:attr="data-modal-target=${'edit-user-modal-' + user.id},data-modal-toggle=${'edit-user-modal-' + user.id}"
+                            >
+                              Edit
+                            </button>
+                          </li>
+                          <li sec:authorize="hasAuthority('USER_UPDATE')">
+                            <button
+                              type="button"
+                              class="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                              th:attr="data-modal-target=${'set-password-modal-' + user.id},data-modal-toggle=${'set-password-modal-' + user.id}"
+                            >
+                              Set password
+                            </button>
+                          </li>
+                          <li sec:authorize="hasAuthority('USER_LOCK')">
+                            <button
+                              type="button"
+                              class="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                              th:attr="data-modal-target=${'status-user-modal-' + user.id},data-modal-toggle=${'status-user-modal-' + user.id}"
+                              th:text="${user.active ? 'Lock' : 'Unlock'}"
+                            >
+                              Lock
+                            </button>
+                          </li>
+                          <li sec:authorize="hasAuthority('USER_DELETE')">
+                            <button
+                              type="button"
+                              class="block w-full px-4 py-2 text-left text-red-700 hover:bg-red-50"
+                              th:attr="data-modal-target=${'delete-user-modal-' + user.id},data-modal-toggle=${'delete-user-modal-' + user.id}"
+                            >
+                              Delete
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div
+            th:if="${#lists.isEmpty(users)}"
+            th:replace="~{fragments/no-data :: noData}"
+          ></div>
+          <div
+            class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between"
+            th:if="${directoryPage.totalItems > 0}"
+          >
+            <p class="text-gray-500">
+              Showing
+              <span
+                class="font-medium text-gray-900"
+                th:text="${directoryPage.page * directoryPage.size + 1}"
+                >1</span
+              >–<span
+                class="font-medium text-gray-900"
+                th:text="${directoryPage.page * directoryPage.size + #lists.size(users)}"
+                >10</span
+              >
+              of
+              <span
+                class="font-medium text-gray-900"
+                th:text="${directoryPage.totalItems}"
+                >10</span
+              >
+            </p>
+            <nav aria-label="Pagination">
+              <ul class="inline-flex -space-x-px">
+                <li>
+                  <a
+                    class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${!directoryPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
+                    th:href="@{${directoryPath}(page=${directoryPage.page - 1},size=${directoryPage.size},sort=${directoryPage.sort},direction=${directoryPage.direction},search=${directorySearch},departmentId=${directoryPage.departmentId},status=${directoryPage.status})}"
+                    >Previous</a
+                  >
+                </li>
+                <li
+                  th:each="pageNumber : ${#numbers.sequence(0, directoryPage.totalPages - 1)}"
+                >
+                  <a
+                    class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${pageNumber == directoryPage.page ? 'bg-blue-50 text-blue-700' : ''}"
+                    th:href="@{${directoryPath}(page=${pageNumber},size=${directoryPage.size},sort=${directoryPage.sort},direction=${directoryPage.direction},search=${directorySearch},departmentId=${directoryPage.departmentId},status=${directoryPage.status})}"
+                    th:text="${pageNumber + 1}"
+                    >1</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${!directoryPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
+                    th:href="@{${directoryPath}(page=${directoryPage.page + 1},size=${directoryPage.size},sort=${directoryPage.sort},direction=${directoryPage.direction},search=${directorySearch},departmentId=${directoryPage.departmentId},status=${directoryPage.status})}"
+                    >Next</a
+                  >
+                </li>
+              </ul>
+            </nav>
+          </div>
         </section>
-    </section>
-    <th:block sec:authorize="hasAuthority('USER_CREATE')"><div th:replace="~{fragments/user-form :: userModal(modalId='create-user-modal', formObjectName='createForm', formAction=${formAction}, editing=false, studentAccount=${createStudentAccount}, accountType=${createAccountType}, roles=${createRoles}, departments=${departments}, title='Create user', submitLabel='Create account', fieldPrefix='create-user')}"></div></th:block>
-    <th:block sec:authorize="hasAuthority('USER_UPDATE') and hasAuthority('USER_ROLE_ASSIGN')"><th:block th:each="user : ${users}"><div th:replace="~{fragments/user-form :: userModal(modalId=${'edit-user-modal-' + user.id}, formObjectName=${'editForm' + user.id}, formAction=${editBasePath + '/' + user.id + '/edit'}, editing=true, studentAccount=${user.student}, accountType=${user.student ? 'STUDENT' : 'LECTURER'}, roles=${roles}, departments=${departments}, title='Edit user', submitLabel='Save changes', fieldPrefix=${'edit-user-' + user.id})}"></div></th:block></th:block>
-    <th:block sec:authorize="hasAuthority('USER_UPDATE')"><th:block th:each="user : ${users}"><div th:replace="~{fragments/password-form :: passwordModal(modalId=${'set-password-modal-' + user.id}, formAction=${statusBasePath + '/' + user.id + '/password'}, userName=${user.fullName}, fieldPrefix=${'set-password-' + user.id})}"></div></th:block></th:block>
-    <th:block sec:authorize="hasAuthority('USER_DELETE')"><th:block th:each="user : ${users}"><div th:replace="~{fragments/delete-confirmation :: deleteModal(modalId=${'delete-user-modal-' + user.id}, formAction=${deleteBasePath + '/' + user.id + '/delete'}, userName=${user.fullName}, accountType=${userDirectoryTitle == 'Student accounts' ? 'student' : 'lecturer'})}"></div></th:block></th:block>
-</div>
-</body>
+      </section>
+      <th:block sec:authorize="hasAuthority('USER_CREATE')"
+        ><div
+          th:replace="~{fragments/user-form :: userModal(modalId='create-user-modal', formObjectName='createForm', formAction=${formAction}, editing=false, studentAccount=${createStudentAccount}, accountType=${createAccountType}, roles=${createRoles}, departments=${departments}, title='Create user', submitLabel='Create account', fieldPrefix='create-user')}"
+        ></div
+      ></th:block>
+      <th:block
+        sec:authorize="hasAuthority('USER_UPDATE') and hasAuthority('USER_ROLE_ASSIGN')"
+        ><th:block th:each="user : ${users}"
+          ><div
+            th:replace="~{fragments/user-form :: userModal(modalId=${'edit-user-modal-' + user.id}, formObjectName=${'editForm' + user.id}, formAction=${editBasePath + '/' + user.id + '/edit'}, editing=true, studentAccount=${user.student}, accountType=${user.student ? 'STUDENT' : 'LECTURER'}, roles=${roles}, departments=${departments}, title='Edit user', submitLabel='Save changes', fieldPrefix=${'edit-user-' + user.id})}"
+          ></div></th:block
+      ></th:block>
+      <th:block sec:authorize="hasAuthority('USER_UPDATE')"
+        ><th:block th:each="user : ${users}"
+          ><div
+            th:replace="~{fragments/password-form :: passwordModal(modalId=${'set-password-modal-' + user.id}, formAction=${statusBasePath + '/' + user.id + '/password'}, userName=${user.fullName}, fieldPrefix=${'set-password-' + user.id})}"
+          ></div></th:block
+      ></th:block>
+      <th:block sec:authorize="hasAuthority('USER_DELETE')"
+        ><th:block th:each="user : ${users}"
+          ><div
+            th:replace="~{fragments/delete-confirmation :: deleteModal(modalId=${'delete-user-modal-' + user.id}, formAction=${deleteBasePath + '/' + user.id + '/delete'}, userName=${user.fullName}, accountType=${userDirectoryTitle == 'Student accounts' ? 'student' : 'lecturer'})}"
+          ></div></th:block
+      ></th:block>
+      <th:block sec:authorize="hasAuthority('USER_LOCK')"
+        ><th:block th:each="user : ${users}"
+          ><div
+            th:replace="~{fragments/status-confirmation :: statusModal(modalId=${'status-user-modal-' + user.id}, formAction=${statusBasePath + '/' + user.id + '/status'}, userName=${user.fullName}, active=${user.active})}"
+          ></div></th:block
+      ></th:block>
+    </div>
+  </body>
 </html>

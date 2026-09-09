@@ -49,10 +49,44 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/3
 - DATN/KLTN, timeline, status, permission, CSRF and boundary-time cases are
   covered.
 
+## Identity directory refinement
+
+- The dedicated `/admin/students` and `/admin/lecturers` directories accept
+  optional `departmentId` and `status` (`ACTIVE` or `LOCKED`) filters in
+  addition to search, sort and pagination.
+- The shared account-directory UI renders department/status dropdowns and
+  carries both filters through sort and pagination links; filtering is applied
+  server-side before summary counts and page slicing.
+- The directory filter form uses one responsive desktop row: the department
+  and status filters use matching `sm:w-64` controls and sit directly beside
+  the search input and Search button, with the whole control group aligned to
+  the right edge. The search control is capped at `sm:w-80` (320px); mobile
+  layouts stack the controls.
+- The student/lecturer directory keeps the page title and action button but
+  omits the redundant description, `Directory` eyebrow and `Accounts` panel
+  heading so the filter row begins directly in the panel.
+- User create/edit labels show required fields with red asterisks. MSSV,
+  department and email guidance is exposed through hover/focus info icons on
+  the corresponding labels, keeping the form compact.
+- Set-password modals follow the same compact pattern: no subtitle, required
+  red asterisks, and the 8–72 character requirement in a hover/focus tooltip
+  on the New password label.
+- Lock/Unlock actions open an explicit confirmation modal with the affected
+  account name and a warning explaining the sign-in impact before submitting
+  the status change. The modal always renders one visible static submit button
+  and changes its label to Lock account or Unlock account from the server-side
+  status.
+- Delete confirmation keeps only the concise title and irreversible-action
+  warning; the redundant account-specific sentence is omitted.
+- Reusable `fragments/no-data` renders a generic `No data` empty state for
+  directories and other modules.
+
 ## Verification
 
 - DepartmentControllerTest
 - RegistrationPeriodControllerTest
 - SecurityConfigTest
 - DatabaseSchemaServiceTest
+- UserManagementControllerTest (28 tests, including department/status
+  filtering and shared directory rendering)
 - All three Kanban cards are Done.

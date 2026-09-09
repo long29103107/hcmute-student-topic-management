@@ -53,6 +53,26 @@
         color: #1d4ed8;
     }
 
+    .status-action-button {
+        display: inline-flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        min-width: 8rem;
+        border: 1px solid #d1d5db;
+        border-radius: 16px;
+        padding: 0.625rem 1.25rem;
+        color: #fff;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        font-weight: 500;
+        background: #ca8a04;
+    }
+
+    .status-action-button:hover {
+        background: #a16207;
+    }
+
     [data-group-body] {
         max-height: 2000px;
         overflow: hidden;

@@ -70,8 +70,16 @@ public class UserManagementService {
 
     public UserDirectoryPage listUsersPage(String roleCode, String search, int page, int size,
             String sort, String direction) {
+        return listUsersPage(roleCode, search, null, "", page, size, sort, direction);
+    }
+
+    public UserDirectoryPage listUsersPage(String roleCode, String search, Long departmentId,
+            String status, int page, int size, String sort, String direction) {
+        String normalizedStatus = normalizeStatus(status);
         List<UserSummary> filtered = listUsers(roleCode).stream()
                 .filter(user -> matchesSearch(user, search))
+                .filter(user -> departmentId == null || departmentId.equals(user.getDepartmentId()))
+                .filter(user -> matchesStatus(user, normalizedStatus))
                 .sorted(userComparator(sort, direction))
                 .toList();
         int safeSize = Math.min(Math.max(size, 5), 100);
@@ -83,7 +91,14 @@ public class UserManagementService {
         List<UserSummary> content = filtered.subList(from, to);
         long activeCount = filtered.stream().filter(UserSummary::isActive).count();
         return new UserDirectoryPage(content, safePage, safeSize, totalItems, totalPages,
-                activeCount, totalItems - activeCount, normalizeSort(sort), normalizeDirection(direction));
+                activeCount, totalItems - activeCount, normalizeSort(sort), normalizeDirection(direction),
+                departmentId, normalizedStatus);
+    }
+
+    private static boolean matchesStatus(UserSummary user, String status) {
+        return !StringUtils.hasText(status)
+                || ("ACTIVE".equals(status) && user.isActive())
+                || ("LOCKED".equals(status) && !user.isActive());
     }
 
     private static boolean matchesSearch(UserSummary user, String search) {
@@ -124,6 +139,11 @@ public class UserManagementService {
 
     private static String normalizeDirection(String direction) {
         return "desc".equalsIgnoreCase(direction) ? "desc" : "asc";
+    }
+
+    private static String normalizeStatus(String status) {
+        String normalized = status == null ? "" : status.trim().toUpperCase(Locale.ROOT);
+        return Set.of("ACTIVE", "LOCKED").contains(normalized) ? normalized : "";
     }
 
     public List<RoleOption> listAssignableRoles() {
@@ -542,9 +562,17 @@ public class UserManagementService {
         private final long lockedCount;
         private final String sort;
         private final String direction;
+        private final Long departmentId;
+        private final String status;
 
         public UserDirectoryPage(List<UserSummary> content, int page, int size, int totalItems,
                 int totalPages, long activeCount, long lockedCount, String sort, String direction) {
+            this(content, page, size, totalItems, totalPages, activeCount, lockedCount, sort, direction, null, "");
+        }
+
+        public UserDirectoryPage(List<UserSummary> content, int page, int size, int totalItems,
+                int totalPages, long activeCount, long lockedCount, String sort, String direction,
+                Long departmentId, String status) {
             this.content = List.copyOf(content);
             this.page = page;
             this.size = size;
@@ -554,6 +582,8 @@ public class UserManagementService {
             this.lockedCount = lockedCount;
             this.sort = sort;
             this.direction = direction;
+            this.departmentId = departmentId;
+            this.status = status;
         }
 
         public List<UserSummary> getContent() { return content; }
@@ -565,6 +595,8 @@ public class UserManagementService {
         public long getLockedCount() { return lockedCount; }
         public String getSort() { return sort; }
         public String getDirection() { return direction; }
+        public Long getDepartmentId() { return departmentId; }
+        public String getStatus() { return status; }
         public boolean isHasPrevious() { return page > 0; }
         public boolean isHasNext() { return page + 1 < totalPages; }
     }
