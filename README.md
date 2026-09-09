@@ -10,6 +10,7 @@ product roadmap và chỉ được mở sau khi user chọn scope tiếp theo.
 ## Tài liệu nguồn cho code generation
 
 - [`SETUP_GUIDE.md`](SETUP_GUIDE.md) — hướng dẫn tạo database MySQL và seed dữ liệu local.
+- [`Dockerfile`](Dockerfile) và [`docker-compose.yaml`](docker-compose.yaml) — chạy app cùng MySQL bằng Docker Compose.
 
 - `PRODUCT_VISION.md` là nguồn ưu tiên để agent tạo task, plan hoặc quyết định
   product scope.
@@ -34,8 +35,9 @@ quan → tài liệu liên quan trong `docs/`.
 - Maven + executable JAR + embedded Tomcat
 - Tailwind CSS 4 + Flowbite 4 cho UI; JavaScript thuần cho các tương tác riêng
 
-Không đưa SPA, React/Vue/Angular, microservices, Docker/Kubernetes hoặc CI/CD
-vào phiên bản đầu.
+Không đưa SPA, React/Vue/Angular, microservices, Kubernetes hoặc CI/CD vào
+phiên bản đầu. Docker Compose được hỗ trợ cho local app + MySQL setup; xem
+[`SETUP_GUIDE.md`](SETUP_GUIDE.md).
 
 ### Frontend assets
 

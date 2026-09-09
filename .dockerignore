@@ -1,0 +1,12 @@
+.git
+.github
+.idea
+.vscode
+.okf
+.tmp
+node_modules
+target
+storage
+*.log
+hs_err_pid*
+replay_pid*

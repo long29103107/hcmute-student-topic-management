@@ -48,6 +48,19 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/26
 - `docs/HUMAN_WORKFLOW.md` provides the browser-based manual runbook: exact
   seed accounts, password preparation, login/logout order, page actions,
   expected state changes, negative checks and the complete topic-to-result flow.
+- `Dockerfile` and `docker-compose.yaml` provide a local Spring Boot + MySQL
+  runtime with first-start DDL initialization, health-gated app startup and
+  persistent report/database volumes. Compose follows the application
+  defaults (port 5000, root with empty local password and public seed enabled)
+  and only changes the datasource host to the Docker service name `mysql`.
+
+### Docker runtime correction
+
+- Restored the `mysql` Compose service after the app-only compose definition
+  caused the app container to fall back to `127.0.0.1:3306` and fail Hibernate
+  JDBC metadata detection.
+- The browser URL remains `http://localhost:5000`; only the container-to-
+  container datasource URL uses `mysql:3306`.
 
 ## Verification
 
@@ -60,3 +73,11 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/26
 - Full Maven/package/static checks were recorded during implementation.
 - Browser automation was unavailable; MockMvc covers the authenticated
   SSR/REST journey and negative authorization paths.
+- Docker verification: `docker compose config --quiet` passed; the image
+  rebuilt successfully; MySQL became healthy; the app started with
+  `Database dialect: MySQLDialect`; `GET http://localhost:5000/login` returned
+  HTTP 200.
+- `mvn -B -DskipTests package` passed. A full `mvn -B test` run still reports
+  12 pre-existing H2 schema setup errors in `RegistrationPeriodControllerTest`
+  and `ReviewBoardControllerTest`; the container configuration does not change
+  those test fixtures.

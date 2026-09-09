@@ -161,7 +161,46 @@ Sau đó mở:
 http://localhost:5000/seed
 ```
 
-## 6. Seed dữ liệu theo pipeline
+## 6. Chạy bằng Docker Compose
+
+Docker Compose chạy app cùng MySQL 8.4. DDL được MySQL thực thi tự động ở lần
+khởi tạo volume đầu tiên; seed fixture vẫn là thao tác chủ động trên `/seed`.
+
+```powershell
+docker compose up --build
+```
+
+Sau khi hai container healthy, mở:
+
+```text
+http://localhost:5000/seed
+```
+
+Chạy seed trên trang này rồi dùng các workflow trong `docs/HUMAN_WORKFLOW.md`.
+Compose bám các default trong `src/main/resources/application.properties`:
+app port `5000`, MySQL database `hcmute_topic_management`, user `root` và
+password rỗng. MySQL service dùng `MYSQL_ALLOW_EMPTY_PASSWORD=yes` cho local
+và chỉ expose trong Docker network, không chiếm port MySQL `3306` trên host.
+Riêng datasource URL dùng hostname Docker service là `mysql`; không dùng
+`127.0.0.1` vì app đang chạy trong container riêng.
+
+Dừng container nhưng giữ dữ liệu:
+
+```powershell
+docker compose down
+```
+
+Xoá cả database volume để chạy lại từ schema sạch:
+
+```powershell
+docker compose down -v
+```
+
+`SEED_PUBLIC_ENABLED=true` chỉ phù hợp local. Khi dùng shared/staging, đặt
+`SEED_PUBLIC_ENABLED=false` và cấu hình password MySQL riêng, không dùng
+empty-password Compose setup.
+
+## 7. Seed dữ liệu theo pipeline
 
 Trang `/seed` gọi các API POST theo đúng thứ tự sau; mỗi bước chỉ chạy sau khi
 bước trước thành công:
@@ -199,7 +238,7 @@ Seed fixture sau cùng gồm:
 Các bước fixture có thể chạy lại để upsert/cập nhật dữ liệu mẫu. Bước DDL là
 destructive vì drop/recreate toàn bộ schema.
 
-## 7. Chế độ bảo vệ seed
+## 8. Chế độ bảo vệ seed
 
 `SEED_PUBLIC_ENABLED` quyết định quyền truy cập `/seed` và `/api/seed/**`:
 
@@ -218,7 +257,7 @@ mvn spring-boot:run
 
 Không bật public seed trên shared, staging hoặc production.
 
-## 8. Reset/reseed đầy đủ bằng API admin
+## 9. Reset/reseed đầy đủ bằng API admin
 
 `POST /api/admin/seed` yêu cầu role `ADMIN`, có CSRF khi gọi từ browser, và
 truncate 18 bảng trước khi seed lại roles, permissions, departments, users,
@@ -256,7 +295,7 @@ registrationResults=1
 Không gọi endpoint này trên database có dữ liệu cần giữ. Nếu database chưa có
 bảng, chạy pipeline `/seed` bắt đầu từ `POST /api/seed/ddl` trước.
 
-## 9. Tài khoản local mặc định
+## 10. Tài khoản local mặc định
 
 Sau khi seed thành công:
 
@@ -275,7 +314,7 @@ Một số fixture hữu ích:
 - Student: `24110000@student.hcmute.edu.vn`
 - Student accounts có MSSV từ `24110000` đến `24110049`.
 
-## 10. Kiểm tra seed thành công
+## 11. Kiểm tra seed thành công
 
 ```powershell
 mysql -u root -p -D hcmute_topic_management -e "SELECT code FROM roles ORDER BY id;"
@@ -295,7 +334,7 @@ topic_registrations=3, review_boards=2, announcements=3
 registration_results=1
 ```
 
-## 11. Lỗi thường gặp
+## 12. Lỗi thường gặp
 
 ### `Communications link failure` hoặc connection refused
 
