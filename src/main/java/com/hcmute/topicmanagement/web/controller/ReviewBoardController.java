@@ -27,14 +27,17 @@ public class ReviewBoardController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('REVIEW_BOARD_VIEW')")
-    public String list(Authentication authentication, Model model) {
-        ReviewBoardService.BoardPage page = reviewBoardService.page(authentication.getName());
+    public String list(Authentication authentication,
+                       @RequestParam(defaultValue = "") String search,
+                       Model model) {
+        ReviewBoardService.BoardPage page = reviewBoardService.page(authentication.getName(), search);
         model.addAttribute("pageTitle", "Review boards");
         model.addAttribute("boardPage", page);
         model.addAttribute("boards", page.boards());
         model.addAttribute("boardRegistrations", page.registrations());
         model.addAttribute("boardLecturers", page.lecturerOptions());
         model.addAttribute("boardScope", page.scopeLabel());
+        model.addAttribute("boardSearch", search);
         return "faculty/boards";
     }
 

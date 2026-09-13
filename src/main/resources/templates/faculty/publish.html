@@ -1,147 +1,397 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layouts/main}">
-<head><title>Publish topics</title></head>
-<body>
-<main layout:fragment="content" class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
-    <section aria-labelledby="page-title">
-        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-                <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Faculty workflow / Topics</p>
-                <h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Publish topics</h1>
-                <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500">Publish approved topics so students can register during a valid student registration window.</p>
-            </div>
-            <div class="flex items-center gap-3">
-                <span class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700"
-                      th:text="${topicPage.totalItems + ' approved topics'}">0 approved topics</span>
-            </div>
+<!doctype html>
+<html
+  lang="en"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/main}"
+>
+  <head>
+    <title>Publish topics</title>
+  </head>
+  <body>
+    <main
+      layout:fragment="content"
+      class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8"
+    >
+      <section aria-labelledby="page-title">
+        <div
+          class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"
+        >
+          <div>
+            <p
+              class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500"
+            >
+              Faculty workflow / Topics
+            </p>
+            <h1
+              id="page-title"
+              class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
+            >
+              Publish topics
+            </h1>
+          </div>
+          <div class="flex items-center gap-3">
+            <span
+              class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700"
+              th:text="${topicPage.totalItems + ' approved topics'}"
+              >0 approved topics</span
+            >
+          </div>
         </div>
 
-        <div class="mb-6 flex items-start rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-5 text-blue-900" role="status">
-            <svg class="me-3 mt-0.5 h-5 w-5 shrink-0 text-blue-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 1a9 9 0 1 0 9 9 9.01 9.01 0 0 0-9-9Zm0 4a1 1 0 1 1 0 0 1 0-2Zm1 10H9v-6h2v6Z"/>
-            </svg>
-            <span>Only APPROVED topics can be published. Admin can publish across departments; Faculty Heads are limited to their own department.</span>
-        </div>
+        <section
+          class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+          aria-labelledby="topics-heading"
+        >
+          <div
+            class="flex flex-col justify-between gap-4 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:justify-end sm:p-6"
+          >
+            <form
+              class="flex w-full gap-2 sm:w-auto"
+              th:action="@{/faculty/topics/publish}"
+              method="get"
+            >
+              <label class="sr-only" for="publish-topic-search"
+                >Search approved topics</label
+              >
+              <input
+                id="publish-topic-search"
+                name="search"
+                type="search"
+                th:value="${topicSearch}"
+                placeholder="Search topics"
+                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 sm:w-64"
+              />
+              <input type="hidden" name="size" th:value="${topicPage.size}" />
+              <input type="hidden" name="sort" th:value="${topicPage.sort}" />
+              <input
+                type="hidden"
+                name="direction"
+                th:value="${topicPage.direction}"
+              />
+              <button
+                type="submit"
+                class="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
+              >
+                Search
+              </button>
+            </form>
+          </div>
 
-        <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm" aria-labelledby="topics-heading">
-            <div class="flex flex-col justify-between gap-4 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:p-6">
-                <div>
-                    <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Publication queue</p>
-                    <h2 id="topics-heading" class="text-xl font-semibold text-gray-900">Approved topics</h2>
-                </div>
-                <form class="flex w-full gap-2 sm:w-auto" th:action="@{/faculty/topics/publish}" method="get">
-                    <label class="sr-only" for="publish-topic-search">Search approved topics</label>
-                    <input id="publish-topic-search" name="search" type="search" th:value="${topicSearch}"
-                           placeholder="Search topics" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 sm:w-64">
-                    <input type="hidden" name="size" th:value="${topicPage.size}">
-                    <input type="hidden" name="sort" th:value="${topicPage.sort}">
-                    <input type="hidden" name="direction" th:value="${topicPage.direction}">
-                    <button type="submit" class="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300">Search</button>
-                </form>
-            </div>
+          <div class="overflow-x-auto" th:if="${!#lists.isEmpty(topics)}">
+            <table class="w-full min-w-[900px] text-left text-sm text-gray-500">
+              <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                <tr>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="hover:text-blue-700"
+                      th:href="@{/faculty/topics/publish(page=0,size=${topicPage.size},search=${topicSearch},sort='topic',direction=${topicSort == 'topic' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
+                      >Topic</a
+                    >
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="hover:text-blue-700"
+                      th:href="@{/faculty/topics/publish(page=0,size=${topicPage.size},search=${topicSearch},sort='period',direction=${topicSort == 'period' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
+                      >Registration period</a
+                    >
+                  </th>
+                  <th scope="col" class="px-6 py-3">Proposed by</th>
+                  <th scope="col" class="px-6 py-3">Status</th>
+                  <th scope="col" class="px-6 py-3">
+                    <span class="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  class="border-b border-gray-100 align-top hover:bg-gray-50"
+                  th:each="topic : ${topics}"
+                >
+                  <td class="max-w-md px-6 py-4">
+                    <strong
+                      class="block font-semibold text-gray-900"
+                      th:text="${topic.title}"
+                      >Topic title</strong
+                    >
+                    <span
+                      class="mt-1 block line-clamp-2 text-xs leading-5 text-gray-500"
+                      th:text="${topic.description}"
+                      >Topic description</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="block font-medium text-gray-900"
+                      th:text="${topic.periodName}"
+                      >Semester 1</span
+                    >
+                    <span
+                      class="block text-xs text-gray-500"
+                      th:text="${topic.periodType}"
+                      >COURSE</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="block font-medium text-gray-900"
+                      th:text="${topic.proposedByName}"
+                      >Lecturer</span
+                    >
+                    <span
+                      class="block text-xs text-gray-500"
+                      th:text="${topic.proposedByEmail}"
+                      >lecturer@hcmute.edu.vn</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800"
+                      th:text="${topic.statusLabel}"
+                      >Approved</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <form
+                      class="m-0 flex justify-end"
+                      data-publish-form
+                      th:action="@{/faculty/topics/publish}"
+                      method="post"
+                      th:attr="data-publish-topic-title=${topic.title}"
+                    >
+                      <input
+                        type="hidden"
+                        name="topicId"
+                        th:value="${topic.id}"
+                      />
+                      <input
+                        type="hidden"
+                        th:name="${_csrf.parameterName}"
+                        th:value="${_csrf.token}"
+                      />
+                      <button
+                        type="submit"
+                        title="Publish topic"
+                        aria-label="Publish topic"
+                        class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-600 text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200"
+                      >
+                        <svg
+                          class="h-4 w-4"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.9"
+                            d="M5 12h13m-6-6 6 6-6 6"
+                          />
+                        </svg>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-            <div class="overflow-x-auto" th:if="${!#lists.isEmpty(topics)}">
-                <table class="w-full min-w-[900px] text-left text-sm text-gray-500">
-                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
-                    <tr>
-                        <th scope="col" class="px-6 py-3"><a class="hover:text-blue-700" th:href="@{/faculty/topics/publish(page=0,size=${topicPage.size},search=${topicSearch},sort='topic',direction=${topicSort == 'topic' and topicDirection == 'asc' ? 'desc' : 'asc'})}">Topic</a></th>
-                        <th scope="col" class="px-6 py-3"><a class="hover:text-blue-700" th:href="@{/faculty/topics/publish(page=0,size=${topicPage.size},search=${topicSearch},sort='period',direction=${topicSort == 'period' and topicDirection == 'asc' ? 'desc' : 'asc'})}">Registration period</a></th>
-                        <th scope="col" class="px-6 py-3">Proposed by</th>
-                        <th scope="col" class="px-6 py-3">Status</th>
-                        <th scope="col" class="px-6 py-3"><span class="sr-only">Actions</span></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr class="border-b border-gray-100 align-top hover:bg-gray-50" th:each="topic : ${topics}">
-                        <td class="max-w-md px-6 py-4">
-                            <strong class="block font-semibold text-gray-900" th:text="${topic.title}">Topic title</strong>
-                            <span class="mt-1 block line-clamp-2 text-xs leading-5 text-gray-500" th:text="${topic.description}">Topic description</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="block font-medium text-gray-900" th:text="${topic.periodName}">Semester 1</span>
-                            <span class="block text-xs text-gray-500" th:text="${topic.periodType}">COURSE</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="block font-medium text-gray-900" th:text="${topic.proposedByName}">Lecturer</span>
-                            <span class="block text-xs text-gray-500" th:text="${topic.proposedByEmail}">lecturer@hcmute.edu.vn</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800" th:text="${topic.statusLabel}">Approved</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <form class="m-0 flex justify-end" data-publish-form th:action="@{/faculty/topics/publish}" method="post"
-                                  th:attr="data-publish-topic-title=${topic.title}">
-                                <input type="hidden" name="topicId" th:value="${topic.id}">
-                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                                <button type="submit" title="Publish topic" aria-label="Publish topic"
-                                        class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-600 text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200">
-                                    <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M5 12h13m-6-6 6 6-6 6"/>
-                                    </svg>
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+          <div
+            class="flex flex-col items-center justify-center border-t border-gray-100 px-6 py-14 text-center"
+            th:if="${#lists.isEmpty(topics)}"
+          >
+            <div
+              class="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400"
+            >
+              <svg
+                class="h-7 w-7"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.7"
+                  d="M8 8h8m-8 4h5m-8 8h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"
+                />
+              </svg>
             </div>
+            <h3
+              class="text-base font-semibold text-gray-900"
+              th:text="${#strings.isEmpty(topicSearch) ? 'No approved topics' : 'No matching topics'}"
+            >
+              No approved topics
+            </h3>
+            <p
+              class="mt-1 max-w-sm text-sm leading-6 text-gray-500"
+              th:text="${#strings.isEmpty(topicSearch) ? 'There are no approved topics waiting to be published.' : 'Try a different keyword or clear the search.'}"
+            >
+              There are no approved topics waiting to be published.
+            </p>
+            <a
+              class="mt-4 text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline"
+              th:if="${!#strings.isEmpty(topicSearch)}"
+              th:href="@{/faculty/topics/publish}"
+              >Clear search</a
+            >
+          </div>
 
-            <div class="flex flex-col items-center justify-center border-t border-gray-100 px-6 py-14 text-center" th:if="${#lists.isEmpty(topics)}">
-                <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400">
-                    <svg class="h-7 w-7" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M8 8h8m-8 4h5m-8 8h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
-                </div>
-                <h3 class="text-base font-semibold text-gray-900" th:text="${#strings.isEmpty(topicSearch) ? 'No approved topics' : 'No matching topics'}">No approved topics</h3>
-                <p class="mt-1 max-w-sm text-sm leading-6 text-gray-500" th:text="${#strings.isEmpty(topicSearch) ? 'There are no approved topics waiting to be published.' : 'Try a different keyword or clear the search.'}">There are no approved topics waiting to be published.</p>
-                <a class="mt-4 text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline" th:if="${!#strings.isEmpty(topicSearch)}" th:href="@{/faculty/topics/publish}">Clear search</a>
-            </div>
-
-            <div class="flex flex-col items-center justify-between gap-3 border-t border-gray-200 px-6 py-4 text-sm text-gray-500 sm:flex-row" th:if="${topicPage.totalItems > 0}">
-                <span th:text="${'Showing ' + (topicPage.page * topicPage.size + 1) + '-' + (topicPage.page * topicPage.size + #lists.size(topics)) + ' of ' + topicPage.totalItems}">Showing 1-1 of 1</span>
-                <nav aria-label="Publication queue pagination" th:if="${topicPage.totalPages > 1}">
-                    <ul class="inline-flex -space-x-px text-sm">
-                        <li><a class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100" th:classappend="${!topicPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}" th:href="@{/faculty/topics/publish(page=${topicPage.page - 1},size=${topicPage.size},search=${topicSearch},sort=${topicPage.sort},direction=${topicPage.direction})}">Previous</a></li>
-                        <li th:each="pageNumber : ${#numbers.sequence(0, topicPage.totalPages - 1)}"><a class="border border-gray-300 px-3 py-2 leading-tight hover:bg-gray-100" th:classappend="${pageNumber == topicPage.page ? 'bg-blue-50 text-blue-700' : 'bg-white text-gray-500'}" th:href="@{/faculty/topics/publish(page=${pageNumber},size=${topicPage.size},search=${topicSearch},sort=${topicPage.sort},direction=${topicPage.direction})}" th:text="${pageNumber + 1}">1</a></li>
-                        <li><a class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100" th:classappend="${!topicPage.hasNext ? 'pointer-events-none opacity-50' : ''}" th:href="@{/faculty/topics/publish(page=${topicPage.page + 1},size=${topicPage.size},search=${topicSearch},sort=${topicPage.sort},direction=${topicPage.direction})}">Next</a></li>
-                    </ul>
-                </nav>
-            </div>
+          <div
+            class="flex flex-col items-center justify-between gap-3 border-t border-gray-200 px-6 py-4 text-sm text-gray-500 sm:flex-row"
+            th:if="${topicPage.totalItems > 0}"
+          >
+            <span
+              th:text="${'Showing ' + (topicPage.page * topicPage.size + 1) + '-' + (topicPage.page * topicPage.size + #lists.size(topics)) + ' of ' + topicPage.totalItems}"
+              >Showing 1-1 of 1</span
+            >
+            <nav
+              aria-label="Publication queue pagination"
+              th:if="${topicPage.totalPages > 1}"
+            >
+              <ul class="inline-flex -space-x-px text-sm">
+                <li>
+                  <a
+                    class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${!topicPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
+                    th:href="@{/faculty/topics/publish(page=${topicPage.page - 1},size=${topicPage.size},search=${topicSearch},sort=${topicPage.sort},direction=${topicPage.direction})}"
+                    >Previous</a
+                  >
+                </li>
+                <li
+                  th:each="pageNumber : ${#numbers.sequence(0, topicPage.totalPages - 1)}"
+                >
+                  <a
+                    class="border border-gray-300 px-3 py-2 leading-tight hover:bg-gray-100"
+                    th:classappend="${pageNumber == topicPage.page ? 'bg-blue-50 text-blue-700' : 'bg-white text-gray-500'}"
+                    th:href="@{/faculty/topics/publish(page=${pageNumber},size=${topicPage.size},search=${topicSearch},sort=${topicPage.sort},direction=${topicPage.direction})}"
+                    th:text="${pageNumber + 1}"
+                    >1</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${!topicPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
+                    th:href="@{/faculty/topics/publish(page=${topicPage.page + 1},size=${topicPage.size},search=${topicSearch},sort=${topicPage.sort},direction=${topicPage.direction})}"
+                    >Next</a
+                  >
+                </li>
+              </ul>
+            </nav>
+          </div>
         </section>
-    </section>
+      </section>
 
-    <div id="publish-confirm-modal" class="fixed inset-0 z-[70] hidden overflow-y-auto" tabindex="-1"
-         aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="publish-confirm-title"
-         aria-describedby="publish-confirm-description" data-publish-confirm-modal>
-        <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" data-publish-modal-close></div>
+      <div
+        id="publish-confirm-modal"
+        class="fixed inset-0 z-[70] hidden overflow-y-auto"
+        tabindex="-1"
+        aria-hidden="true"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="publish-confirm-title"
+        aria-describedby="publish-confirm-description"
+        data-publish-confirm-modal
+      >
+        <div
+          class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm"
+          data-publish-modal-close
+        ></div>
         <div class="relative flex min-h-full items-center justify-center p-4">
-            <div class="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
-                <div class="flex items-start gap-4 px-6 pb-5 pt-6">
-                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-                        <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 10 3 3 7-7"/></svg>
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        <h2 id="publish-confirm-title" class="text-lg font-semibold text-gray-900" data-publish-modal-title>Publish topic?</h2>
-                        <p id="publish-confirm-description" class="mt-2 text-sm leading-6 text-gray-500" data-publish-modal-description>
-                            Students will be able to see this topic when the registration period is valid.
-                        </p>
-                        <p class="mt-2 truncate text-sm font-semibold text-gray-800" data-publish-modal-topic-title></p>
-                    </div>
-                    <button type="button" class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-900"
-                            aria-label="Close confirmation dialog" data-publish-modal-close>
-                        <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 12 12M13 1 1 13"/></svg>
-                    </button>
-                </div>
-                <div class="flex justify-end gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">
-                    <button type="button" class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100"
-                            data-publish-modal-cancel>Cancel</button>
-                    <button type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200"
-                            data-publish-modal-confirm>Publish topic</button>
-                </div>
+          <div
+            class="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5"
+          >
+            <div class="flex items-start gap-4 px-6 pb-5 pt-6">
+              <div
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700"
+              >
+                <svg
+                  class="h-5 w-5"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="m5 10 3 3 7-7"
+                  />
+                </svg>
+              </div>
+              <div class="min-w-0 flex-1">
+                <h2
+                  id="publish-confirm-title"
+                  class="text-lg font-semibold text-gray-900"
+                  data-publish-modal-title
+                >
+                  Publish topic?
+                </h2>
+                <p
+                  id="publish-confirm-description"
+                  class="mt-2 text-sm leading-6 text-gray-500"
+                  data-publish-modal-description
+                >
+                  Students will be able to see this topic when the registration
+                  period is valid.
+                </p>
+                <p
+                  class="mt-2 truncate text-sm font-semibold text-gray-800"
+                  data-publish-modal-topic-title
+                ></p>
+              </div>
+              <button
+                type="button"
+                class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-900"
+                aria-label="Close confirmation dialog"
+                data-publish-modal-close
+              >
+                <svg
+                  class="h-4 w-4"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 14 14"
+                >
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="m1 1 12 12M13 1 1 13"
+                  />
+                </svg>
+              </button>
             </div>
+            <div
+              class="flex justify-end gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4"
+            >
+              <button
+                type="button"
+                class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100"
+                data-publish-modal-cancel
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200"
+                data-publish-modal-confirm
+              >
+                Publish topic
+              </button>
+            </div>
+          </div>
         </div>
-    </div>
-</main>
-</body>
+      </div>
+    </main>
+  </body>
 </html>

@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -60,13 +61,32 @@ public class ResultPublicationService {
 
     @PreAuthorize("hasAuthority('REGISTRATION_REVIEW')")
     public PublicationPage listForPublication(String publisherEmail) {
+        return listForPublication(publisherEmail, "");
+    }
+
+    @PreAuthorize("hasAuthority('REGISTRATION_REVIEW')")
+    public PublicationPage listForPublication(String publisherEmail, String search) {
         UserEntity publisher = findActivePublisher(publisherEmail);
+        String normalizedSearch = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
         List<ResultSummary> results = topicRegistrationRepository
                 .findByStatusForReview(TopicRegistrationStatus.APPROVED).stream()
                 .filter(registration -> canManage(publisher, registration))
                 .map(this::toSummary)
+                .filter(result -> normalizedSearch.isEmpty() || matchesSearch(result, normalizedSearch))
                 .toList();
         return new PublicationPage(results, scopeLabel(publisher));
+    }
+
+    private boolean matchesSearch(ResultSummary result, String search) {
+        return contains(result.groupName(), search)
+                || contains(result.topicTitle(), search)
+                || contains(result.departmentCode(), search)
+                || contains(result.departmentName(), search)
+                || contains(result.periodName(), search);
+    }
+
+    private boolean contains(String value, String search) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(search);
     }
 
     @Transactional

@@ -225,6 +225,14 @@ public class TopicPublicationService {
                     PublishedTopicSummary::getPeriodName,
                     Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
                     .thenComparing(PublishedTopicSummary::getTitle, String.CASE_INSENSITIVE_ORDER);
+            case "proposer" -> Comparator.comparing(
+                    PublishedTopicSummary::getProposedByName,
+                    Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                    .thenComparing(PublishedTopicSummary::getTitle, String.CASE_INSENSITIVE_ORDER);
+            case "updated" -> Comparator.comparing(
+                    PublishedTopicSummary::getUpdatedAt,
+                    Comparator.nullsLast(Comparator.naturalOrder()))
+                    .thenComparing(PublishedTopicSummary::getTitle, String.CASE_INSENSITIVE_ORDER);
             default -> Comparator.comparing(
                     PublishedTopicSummary::getTitle, String.CASE_INSENSITIVE_ORDER)
                     .thenComparing(PublishedTopicSummary::getDepartmentCode,

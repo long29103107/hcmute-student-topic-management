@@ -1,179 +1,383 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layouts/main}">
-<head><title>Department management</title></head>
-<body>
-<main layout:fragment="content" class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
-    <section aria-labelledby="page-title">
-        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-                <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Administration / Setup</p>
-                <h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Department management</h1>
-                <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500">Create and maintain the active departments used by faculty topic proposals.</p>
-            </div>
-            <div class="flex flex-wrap items-center gap-3">
-                <span class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
-                    <span class="me-1.5 h-2 w-2 rounded-full bg-blue-500"></span>Administrator only
-                </span>
-                <button sec:authorize="hasAuthority('DEPARTMENT_MANAGE')" type="button"
-                        class="inline-flex w-fit items-center justify-center rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
-                        data-modal-target="create-department-modal" data-modal-toggle="create-department-modal">
-                    <svg class="me-2 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m-7-7h14"/>
-                    </svg>
-                    Add department
-                </button>
-            </div>
+<!doctype html>
+<html
+  lang="en"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/main}"
+>
+  <head>
+    <title>Department management</title>
+  </head>
+  <body>
+    <main
+      layout:fragment="content"
+      class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8"
+    >
+      <section aria-labelledby="page-title">
+        <div
+          class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"
+        >
+          <div>
+            <p
+              class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500"
+            >
+              Administration / Setup
+            </p>
+            <h1
+              id="page-title"
+              class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
+            >
+              Department management
+            </h1>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <span
+              class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800"
+            >
+              <span class="me-1.5 h-2 w-2 rounded-full bg-blue-500"></span
+              >Administrator only
+            </span>
+            <button
+              sec:authorize="hasAuthority('DEPARTMENT_MANAGE')"
+              type="button"
+              class="inline-flex w-fit items-center justify-center rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
+              data-modal-target="create-department-modal"
+              data-modal-toggle="create-department-modal"
+            >
+              <svg
+                class="me-2 h-4 w-4"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 5v14m-7-7h14"
+                />
+              </svg>
+              Add department
+            </button>
+          </div>
         </div>
 
         <div class="mb-6 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
-            <aside class="rounded-lg border border-blue-100 bg-blue-50 p-5 shadow-sm sm:p-6" aria-labelledby="department-rules-heading">
-                <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-blue-600">Rules</p>
-                <h2 id="department-rules-heading" class="text-xl font-semibold text-blue-950">Safe references</h2>
-                <ul class="mt-4 space-y-3 text-sm leading-5 text-blue-900">
-                    <li class="flex gap-2"><span class="text-blue-600">✓</span><span>Only active departments can be selected by future topic forms.</span></li>
-                    <li class="flex gap-2"><span class="text-blue-600">✓</span><span>Existing topics keep their department when it is deactivated.</span></li>
-                    <li class="flex gap-2"><span class="text-blue-600">✓</span><span>Only administrators can change departments.</span></li>
-                </ul>
-            </aside>
+          <aside
+            class="rounded-lg border border-blue-100 bg-blue-50 p-5 shadow-sm sm:p-6"
+            aria-labelledby="department-rules-heading"
+          >
+            <p
+              class="mb-1 text-xs font-semibold uppercase tracking-widest text-blue-600"
+            >
+              Rules
+            </p>
+            <h2
+              id="department-rules-heading"
+              class="text-xl font-semibold text-blue-950"
+            >
+              Safe references
+            </h2>
+            <ul class="mt-4 space-y-3 text-sm leading-5 text-blue-900">
+              <li class="flex gap-2">
+                <span class="text-blue-600">✓</span
+                ><span
+                  >Only active departments can be selected by future topic
+                  forms.</span
+                >
+              </li>
+              <li class="flex gap-2">
+                <span class="text-blue-600">✓</span
+                ><span
+                  >Existing topics keep their department when it is
+                  deactivated.</span
+                >
+              </li>
+              <li class="flex gap-2">
+                <span class="text-blue-600">✓</span
+                ><span>Only administrators can change departments.</span>
+              </li>
+            </ul>
+          </aside>
         </div>
 
-        <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm" aria-labelledby="departments-heading">
-            <div class="flex flex-col justify-between gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:p-6">
-                <div>
-                    <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Directory</p>
-                    <h2 id="departments-heading" class="text-xl font-semibold text-gray-900">Departments</h2>
-                </div>
-                <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-                    <form class="flex w-full gap-2 sm:w-auto" th:action="@{/admin/departments}" method="get">
-                        <input type="hidden" name="sort" th:value="${departmentSort}">
-                        <input type="hidden" name="direction" th:value="${departmentDirection}">
-                        <label class="relative block min-w-0 flex-1 sm:w-80" for="department-search">
-                            <span class="sr-only">Search departments</span>
-                            <input id="department-search" name="search" type="search"
-                                   class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-                                   placeholder="Search departments" autocomplete="off" th:value="${departmentSearch}">
-                        </label>
-                        <button type="submit"
-                                class="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300">
-                            Search
-                        </button>
-                    </form>
-                         </div>
-            </div>
-            <div class="overflow-x-auto" th:if="${!#lists.isEmpty(departments)}">
-                <table class="w-full min-w-[720px] text-left text-sm text-gray-500">
-                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
-                    <tr>
-                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
-                                th:href="@{/admin/departments(search=${departmentSearch},sort='code',direction=${departmentSort == 'code' and departmentDirection == 'asc' ? 'desc' : 'asc'})}">
-                            Code <span th:text="${departmentSort == 'code' ? (departmentDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
-                        </a></th>
-                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
-                                th:href="@{/admin/departments(search=${departmentSearch},sort='name',direction=${departmentSort == 'name' and departmentDirection == 'asc' ? 'desc' : 'asc'})}">
-                            Department name <span th:text="${departmentSort == 'name' ? (departmentDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
-                        </a></th>
-                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
-                                th:href="@{/admin/departments(search=${departmentSearch},sort='status',direction=${departmentSort == 'status' and departmentDirection == 'asc' ? 'desc' : 'asc'})}">
-                            Status <span th:text="${departmentSort == 'status' ? (departmentDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
-                        </a></th>
-                        <th scope="col" class="px-6 py-3"><span class="sr-only">Actions</span></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr class="border-b border-gray-100 hover:bg-gray-50" th:each="department : ${departments}">
-                        <td class="whitespace-nowrap px-6 py-4 font-mono font-semibold text-gray-900" th:text="${department.code}">CNTT</td>
-                        <td class="px-6 py-4 font-medium text-gray-900" th:text="${department.name}">Information Technology</td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
-                                  th:classappend="${department.active ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}"
-                                  th:text="${department.active ? 'Active' : 'Inactive'}">Active</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex justify-end">
-                                <button sec:authorize="hasAuthority('DEPARTMENT_MANAGE')" type="button"
-                                        class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
-                                        th:id="${'department-actions-' + department.id}"
-                                        th:attr="data-dropdown-toggle=${'department-actions-menu-' + department.id},aria-controls=${'department-actions-menu-' + department.id},aria-haspopup='true'">
-                                    Actions
-                                    <svg class="ms-2 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
-                                    </svg>
-                                </button>
-                                <div sec:authorize="hasAuthority('DEPARTMENT_MANAGE')"
-                                     class="z-10 hidden w-48 divide-y divide-gray-100 rounded-lg bg-white shadow"
-                                     th:id="${'department-actions-menu-' + department.id}">
-                                    <ul class="py-2 text-sm text-gray-700"
-                                        th:attr="aria-labelledby=${'department-actions-' + department.id}">
-                                        <li>
-                                            <button type="button" class="block w-full px-4 py-2 text-left hover:bg-gray-100"
-                                                    th:attr="data-modal-target=${'edit-department-modal-' + department.id},data-modal-toggle=${'edit-department-modal-' + department.id}">
-                                                Edit
-                                            </button>
-                                        </li>
-                                        <li>
-                                            <form th:action="@{/admin/departments/{id}/status(id=${department.id})}" method="post" class="m-0"
-                                                  th:attr="data-confirm=${department.active ? 'Deactivate this department?' : 'Activate this department?'}">
-                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                                                <button type="submit" class="block w-full px-4 py-2 text-left hover:bg-gray-100"
-                                                        th:classappend="${department.active ? 'text-yellow-700' : 'text-green-700'}"
-                                                        th:text="${department.active ? 'Deactivate' : 'Activate'}">Deactivate</button>
-                                            </form>
-                                        </li>
-                                        <li>
-                                            <button type="button" class="block w-full px-4 py-2 text-left text-red-700 hover:bg-red-50"
-                                                    th:attr="data-modal-target=${'delete-department-modal-' + department.id},data-modal-toggle=${'delete-department-modal-' + department.id}">
-                                                Delete
-                                            </button>
-                                        </li>
-                                    </ul>
-                                </div>
+        <section
+          class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+          aria-labelledby="departments-heading"
+        >
+          <div
+            class="flex flex-col justify-end gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:justify-end sm:p-6"
+            style="align-items: flex-end"
+          >
+            <form
+              class="flex w-fit max-w-full gap-2"
+              th:action="@{/admin/departments}"
+              method="get"
+            >
+              <input type="hidden" name="sort" th:value="${departmentSort}" />
+              <input
+                type="hidden"
+                name="direction"
+                th:value="${departmentDirection}"
+              />
+              <label
+                class="relative block w-80 max-w-full flex-none"
+                for="department-search"
+              >
+                <span class="sr-only">Search departments</span>
+                <input
+                  id="department-search"
+                  name="search"
+                  type="search"
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                  placeholder="Search departments"
+                  autocomplete="off"
+                  th:value="${departmentSearch}"
+                />
+              </label>
+              <button
+                type="submit"
+                class="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
+              >
+                Search
+              </button>
+            </form>
+          </div>
+          <div class="overflow-x-auto" th:if="${!#lists.isEmpty(departments)}">
+            <table class="w-full min-w-[720px] text-left text-sm text-gray-500">
+              <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                <tr>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/admin/departments(search=${departmentSearch},sort='code',direction=${departmentSort == 'code' and departmentDirection == 'asc' ? 'desc' : 'asc'})}"
+                    >
+                      Code
+                      <span
+                        th:text="${departmentSort == 'code' ? (departmentDirection == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      >
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/admin/departments(search=${departmentSearch},sort='name',direction=${departmentSort == 'name' and departmentDirection == 'asc' ? 'desc' : 'asc'})}"
+                    >
+                      Department name
+                      <span
+                        th:text="${departmentSort == 'name' ? (departmentDirection == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      >
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/admin/departments(search=${departmentSearch},sort='status',direction=${departmentSort == 'status' and departmentDirection == 'asc' ? 'desc' : 'asc'})}"
+                    >
+                      Status
+                      <span
+                        th:text="${departmentSort == 'status' ? (departmentDirection == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      >
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <span class="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  class="border-b border-gray-100 hover:bg-gray-50"
+                  th:each="department : ${departments}"
+                >
+                  <td
+                    class="whitespace-nowrap px-6 py-4 font-mono font-semibold text-gray-900"
+                    th:text="${department.code}"
+                  >
+                    CNTT
+                  </td>
+                  <td
+                    class="px-6 py-4 font-medium text-gray-900"
+                    th:text="${department.name}"
+                  >
+                    Information Technology
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
+                      th:classappend="${department.active ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}"
+                      th:text="${department.active ? 'Active' : 'Inactive'}"
+                      >Active</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex justify-end">
+                      <button
+                        sec:authorize="hasAuthority('DEPARTMENT_MANAGE')"
+                        type="button"
+                        class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                        th:id="${'department-actions-' + department.id}"
+                        th:attr="data-dropdown-toggle=${'department-actions-menu-' + department.id},aria-controls=${'department-actions-menu-' + department.id},aria-haspopup='true'"
+                      >
+                        Actions
+                        <svg
+                          class="ms-2 h-4 w-4"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="m19 9-7 7-7-7"
+                          />
+                        </svg>
+                      </button>
+                      <div
+                        sec:authorize="hasAuthority('DEPARTMENT_MANAGE')"
+                        class="z-10 hidden w-48 divide-y divide-gray-100 rounded-lg bg-white shadow"
+                        th:id="${'department-actions-menu-' + department.id}"
+                      >
+                        <ul
+                          class="py-2 text-sm text-gray-700"
+                          th:attr="aria-labelledby=${'department-actions-' + department.id}"
+                        >
+                          <li>
+                            <button
+                              type="button"
+                              class="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                              th:attr="data-modal-target=${'edit-department-modal-' + department.id},data-modal-toggle=${'edit-department-modal-' + department.id}"
+                            >
+                              Edit
+                            </button>
+                          </li>
+                          <li>
+                            <div class="m-0">
+                              <button
+                                type="button"
+                                class="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                                th:classappend="${department.active ? 'text-yellow-700' : 'text-green-700'}"
+                                th:attr="data-modal-target=${'department-status-modal-' + department.id},data-modal-toggle=${'department-status-modal-' + department.id}"
+                                th:text="${department.active ? 'Deactivate' : 'Activate'}"
+                              >
+                                Deactivate
+                              </button>
                             </div>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between" th:if="${departmentPage.totalItems > 0}">
-                <p class="text-gray-500">Showing <span class="font-medium text-gray-900" th:text="${departmentPage.page * departmentPage.size + 1}">1</span>–<span class="font-medium text-gray-900" th:text="${departmentPage.page * departmentPage.size + #lists.size(departments)}">10</span> of <span class="font-medium text-gray-900" th:text="${departmentPage.totalItems}">15</span></p>
-                <nav aria-label="Department pagination">
-                    <ul class="inline-flex -space-x-px">
-                        <li>
-                            <a class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
-                               th:classappend="${!departmentPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
-                               th:attr="aria-disabled=${!departmentPage.hasPrevious}"
-                               th:href="@{/admin/departments(page=${departmentPage.page - 1},size=${departmentPage.size},sort=${departmentPage.sort},direction=${departmentPage.direction},search=${departmentSearch})}">Previous</a>
-                        </li>
-                        <li th:each="pageNumber : ${#numbers.sequence(0, departmentPage.totalPages - 1)}">
-                            <a class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
-                               th:classappend="${pageNumber == departmentPage.page ? 'bg-blue-50 text-blue-700' : ''}"
-                               th:attr="aria-current=${pageNumber == departmentPage.page ? 'page' : null}"
-                               th:href="@{/admin/departments(page=${pageNumber},size=${departmentPage.size},sort=${departmentPage.sort},direction=${departmentPage.direction},search=${departmentSearch})}"
-                               th:text="${pageNumber + 1}">1</a>
-                        </li>
-                        <li>
-                            <a class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
-                               th:classappend="${!departmentPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
-                               th:attr="aria-disabled=${!departmentPage.hasNext}"
-                               th:href="@{/admin/departments(page=${departmentPage.page + 1},size=${departmentPage.size},sort=${departmentPage.sort},direction=${departmentPage.direction},search=${departmentSearch})}">Next</a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-            <p class="px-6 py-12 text-center text-sm text-gray-500" th:if="${#lists.isEmpty(departments) and #strings.isEmpty(departmentSearch)}">No departments are available.</p>
-            <p class="px-6 py-12 text-center text-sm text-gray-500" th:if="${#lists.isEmpty(departments) and !#strings.isEmpty(departmentSearch)}">No departments match your search.</p>
+                          </li>
+                          <li>
+                            <button
+                              type="button"
+                              class="block w-full px-4 py-2 text-left text-red-700 hover:bg-red-50"
+                              th:attr="data-modal-target=${'delete-department-modal-' + department.id},data-modal-toggle=${'delete-department-modal-' + department.id}"
+                            >
+                              Delete
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div
+            class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between"
+            th:if="${departmentPage.totalItems > 0}"
+          >
+            <p class="text-gray-500">
+              Showing
+              <span
+                class="font-medium text-gray-900"
+                th:text="${departmentPage.page * departmentPage.size + 1}"
+                >1</span
+              >–<span
+                class="font-medium text-gray-900"
+                th:text="${departmentPage.page * departmentPage.size + #lists.size(departments)}"
+                >10</span
+              >
+              of
+              <span
+                class="font-medium text-gray-900"
+                th:text="${departmentPage.totalItems}"
+                >15</span
+              >
+            </p>
+            <nav aria-label="Department pagination">
+              <ul class="inline-flex -space-x-px">
+                <li>
+                  <a
+                    class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${!departmentPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
+                    th:attr="aria-disabled=${!departmentPage.hasPrevious}"
+                    th:href="@{/admin/departments(page=${departmentPage.page - 1},size=${departmentPage.size},sort=${departmentPage.sort},direction=${departmentPage.direction},search=${departmentSearch})}"
+                    >Previous</a
+                  >
+                </li>
+                <li
+                  th:each="pageNumber : ${#numbers.sequence(0, departmentPage.totalPages - 1)}"
+                >
+                  <a
+                    class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${pageNumber == departmentPage.page ? 'bg-blue-50 text-blue-700' : ''}"
+                    th:attr="aria-current=${pageNumber == departmentPage.page ? 'page' : null}"
+                    th:href="@{/admin/departments(page=${pageNumber},size=${departmentPage.size},sort=${departmentPage.sort},direction=${departmentPage.direction},search=${departmentSearch})}"
+                    th:text="${pageNumber + 1}"
+                    >1</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${!departmentPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
+                    th:attr="aria-disabled=${!departmentPage.hasNext}"
+                    th:href="@{/admin/departments(page=${departmentPage.page + 1},size=${departmentPage.size},sort=${departmentPage.sort},direction=${departmentPage.direction},search=${departmentSearch})}"
+                    >Next</a
+                  >
+                </li>
+              </ul>
+            </nav>
+          </div>
+          <p
+            class="px-6 py-12 text-center text-sm text-gray-500"
+            th:if="${#lists.isEmpty(departments) and #strings.isEmpty(departmentSearch)}"
+          >
+            No departments are available.
+          </p>
+          <p
+            class="px-6 py-12 text-center text-sm text-gray-500"
+            th:if="${#lists.isEmpty(departments) and !#strings.isEmpty(departmentSearch)}"
+          >
+            No departments match your search.
+          </p>
         </section>
-    </section>
+      </section>
 
-    <th:block sec:authorize="hasAuthority('DEPARTMENT_MANAGE')">
-                        <div th:replace="~{fragments/department-form :: departmentModal(modalId='create-department-modal', formObjectName='createForm', formAction='/admin/departments', editing=false, title='Create department', submitLabel='Create department', fieldPrefix='create-department')}"></div>
+      <th:block sec:authorize="hasAuthority('DEPARTMENT_MANAGE')">
+        <div
+          th:replace="~{fragments/department-form :: departmentModal(modalId='create-department-modal', formObjectName='createForm', formAction='/admin/departments', editing=false, title='Create department', submitLabel='Create department', fieldPrefix='create-department')}"
+        ></div>
         <th:block th:each="department : ${departments}">
-            <div th:replace="~{fragments/department-form :: departmentModal(modalId=${'edit-department-modal-' + department.id}, formObjectName=${'editForm' + department.id}, formAction=${'/admin/departments/' + department.id + '/edit'}, editing=true, title='Edit department', submitLabel='Save changes', fieldPrefix=${'edit-department-' + department.id})}"></div>
-            <div th:replace="~{fragments/department-delete-confirmation :: departmentDeleteModal(modalId=${'delete-department-modal-' + department.id}, formAction=${'/admin/departments/' + department.id + '/delete'}, departmentName=${department.name}, departmentCode=${department.code})}"></div>
+          <div
+            th:replace="~{fragments/department-form :: departmentModal(modalId=${'edit-department-modal-' + department.id}, formObjectName=${'editForm' + department.id}, formAction=${'/admin/departments/' + department.id + '/edit'}, editing=true, title='Edit department', submitLabel='Save changes', fieldPrefix=${'edit-department-' + department.id})}"
+          ></div>
+          <div
+            th:replace="~{fragments/department-delete-confirmation :: departmentDeleteModal(modalId=${'delete-department-modal-' + department.id}, formAction=${'/admin/departments/' + department.id + '/delete'}, departmentName=${department.name}, departmentCode=${department.code})}"
+          ></div>
+          <div
+            th:replace="~{fragments/department-status-confirmation :: departmentStatusModal(modalId=${'department-status-modal-' + department.id}, formAction=${'/admin/departments/' + department.id + '/status'}, departmentName=${department.name}, departmentCode=${department.code}, active=${department.active})}"
+          ></div>
         </th:block>
-    </th:block>
-</main>
-</body>
+      </th:block>
+    </main>
+  </body>
 </html>

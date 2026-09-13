@@ -1,142 +1,324 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layouts/main}">
-<head><title>My topic proposals</title></head>
-<body>
-<main layout:fragment="content" class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
-    <section aria-labelledby="page-title">
-        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-                <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Lecturer workspace / Topics</p>
-                <h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">My topic proposals</h1>
-                <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500">Create and update your topic proposals before faculty review.</p>
-            </div>
-            <button type="button"
-                    class="inline-flex w-fit items-center justify-center rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
-                    data-modal-target="create-topic-modal" data-modal-toggle="create-topic-modal">
-                <svg class="me-2 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m-7-7h14"/>
-                </svg>
-                Add topic proposal
-            </button>
-        </div>
-
-        <div class="mb-6 flex items-start rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-5 text-blue-900" role="status">
-            <svg class="me-3 mt-0.5 h-5 w-5 shrink-0 text-blue-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 1a9 9 0 1 0 9 9 9.01 9.01 0 0 0-9-9Zm0 4a1 1 0 1 1 0 2 1 1 0 0 1 0-2Zm1 10H9v-6h2v6Z"/>
+<!doctype html>
+<html
+  lang="en"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/main}"
+>
+  <head>
+    <title>My topic proposals</title>
+  </head>
+  <body>
+    <main
+      layout:fragment="content"
+      class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8"
+    >
+      <section aria-labelledby="page-title">
+        <div
+          class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"
+        >
+          <div>
+            <p
+              class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500"
+            >
+              Lecturer workspace / Topics
+            </p>
+            <h1
+              id="page-title"
+              class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
+            >
+              My topic proposals
+            </h1>
+          </div>
+          <button
+            type="button"
+            class="inline-flex w-fit items-center justify-center rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
+            data-modal-target="create-topic-modal"
+            data-modal-toggle="create-topic-modal"
+          >
+            <svg
+              class="me-2 h-4 w-4"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 5v14m-7-7h14"
+              />
             </svg>
-            <span>Only active departments and registration periods currently open for lecturers can be selected.</span>
+            Add topic proposal
+          </button>
         </div>
 
-        <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm" aria-labelledby="topics-heading">
-            <div class="flex flex-col justify-between gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:p-6">
-                <div>
-                    <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Directory</p>
-                    <h2 id="topics-heading" class="text-xl font-semibold text-gray-900">Topic proposals</h2>
-                </div>
-                <span class="text-sm text-gray-500" th:text="${#lists.size(topics) + ' proposals'}">0 proposals</span>
-            </div>
-            <div class="overflow-x-auto" th:if="${!#lists.isEmpty(topics)}">
-                <table class="w-full min-w-[1050px] text-left text-sm text-gray-500">
-                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
-                    <tr>
-                        <th scope="col" class="px-6 py-3">Topic</th>
-                        <th scope="col" class="px-6 py-3">Department</th>
-                        <th scope="col" class="px-6 py-3">Registration period</th>
-                        <th scope="col" class="px-6 py-3">Status</th>
-                        <th scope="col" class="px-6 py-3">Last updated</th>
-                        <th scope="col" class="px-6 py-3"><span class="sr-only">Actions</span></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr class="border-b border-gray-100 align-top hover:bg-gray-50" th:each="topic : ${topics}">
-                        <td class="max-w-sm px-6 py-4">
-                            <strong class="block font-semibold text-gray-900" th:text="${topic.title}">Smart campus platform</strong>
-                            <span class="mt-1 block line-clamp-2 text-xs leading-5 text-gray-500" th:text="${topic.description}">Topic description</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="block font-medium text-gray-900" th:text="${topic.departmentCode}">CNTT</span>
-                            <span class="block text-xs text-gray-500" th:text="${topic.departmentName}">Công nghệ thông tin</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="block font-medium text-gray-900" th:text="${topic.periodName}">Semester 1</span>
-                            <span class="block text-xs text-gray-500" th:text="${topic.periodType}">COURSE</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
-                                  th:classappend="${topic.statusCode == 'DRAFT' ? 'bg-blue-100 text-blue-800' : topic.statusCode == 'REJECTED' ? 'bg-red-100 text-red-800' : topic.statusCode == 'PENDING_APPROVAL' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}"
-                                  th:text="${topic.statusLabel}">Draft</span>
-                        </td>
-                        <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-500" th:text="${#temporals.format(topic.updatedAt, 'dd/MM/yyyy HH:mm')}">04/09/2026 15:00</td>
-                        <td class="px-6 py-4">
-                            <div class="flex justify-end" th:if="${topic.editable}">
-                                <button type="button"
-                                        class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
-                                        th:id="${'topic-actions-' + topic.id}"
-                                        th:attr="data-dropdown-toggle=${'topic-actions-menu-' + topic.id},aria-controls=${'topic-actions-menu-' + topic.id},aria-haspopup='true'">
-                                    Actions
-                                    <svg class="ms-2 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
-                                    </svg>
-                                </button>
-                                <div class="z-10 hidden w-32 divide-y divide-gray-100 rounded-lg bg-white shadow"
-                                     th:id="${'topic-actions-menu-' + topic.id}">
-                                    <ul class="py-2 text-sm text-gray-700" th:attr="aria-labelledby=${'topic-actions-' + topic.id}">
-                                        <li><button type="button" class="block w-full px-4 py-2 text-left hover:bg-gray-100"
-                                                    th:attr="data-modal-target=${'edit-topic-modal-' + topic.id},data-modal-toggle=${'edit-topic-modal-' + topic.id}">Edit</button></li>
-                                        <li><button type="button" class="block w-full px-4 py-2 text-left text-blue-700 hover:bg-blue-50"
-                                                    th:attr="data-submit-review-open=${'submit-topic-form-' + topic.id},data-submit-review-topic-title=${topic.title}"
-                                                    th:text="${topic.statusCode == 'REJECTED' ? 'Resubmit for review' : 'Submit for review'}">Submit for review</button></li>
-                                    </ul>
-                                </div>
-                                <form class="hidden" method="post" th:id="${'submit-topic-form-' + topic.id}"
-                                      th:action="${'/lecturer/topics/' + topic.id + '/submit'}" data-submit-review-form>
-                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                                </form>
-                            </div>
-                            <span class="text-xs text-gray-400" th:unless="${topic.editable}">Read only</span>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-            <p class="px-6 py-12 text-center text-sm text-gray-500" th:if="${#lists.isEmpty(topics)}">You have not created any topic proposals yet.</p>
+        <div
+          class="mb-6 flex items-start rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-5 text-blue-900"
+          role="status"
+        >
+          <svg
+            class="me-3 mt-0.5 h-5 w-5 shrink-0 text-blue-600"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              d="M10 1a9 9 0 1 0 9 9 9.01 9.01 0 0 0-9-9Zm0 4a1 1 0 1 1 0 2 1 1 0 0 1 0-2Zm1 10H9v-6h2v6Z"
+            />
+          </svg>
+          <span
+            >Only active departments and registration periods currently open for
+            lecturers can be selected.</span
+          >
+        </div>
+
+        <section
+          class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+          aria-labelledby="topics-heading"
+        >
+          <div class="overflow-x-auto" th:if="${!#lists.isEmpty(topics)}">
+            <table
+              class="w-full min-w-[1050px] text-left text-sm text-gray-500"
+            >
+              <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                <tr>
+                  <th scope="col" class="px-6 py-3">Topic</th>
+                  <th scope="col" class="px-6 py-3">Department</th>
+                  <th scope="col" class="px-6 py-3">Registration period</th>
+                  <th scope="col" class="px-6 py-3">Status</th>
+                  <th scope="col" class="px-6 py-3">Last updated</th>
+                  <th scope="col" class="px-6 py-3">
+                    <span class="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  class="border-b border-gray-100 align-top hover:bg-gray-50"
+                  th:each="topic : ${topics}"
+                >
+                  <td class="max-w-sm px-6 py-4">
+                    <strong
+                      class="block font-semibold text-gray-900"
+                      th:text="${topic.title}"
+                      >Smart campus platform</strong
+                    >
+                    <span
+                      class="mt-1 block line-clamp-2 text-xs leading-5 text-gray-500"
+                      th:text="${topic.description}"
+                      >Topic description</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="block font-medium text-gray-900"
+                      th:text="${topic.departmentCode}"
+                      >CNTT</span
+                    >
+                    <span
+                      class="block text-xs text-gray-500"
+                      th:text="${topic.departmentName}"
+                      >Công nghệ thông tin</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="block font-medium text-gray-900"
+                      th:text="${topic.periodName}"
+                      >Semester 1</span
+                    >
+                    <span
+                      class="block text-xs text-gray-500"
+                      th:text="${topic.periodType}"
+                      >COURSE</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
+                      th:classappend="${topic.statusCode == 'DRAFT' ? 'bg-blue-100 text-blue-800' : topic.statusCode == 'REJECTED' ? 'bg-red-100 text-red-800' : topic.statusCode == 'PENDING_APPROVAL' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}"
+                      th:text="${topic.statusLabel}"
+                      >Draft</span
+                    >
+                  </td>
+                  <td
+                    class="whitespace-nowrap px-6 py-4 text-xs text-gray-500"
+                    th:text="${#temporals.format(topic.updatedAt, 'dd/MM/yyyy HH:mm')}"
+                  >
+                    04/09/2026 15:00
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex justify-end" th:if="${topic.editable}">
+                      <button
+                        type="button"
+                        class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                        th:id="${'topic-actions-' + topic.id}"
+                        th:attr="data-dropdown-toggle=${'topic-actions-menu-' + topic.id},aria-controls=${'topic-actions-menu-' + topic.id},aria-haspopup='true'"
+                      >
+                        Actions
+                        <svg
+                          class="ms-2 h-4 w-4"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="m19 9-7 7-7-7"
+                          />
+                        </svg>
+                      </button>
+                      <div
+                        class="z-10 hidden w-32 divide-y divide-gray-100 rounded-lg bg-white shadow"
+                        th:id="${'topic-actions-menu-' + topic.id}"
+                      >
+                        <ul
+                          class="py-2 text-sm text-gray-700"
+                          th:attr="aria-labelledby=${'topic-actions-' + topic.id}"
+                        >
+                          <li>
+                            <button
+                              type="button"
+                              class="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                              th:attr="data-modal-target=${'edit-topic-modal-' + topic.id},data-modal-toggle=${'edit-topic-modal-' + topic.id}"
+                            >
+                              Edit
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              type="button"
+                              class="block w-full px-4 py-2 text-left text-blue-700 hover:bg-blue-50"
+                              th:attr="data-submit-review-open=${'submit-topic-form-' + topic.id},data-submit-review-topic-title=${topic.title}"
+                              th:text="${topic.statusCode == 'REJECTED' ? 'Resubmit for review' : 'Submit for review'}"
+                            >
+                              Submit for review
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
+                      <form
+                        class="hidden"
+                        method="post"
+                        th:id="${'submit-topic-form-' + topic.id}"
+                        th:action="${'/lecturer/topics/' + topic.id + '/submit'}"
+                        data-submit-review-form
+                      >
+                        <input
+                          type="hidden"
+                          th:name="${_csrf.parameterName}"
+                          th:value="${_csrf.token}"
+                        />
+                      </form>
+                    </div>
+                    <span
+                      class="text-xs text-gray-400"
+                      th:unless="${topic.editable}"
+                      >Read only</span
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div th:if="${#lists.isEmpty(topics)}">
+            <div th:replace="~{fragments/no-data :: noData}"></div>
+          </div>
         </section>
-    </section>
+      </section>
 
-    <div th:replace="~{fragments/topic-form :: topicModal(modalId='create-topic-modal', formObjectName='createForm', formAction='/lecturer/topics', editing=false, title='Create topic proposal', submitLabel='Save proposal', fieldPrefix='create-topic', departments=${departments}, periods=${periods})}"></div>
-    <th:block th:each="topic : ${topics}" th:if="${topic.editable}">
-        <div th:replace="~{fragments/topic-form :: topicModal(modalId=${'edit-topic-modal-' + topic.id}, formObjectName=${'editForm' + topic.id}, formAction=${'/lecturer/topics/' + topic.id + '/edit'}, editing=true, title='Edit topic proposal', submitLabel='Save changes', fieldPrefix=${'edit-topic-' + topic.id}, departments=${departments}, periods=${periods})}"></div>
-    </th:block>
+      <div
+        th:replace="~{fragments/topic-form :: topicModal(modalId='create-topic-modal', formObjectName='createForm', formAction='/lecturer/topics', editing=false, title='Create topic proposal', submitLabel='Save proposal', fieldPrefix='create-topic', departments=${departments}, periods=${periods})}"
+      ></div>
+      <th:block th:each="topic : ${topics}" th:if="${topic.editable}">
+        <div
+          th:replace="~{fragments/topic-form :: topicModal(modalId=${'edit-topic-modal-' + topic.id}, formObjectName=${'editForm' + topic.id}, formAction=${'/lecturer/topics/' + topic.id + '/edit'}, editing=true, title='Edit topic proposal', submitLabel='Save changes', fieldPrefix=${'edit-topic-' + topic.id}, departments=${departments}, periods=${periods})}"
+        ></div>
+      </th:block>
 
-    <div id="submit-topic-review-modal" class="fixed inset-0 z-[70] hidden overflow-y-auto" tabindex="-1"
-         aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="submit-topic-review-title"
-         aria-describedby="submit-topic-review-description" data-topic-submit-confirm-modal>
-        <div class="flex min-h-full items-center justify-center bg-gray-900/50 p-4">
-            <div class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-                <button type="button" class="absolute end-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-900"
-                        aria-label="Close confirmation dialog" data-topic-submit-modal-close>
-                    <svg class="h-3 w-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 12 12M13 1 1 13"/>
-                    </svg>
-                </button>
-                <div class="pe-8">
-                    <h2 id="submit-topic-review-title" class="text-lg font-semibold text-gray-900">Submit topic for review?</h2>
-                    <p id="submit-topic-review-description" class="mt-2 text-sm leading-6 text-gray-500">
-                        <span data-topic-submit-modal-topic-title>this topic</span> will be sent to the Faculty Head for review. You will no longer be able to edit it until a decision is made.
-                    </p>
-                </div>
-                <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
-                            data-topic-submit-modal-close>Cancel</button>
-                    <button type="button" class="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800"
-                            data-topic-submit-modal-confirm>Submit for review</button>
-                </div>
+      <div
+        id="submit-topic-review-modal"
+        class="fixed inset-0 z-[70] hidden overflow-y-auto"
+        tabindex="-1"
+        aria-hidden="true"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="submit-topic-review-title"
+        aria-describedby="submit-topic-review-description"
+        data-topic-submit-confirm-modal
+      >
+        <div
+          class="flex min-h-full items-center justify-center bg-gray-900/50 p-4"
+        >
+          <div
+            class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+          >
+            <button
+              type="button"
+              class="absolute end-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-900"
+              aria-label="Close confirmation dialog"
+              data-topic-submit-modal-close
+            >
+              <svg
+                class="h-3 w-3"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 14 14"
+              >
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="m1 1 12 12M13 1 1 13"
+                />
+              </svg>
+            </button>
+            <div class="pe-8">
+              <h2
+                id="submit-topic-review-title"
+                class="text-lg font-semibold text-gray-900"
+              >
+                Submit topic for review?
+              </h2>
+              <p
+                id="submit-topic-review-description"
+                class="mt-2 text-sm leading-6 text-gray-500"
+              >
+                <span data-topic-submit-modal-topic-title>this topic</span> will
+                be sent to the Faculty Head for review. You will no longer be
+                able to edit it until a decision is made.
+              </p>
             </div>
+            <div class="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                data-topic-submit-modal-close
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                class="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800"
+                data-topic-submit-modal-confirm
+              >
+                Submit for review
+              </button>
+            </div>
+          </div>
         </div>
-    </div>
-</main>
-</body>
+      </div>
+    </main>
+  </body>
 </html>

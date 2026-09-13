@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -62,12 +63,19 @@ public class ReviewBoardService {
 
     @PreAuthorize("hasAuthority('REVIEW_BOARD_VIEW')")
     public BoardPage page(String actorEmail) {
+        return page(actorEmail, "");
+    }
+
+    @PreAuthorize("hasAuthority('REVIEW_BOARD_VIEW')")
+    public BoardPage page(String actorEmail, String search) {
         UserEntity actor = findActiveActor(actorEmail);
+        String normalizedSearch = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
         List<ReviewBoardSummary> boards = reviewBoardRepository.findAll().stream()
                 .filter(board -> canView(actor, board))
-                .sorted(Comparator.comparing(ReviewBoardEntity::getScheduledAt,
-                        Comparator.nullsLast(Comparator.naturalOrder())))
                 .map(this::toSummary)
+                .filter(board -> normalizedSearch.isEmpty() || matchesSearch(board, normalizedSearch))
+                .sorted(Comparator.comparing(ReviewBoardSummary::scheduledAt,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
         List<RegistrationOption> registrations = registrationRepository
                 .findByStatusOrderBySubmittedAtDesc(TopicRegistrationStatus.APPROVED).stream()
@@ -77,6 +85,22 @@ public class ReviewBoardService {
                 .toList();
         List<LecturerOption> candidates = lecturerOptions(actor);
         return new BoardPage(boards, registrations, candidates, scopeLabel(actor));
+    }
+
+    private static boolean matchesSearch(ReviewBoardSummary board, String search) {
+        return contains(board.topicTitle(), search)
+                || contains(board.groupName(), search)
+                || contains(board.departmentCode(), search)
+                || contains(board.departmentName(), search)
+                || contains(board.periodName(), search)
+                || contains(board.status(), search)
+                || board.members().stream().anyMatch(member -> contains(member.fullName(), search)
+                        || contains(member.email(), search)
+                        || contains(member.role(), search));
+    }
+
+    private static boolean contains(String value, String search) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(search);
     }
 
     @PreAuthorize("hasAuthority('REVIEW_BOARD_VIEW')")

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.hcmute.topicmanagement.service.ResultPublicationService;
@@ -23,13 +24,17 @@ public class ResultController {
 
     @GetMapping("/faculty/results")
     @PreAuthorize("hasAuthority('REGISTRATION_REVIEW')")
-    public String publicationQueue(Authentication authentication, Model model) {
+    public String publicationQueue(
+            Authentication authentication,
+            @RequestParam(defaultValue = "") String search,
+            Model model) {
         ResultPublicationService.PublicationPage publicationPage =
-                resultPublicationService.listForPublication(authentication.getName());
+                resultPublicationService.listForPublication(authentication.getName(), search);
         model.addAttribute("pageTitle", "Result publication");
         model.addAttribute("publicationPage", publicationPage);
         model.addAttribute("results", publicationPage.results());
         model.addAttribute("resultScope", publicationPage.scopeLabel());
+        model.addAttribute("resultSearch", search);
         return "faculty/results";
     }
 
