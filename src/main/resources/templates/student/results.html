@@ -1,67 +1,170 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layouts/main}">
-<head><title>My results</title></head>
-<body>
-<main layout:fragment="content" class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
-    <section aria-labelledby="page-title">
-        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-                <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Student workspace / Results</p>
-                <h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">My results</h1>
-                <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500">View final results published for groups you belong to.</p>
-            </div>
-            <span class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800" th:text="${#lists.size(results) + ' published results'}">0 published results</span>
+<!doctype html>
+<html
+  lang="en"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/main}"
+>
+  <head>
+    <title>My results</title>
+  </head>
+  <body>
+    <main
+      layout:fragment="content"
+      class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8"
+    >
+      <section aria-labelledby="page-title">
+        <div
+          class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"
+        >
+          <div>
+            <p
+              class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500"
+            >
+              Student workspace / Results
+            </p>
+            <h1
+              id="page-title"
+              class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
+            >
+              My results
+            </h1>
+          </div>
+          <span
+            class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800"
+            th:text="${#lists.size(results) + ' published results'}"
+            >0 published results</span
+          >
         </div>
 
-        <div class="mb-6 flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-5 text-blue-900" role="status">
-            <svg class="mt-0.5 h-5 w-5 shrink-0 text-blue-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M10 1a9 9 0 1 0 9 9 9.01 9.01 0 0 0-9-9Zm0 4a1 1 0 1 1 1 1 1 1 0 0 1-1-1Zm1 10H9v-6h2v6Z"/></svg>
-            <span>Only published results for your own groups are shown. Draft and unpublished results are private.</span>
+        <div
+          class="mb-6 flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-5 text-blue-900"
+          role="status"
+        >
+          <svg
+            class="mt-0.5 h-5 w-5 shrink-0 text-blue-600"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              d="M10 1a9 9 0 1 0 9 9 9.01 9.01 0 0 0-9-9Zm0 4a1 1 0 1 1 1 1 1 1 0 0 1-1-1Zm1 10H9v-6h2v6Z"
+            />
+          </svg>
+          <span
+            >Only published results for your own groups are shown. Draft and
+            unpublished results are private.</span
+          >
         </div>
 
-        <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm" aria-labelledby="results-heading">
-            <div class="border-b border-gray-200 p-5 sm:p-6">
-                <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Published results</p>
-                <h2 id="results-heading" class="text-xl font-semibold text-gray-900">Group results</h2>
+        <section
+          class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+          aria-labelledby="results-heading"
+        >
+          <div class="overflow-x-auto" th:if="${!#lists.isEmpty(results)}">
+            <table class="w-full min-w-[900px] text-left text-sm text-gray-600">
+              <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                <tr>
+                  <th scope="col" class="px-6 py-3">Group</th>
+                  <th scope="col" class="px-6 py-3">Topic</th>
+                  <th scope="col" class="px-6 py-3">Department / period</th>
+                  <th scope="col" class="px-6 py-3">Average score</th>
+                  <th scope="col" class="px-6 py-3">Published at</th>
+                  <th scope="col" class="px-6 py-3">Final comment</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  class="border-b border-gray-100 align-top hover:bg-gray-50"
+                  th:each="result : ${results}"
+                >
+                  <td class="px-6 py-4">
+                    <strong
+                      class="block font-semibold text-gray-900"
+                      th:text="${result.groupName}"
+                      >Group Phoenix</strong
+                    >
+                    <span
+                      class="mt-1 block text-xs text-gray-500"
+                      th:text="${'Group #' + result.groupId}"
+                      >Group #1</span
+                    >
+                  </td>
+                  <td
+                    class="max-w-sm px-6 py-4 font-medium text-gray-900"
+                    th:text="${result.topicTitle}"
+                  >
+                    Smart campus platform
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="block font-medium text-gray-900"
+                      th:text="${result.departmentCode + ' · ' + result.departmentName}"
+                      >CNTT · Công nghệ thông tin</span
+                    >
+                    <span
+                      class="mt-1 block text-xs text-gray-500"
+                      th:text="${result.periodName}"
+                      >Semester 1</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="font-semibold text-gray-900"
+                      th:text="${result.averageScore.stripTrailingZeros().toPlainString()}"
+                      >8.25</span
+                    >
+                  </td>
+                  <td
+                    class="whitespace-nowrap px-6 py-4"
+                    th:text="${#temporals.format(result.publishedAt, 'dd/MM/yyyy HH:mm')}"
+                  >
+                    05/09/2026 17:00
+                  </td>
+                  <td
+                    class="max-w-sm px-6 py-4"
+                    th:text="${result.finalComment ?: 'No final comment.'}"
+                  >
+                    No final comment.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div
+            class="flex flex-col items-center justify-center px-6 py-14 text-center"
+            th:if="${#lists.isEmpty(results)}"
+          >
+            <div
+              class="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400"
+            >
+              <svg
+                class="h-7 w-7"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"
+                />
+              </svg>
             </div>
-            <div class="overflow-x-auto" th:if="${!#lists.isEmpty(results)}">
-                <table class="w-full min-w-[900px] text-left text-sm text-gray-600">
-                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
-                    <tr>
-                        <th scope="col" class="px-6 py-3">Group</th>
-                        <th scope="col" class="px-6 py-3">Topic</th>
-                        <th scope="col" class="px-6 py-3">Department / period</th>
-                        <th scope="col" class="px-6 py-3">Average score</th>
-                        <th scope="col" class="px-6 py-3">Published at</th>
-                        <th scope="col" class="px-6 py-3">Final comment</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr class="border-b border-gray-100 align-top hover:bg-gray-50" th:each="result : ${results}">
-                        <td class="px-6 py-4">
-                            <strong class="block font-semibold text-gray-900" th:text="${result.groupName}">Group Phoenix</strong>
-                            <span class="mt-1 block text-xs text-gray-500" th:text="${'Group #' + result.groupId}">Group #1</span>
-                        </td>
-                        <td class="max-w-sm px-6 py-4 font-medium text-gray-900" th:text="${result.topicTitle}">Smart campus platform</td>
-                        <td class="px-6 py-4">
-                            <span class="block font-medium text-gray-900" th:text="${result.departmentCode + ' · ' + result.departmentName}">CNTT · Công nghệ thông tin</span>
-                            <span class="mt-1 block text-xs text-gray-500" th:text="${result.periodName}">Semester 1</span>
-                        </td>
-                        <td class="px-6 py-4"><span class="font-semibold text-gray-900" th:text="${result.averageScore.stripTrailingZeros().toPlainString()}">8.25</span></td>
-                        <td class="whitespace-nowrap px-6 py-4" th:text="${#temporals.format(result.publishedAt, 'dd/MM/yyyy HH:mm')}">05/09/2026 17:00</td>
-                        <td class="max-w-sm px-6 py-4" th:text="${result.finalComment ?: 'No final comment.'}">No final comment.</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="flex flex-col items-center justify-center px-6 py-14 text-center" th:if="${#lists.isEmpty(results)}">
-                <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400"><svg class="h-7 w-7" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/></svg></div>
-                <h3 class="text-base font-semibold text-gray-900">No published results</h3>
-                <p class="mt-1 max-w-sm text-sm leading-6 text-gray-500">Your published result will appear here after the Faculty Head completes the workflow.</p>
-            </div>
+            <h3 class="text-base font-semibold text-gray-900">
+              No published results
+            </h3>
+            <p class="mt-1 max-w-sm text-sm leading-6 text-gray-500">
+              Your published result will appear here after the Faculty Head
+              completes the workflow.
+            </p>
+          </div>
         </section>
-    </section>
-</main>
-</body>
+      </section>
+    </main>
+  </body>
 </html>
