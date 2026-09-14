@@ -10,11 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.hcmute.topicmanagement.model.DepartmentEntity;
-import com.hcmute.topicmanagement.model.RoleEntity;
 import com.hcmute.topicmanagement.model.TopicRegistrationEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
 import com.hcmute.topicmanagement.model.enums.TopicRegistrationStatus;
+import com.hcmute.topicmanagement.repository.DepartmentRepository;
 import com.hcmute.topicmanagement.repository.TopicRegistrationRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
 
@@ -24,12 +24,15 @@ public class TopicRegistrationReviewService {
 
     private final TopicRegistrationRepository topicRegistrationRepository;
     private final UserRepository userRepository;
+    private final DepartmentRepository departmentRepository;
 
     public TopicRegistrationReviewService(
             TopicRegistrationRepository topicRegistrationRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            DepartmentRepository departmentRepository) {
         this.topicRegistrationRepository = topicRegistrationRepository;
         this.userRepository = userRepository;
+        this.departmentRepository = departmentRepository;
     }
 
     @PreAuthorize("hasAuthority('REGISTRATION_REVIEW')")
@@ -41,13 +44,15 @@ public class TopicRegistrationReviewService {
 
     @PreAuthorize("hasAuthority('REGISTRATION_REVIEW')")
     public RegistrationReviewPage listPendingPage(
-            String reviewerEmail, String search, int page, int size, String sort, String direction) {
+            String reviewerEmail, String search, Long departmentId,
+            int page, int size, String sort, String direction) {
         String normalizedSearch = normalizeSearch(search);
         String normalizedSort = normalizeSort(sort);
         String normalizedDirection = normalizeDirection(direction);
         int safeSize = Math.min(Math.max(size, 5), 100);
         List<RegistrationReviewSummary> filtered = pendingRegistrations(reviewerEmail).stream()
                 .map(TopicRegistrationReviewService::toSummary)
+            .filter(registration -> departmentId == null || departmentId.equals(registration.getDepartmentId()))
                 .filter(registration -> matchesSearch(registration, normalizedSearch))
                 .sorted(registrationComparator(normalizedSort, normalizedDirection))
                 .toList();
@@ -58,7 +63,21 @@ public class TopicRegistrationReviewService {
         int to = Math.min(from + safeSize, totalItems);
         return new RegistrationReviewPage(
                 filtered.subList(from, to), safePage, safeSize, totalItems, totalPages,
-                normalizedSearch, normalizedSort, normalizedDirection);
+                normalizedSearch, normalizedSort, normalizedDirection, departmentId);
+    }
+
+    @PreAuthorize("hasAuthority('REGISTRATION_REVIEW')")
+    public List<DepartmentOption> listDepartmentOptions(String reviewerEmail) {
+        UserEntity reviewer = findActiveReviewer(reviewerEmail);
+        if (isAdmin(reviewer)) {
+            return departmentRepository.findByActiveTrueOrderByNameAsc().stream()
+                    .map(TopicRegistrationReviewService::toDepartmentOption)
+                    .toList();
+        }
+        DepartmentEntity department = reviewer.getDepartment();
+        return department == null || !department.isActive()
+                ? List.of()
+                : List.of(toDepartmentOption(department));
     }
 
     @Transactional
@@ -205,6 +224,10 @@ public class TopicRegistrationReviewService {
         return reason == null ? "" : reason.trim();
     }
 
+    private static DepartmentOption toDepartmentOption(DepartmentEntity department) {
+        return new DepartmentOption(department.getId(), department.getCode(), department.getName());
+    }
+
     private static RegistrationReviewSummary toSummary(TopicRegistrationEntity registration) {
         return new RegistrationReviewSummary(
                 registration.getId(),
@@ -343,10 +366,11 @@ public class TopicRegistrationReviewService {
         private final String search;
         private final String sort;
         private final String direction;
+        private final Long departmentId;
 
         public RegistrationReviewPage(
                 List<RegistrationReviewSummary> registrations, int page, int size, int totalItems,
-                int totalPages, String search, String sort, String direction) {
+            int totalPages, String search, String sort, String direction, Long departmentId) {
             this.registrations = List.copyOf(registrations);
             this.page = page;
             this.size = size;
@@ -355,6 +379,7 @@ public class TopicRegistrationReviewService {
             this.search = search;
             this.sort = sort;
             this.direction = direction;
+            this.departmentId = departmentId;
         }
 
         public List<RegistrationReviewSummary> getRegistrations() { return registrations; }
@@ -365,8 +390,25 @@ public class TopicRegistrationReviewService {
         public String getSearch() { return search; }
         public String getSort() { return sort; }
         public String getDirection() { return direction; }
+        public Long getDepartmentId() { return departmentId; }
         public boolean isHasPrevious() { return page > 0; }
         public boolean isHasNext() { return page + 1 < totalPages; }
+    }
+
+    public static final class DepartmentOption {
+        private final Long id;
+        private final String code;
+        private final String name;
+
+        public DepartmentOption(Long id, String code, String name) {
+            this.id = id;
+            this.code = code;
+            this.name = name;
+        }
+
+        public Long getId() { return id; }
+        public String getCode() { return code; }
+        public String getName() { return name; }
     }
 
     public static class TopicRegistrationReviewNotFoundException extends RuntimeException {
