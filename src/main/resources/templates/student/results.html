@@ -32,7 +32,7 @@
           </div>
           <span
             class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800"
-            th:text="${#lists.size(results) + ' published results'}"
+            th:text="${resultPage.totalItems + ' published results'}"
             >0 published results</span
           >
         </div>
@@ -62,15 +62,108 @@
           class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
           aria-labelledby="results-heading"
         >
+          <div
+            class="flex flex-col justify-end gap-3 border-b border-gray-200 p-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:p-6"
+          >
+            <form
+              class="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end"
+              th:action="@{/student/results}"
+              method="get"
+            >
+              <input type="hidden" name="page" value="0" />
+              <input type="hidden" name="size" th:value="${resultPage.size}" />
+              <input type="hidden" name="sort" th:value="${resultPage.sort}" />
+              <input type="hidden" name="direction" th:value="${resultPage.direction}" />
+              <label class="relative block min-w-0 w-44 sm:shrink-0" for="result-department-filter">
+                <span class="sr-only">Filter results by department</span>
+                <select
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
+                  id="result-department-filter"
+                  name="departmentId"
+                >
+                  <option value="">All departments</option>
+                  <option
+                    th:each="department : ${resultPage.departments}"
+                    th:value="${department.id}"
+                    th:selected="${resultPage.departmentId != null and resultPage.departmentId == department.id}"
+                    th:text="${department.label + ' · ' + department.secondaryLabel}"
+                  >
+                    CNTT · Information Technology
+                  </option>
+                </select>
+              </label>
+              <label class="relative block min-w-0 w-44 sm:shrink-0" for="result-period-filter">
+                <span class="sr-only">Filter results by registration period</span>
+                <select
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
+                  id="result-period-filter"
+                  name="periodId"
+                >
+                  <option value="">All periods</option>
+                  <option
+                    th:each="period : ${resultPage.periods}"
+                    th:value="${period.id}"
+                    th:selected="${resultPage.periodId != null and resultPage.periodId == period.id}"
+                    th:text="${period.label}"
+                  >
+                    Semester 1
+                  </option>
+                </select>
+              </label>
+              <label class="relative block min-w-0 sm:w-72 sm:shrink-0" for="result-search">
+                <span class="sr-only">Search published results</span>
+                <input
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
+                  id="result-search"
+                  name="search"
+                  type="search"
+                  placeholder="Search results"
+                  autocomplete="off"
+                  th:value="${resultPage.search}"
+                />
+              </label>
+              <button
+                class="shrink-0 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800"
+                type="submit"
+              >
+                Search
+              </button>
+            </form>
+          </div>
           <div class="overflow-x-auto" th:if="${!#lists.isEmpty(results)}">
             <table class="w-full min-w-[900px] text-left text-sm text-gray-600">
               <thead class="bg-gray-50 text-xs uppercase text-gray-700">
                 <tr>
-                  <th scope="col" class="px-6 py-3">Group</th>
-                  <th scope="col" class="px-6 py-3">Topic</th>
-                  <th scope="col" class="px-6 py-3">Department / period</th>
-                  <th scope="col" class="px-6 py-3">Average score</th>
-                  <th scope="col" class="px-6 py-3">Published at</th>
+                  <th scope="col" class="px-6 py-3">
+                    <a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{/student/results(page=0,size=${resultPage.size},search=${resultPage.search},departmentId=${resultPage.departmentId},periodId=${resultPage.periodId},sort='group',direction=${resultPage.sort == 'group' and resultPage.direction == 'asc' ? 'desc' : 'asc'})}">
+                      Group
+                      <span th:text="${resultPage.sort == 'group' ? (resultPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{/student/results(page=0,size=${resultPage.size},search=${resultPage.search},departmentId=${resultPage.departmentId},periodId=${resultPage.periodId},sort='topic',direction=${resultPage.sort == 'topic' and resultPage.direction == 'asc' ? 'desc' : 'asc'})}">
+                      Topic
+                      <span th:text="${resultPage.sort == 'topic' ? (resultPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{/student/results(page=0,size=${resultPage.size},search=${resultPage.search},departmentId=${resultPage.departmentId},periodId=${resultPage.periodId},sort='department',direction=${resultPage.sort == 'department' and resultPage.direction == 'asc' ? 'desc' : 'asc'})}">
+                      Department / period
+                      <span th:text="${resultPage.sort == 'department' ? (resultPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{/student/results(page=0,size=${resultPage.size},search=${resultPage.search},departmentId=${resultPage.departmentId},periodId=${resultPage.periodId},sort='score',direction=${resultPage.sort == 'score' and resultPage.direction == 'asc' ? 'desc' : 'asc'})}">
+                      Average score
+                      <span th:text="${resultPage.sort == 'score' ? (resultPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{/student/results(page=0,size=${resultPage.size},search=${resultPage.search},departmentId=${resultPage.departmentId},periodId=${resultPage.periodId},sort='published',direction=${resultPage.sort == 'published' and resultPage.direction == 'asc' ? 'desc' : 'asc'})}">
+                      Published at
+                      <span th:text="${resultPage.sort == 'published' ? (resultPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
                   <th scope="col" class="px-6 py-3">Final comment</th>
                 </tr>
               </thead>
@@ -133,6 +226,28 @@
             </table>
           </div>
           <div
+            class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between"
+            th:if="${resultPage.totalItems > 0}"
+          >
+            <p class="text-gray-500">
+              Showing <span class="font-medium text-gray-900" th:text="${resultPage.page * resultPage.size + 1}">1</span>–<span class="font-medium text-gray-900" th:text="${resultPage.page * resultPage.size + #lists.size(results)}">10</span>
+              of <span class="font-medium text-gray-900" th:text="${resultPage.totalItems}">15</span>
+            </p>
+            <nav aria-label="Result pagination">
+              <ul class="inline-flex -space-x-px">
+                <li>
+                  <a class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100" th:classappend="${!resultPage.hasPrevious() ? 'pointer-events-none opacity-50' : ''}" th:attr="aria-disabled=${!resultPage.hasPrevious()}" th:href="@{/student/results(page=${resultPage.page - 1},size=${resultPage.size},search=${resultPage.search},departmentId=${resultPage.departmentId},periodId=${resultPage.periodId},sort=${resultPage.sort},direction=${resultPage.direction})}">Previous</a>
+                </li>
+                <li th:each="pageNumber : ${#numbers.sequence(0, resultPage.totalPages - 1)}">
+                  <a class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100" th:classappend="${pageNumber == resultPage.page ? 'bg-blue-50 text-blue-700' : ''}" th:attr="aria-current=${pageNumber == resultPage.page ? 'page' : null}" th:href="@{/student/results(page=${pageNumber},size=${resultPage.size},search=${resultPage.search},departmentId=${resultPage.departmentId},periodId=${resultPage.periodId},sort=${resultPage.sort},direction=${resultPage.direction})}" th:text="${pageNumber + 1}">1</a>
+                </li>
+                <li>
+                  <a class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100" th:classappend="${!resultPage.hasNext() ? 'pointer-events-none opacity-50' : ''}" th:attr="aria-disabled=${!resultPage.hasNext()}" th:href="@{/student/results(page=${resultPage.page + 1},size=${resultPage.size},search=${resultPage.search},departmentId=${resultPage.departmentId},periodId=${resultPage.periodId},sort=${resultPage.sort},direction=${resultPage.direction})}">Next</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+          <div
             class="flex flex-col items-center justify-center px-6 py-14 text-center"
             th:if="${#lists.isEmpty(results)}"
           >
@@ -155,12 +270,11 @@
                 />
               </svg>
             </div>
-            <h3 class="text-base font-semibold text-gray-900">
+            <h3 class="text-base font-semibold text-gray-900" th:text="${#strings.isEmpty(resultPage.search) and resultPage.departmentId == null and resultPage.periodId == null ? 'No published results' : 'No matching results'}">
               No published results
             </h3>
             <p class="mt-1 max-w-sm text-sm leading-6 text-gray-500">
-              Your published result will appear here after the Faculty Head
-              completes the workflow.
+              <span th:text="${#strings.isEmpty(resultPage.search) and resultPage.departmentId == null and resultPage.periodId == null ? 'Your published result will appear here after the Faculty Head completes the workflow.' : 'Try a different keyword or filter.'}">Your published result will appear here after the Faculty Head completes the workflow.</span>
             </p>
           </div>
         </section>
