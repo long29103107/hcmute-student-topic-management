@@ -111,7 +111,18 @@ class TopicRegistrationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("student/registrations"))
                 .andExpect(content().string(containsString(topic.getTitle())))
-                .andExpect(content().string(containsString("Pending")));
+                .andExpect(content().string(containsString("Pending")))
+                .andExpect(content().string(containsString("Filter registrations by status")))
+                .andExpect(content().string(containsString("Search registrations")));
+
+        mockMvc.perform(get("/student/registrations")
+                        .param("status", "APPROVED")
+                        .param("search", "missing")
+                        .with(user(studentPrincipal(leader.getEmailOrCode()))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("No matching registrations")))
+                .andExpect(content().string(containsString("Filter registrations by status")))
+                .andExpect(content().string(containsString("value=\"APPROVED\"")));
     }
 
     @Test

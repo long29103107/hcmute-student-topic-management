@@ -2,7 +2,9 @@ package com.hcmute.topicmanagement.service;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -101,6 +103,34 @@ public class TopicRegistrationService {
                 .map(TopicRegistrationService::toSummary)
                 .toList();
     }
+
+        @PreAuthorize("hasRole('STUDENT') and hasAuthority('REGISTRATION_SUBMIT')")
+        public TopicRegistrationPage listForStudentPage(
+            String studentEmail, String search, String status,
+            int page, int size, String sort, String direction) {
+        UserEntity student = findActiveStudent(studentEmail);
+        String normalizedSearch = normalizeSearch(search);
+        String normalizedStatus = normalizeStatus(status);
+        String normalizedSort = normalizeSort(sort);
+        String normalizedDirection = normalizeDirection(direction);
+        int safeSize = Math.min(Math.max(size, 5), 100);
+        List<TopicRegistrationSummary> filtered = topicRegistrationRepository
+            .findForStudentWithDetails(student.getId()).stream()
+            .map(TopicRegistrationService::toSummary)
+            .filter(registration -> normalizedStatus.isBlank()
+                || normalizedStatus.equals(registration.getStatusCode()))
+            .filter(registration -> matchesSearch(registration, normalizedSearch))
+            .sorted(registrationComparator(normalizedSort, normalizedDirection))
+            .toList();
+        int totalItems = filtered.size();
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / safeSize));
+        int safePage = Math.min(Math.max(page, 0), totalPages - 1);
+        int from = Math.min(safePage * safeSize, totalItems);
+        int to = Math.min(from + safeSize, totalItems);
+        return new TopicRegistrationPage(
+            filtered.subList(from, to), safePage, safeSize, totalItems, totalPages,
+            normalizedSearch, normalizedStatus, normalizedSort, normalizedDirection);
+        }
 
     @PreAuthorize("hasRole('STUDENT') and hasAuthority('REGISTRATION_SUBMIT')")
     public TopicRegistrationForm registrationForm(String studentEmail, Long groupId) {
@@ -216,6 +246,69 @@ public class TopicRegistrationService {
         };
     }
 
+    private static boolean matchesSearch(TopicRegistrationSummary registration, String search) {
+        return search.isBlank()
+                || containsIgnoreCase(registration.getGroupName(), search)
+                || containsIgnoreCase(registration.getTopicTitle(), search)
+                || containsIgnoreCase(registration.getPeriodName(), search)
+                || containsIgnoreCase(registration.getSubmittedByName(), search)
+                || containsIgnoreCase(registration.getSubmittedByLogin(), search)
+                || containsIgnoreCase(registration.getStatusLabel(), search)
+                || containsIgnoreCase(registration.getRejectionReason(), search);
+    }
+
+    private static boolean containsIgnoreCase(String value, String search) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(search);
+    }
+
+    private static Comparator<TopicRegistrationSummary> registrationComparator(String sort, String direction) {
+        Comparator<TopicRegistrationSummary> comparator = switch (sort) {
+            case "group" -> Comparator.comparing(
+                    TopicRegistrationSummary::getGroupName, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(TopicRegistrationSummary::getTopicTitle, String.CASE_INSENSITIVE_ORDER);
+            case "period" -> Comparator.comparing(
+                    TopicRegistrationSummary::getPeriodName, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(TopicRegistrationSummary::getTopicTitle, String.CASE_INSENSITIVE_ORDER);
+            case "submitted" -> Comparator.comparing(
+                    TopicRegistrationSummary::getSubmittedAt,
+                    Comparator.nullsLast(Comparator.naturalOrder()))
+                    .thenComparing(TopicRegistrationSummary::getTopicTitle, String.CASE_INSENSITIVE_ORDER);
+            case "status" -> Comparator.comparing(
+                    TopicRegistrationSummary::getStatusLabel, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(TopicRegistrationSummary::getTopicTitle, String.CASE_INSENSITIVE_ORDER);
+            default -> Comparator.comparing(
+                    TopicRegistrationSummary::getTopicTitle, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(TopicRegistrationSummary::getGroupName, String.CASE_INSENSITIVE_ORDER);
+        };
+        return "desc".equals(direction) ? comparator.reversed() : comparator;
+    }
+
+    private static String normalizeSearch(String search) {
+        return search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static String normalizeStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return "";
+        }
+        try {
+            return TopicRegistrationStatus.valueOf(status.trim().toUpperCase(Locale.ROOT)).name();
+        } catch (IllegalArgumentException exception) {
+            return "";
+        }
+    }
+
+    private static String normalizeSort(String sort) {
+        return switch (sort == null ? "" : sort.trim().toLowerCase(Locale.ROOT)) {
+            case "group", "period", "submitted", "status" -> sort.trim().toLowerCase(Locale.ROOT);
+            default -> "topic";
+        };
+    }
+
+    private static String normalizeDirection(String direction) {
+        return "desc".equalsIgnoreCase(direction == null ? "" : direction.trim()) ? "desc" : "asc";
+    }
+
     public static final class TopicRegistrationSummary {
         private final Long id;
         private final Long groupId;
@@ -267,6 +360,44 @@ public class TopicRegistrationService {
         public String getStatusCode() { return statusCode; }
         public String getStatusLabel() { return statusLabel; }
         public String getRejectionReason() { return rejectionReason; }
+    }
+
+    public static final class TopicRegistrationPage {
+        private final List<TopicRegistrationSummary> registrations;
+        private final int page;
+        private final int size;
+        private final int totalItems;
+        private final int totalPages;
+        private final String search;
+        private final String status;
+        private final String sort;
+        private final String direction;
+
+        public TopicRegistrationPage(
+                List<TopicRegistrationSummary> registrations, int page, int size, int totalItems,
+                int totalPages, String search, String status, String sort, String direction) {
+            this.registrations = List.copyOf(registrations);
+            this.page = page;
+            this.size = size;
+            this.totalItems = totalItems;
+            this.totalPages = totalPages;
+            this.search = search;
+            this.status = status;
+            this.sort = sort;
+            this.direction = direction;
+        }
+
+        public List<TopicRegistrationSummary> getRegistrations() { return registrations; }
+        public int getPage() { return page; }
+        public int getSize() { return size; }
+        public int getTotalItems() { return totalItems; }
+        public int getTotalPages() { return totalPages; }
+        public String getSearch() { return search; }
+        public String getStatus() { return status; }
+        public String getSort() { return sort; }
+        public String getDirection() { return direction; }
+        public boolean isHasPrevious() { return page > 0; }
+        public boolean isHasNext() { return page + 1 < totalPages; }
     }
 
     public static final class TopicRegistrationForm {
