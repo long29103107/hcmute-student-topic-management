@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.hcmute.topicmanagement.model.DepartmentEntity;
 import com.hcmute.topicmanagement.model.TopicRegistrationEntity;
+
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
 import com.hcmute.topicmanagement.model.enums.TopicRegistrationStatus;
