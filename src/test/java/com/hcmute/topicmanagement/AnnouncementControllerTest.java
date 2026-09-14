@@ -6,7 +6,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -111,10 +110,28 @@ class AnnouncementControllerTest {
                 .andExpect(view().name("announcements/manage"))
                 .andExpect(content().string(containsString("data-announcement-confirm-modal")))
                 .andExpect(content().string(containsString("data-modal-target=\"create-announcement-modal\"")))
+                .andExpect(content().string(containsString("data-modal-target=\"edit-announcement-modal-")))
+                .andExpect(content().string(containsString("Edit announcement")))
+                .andExpect(content().string(containsString("Save changes")))
                 .andExpect(content().string(containsString("Search announcements")))
                 .andExpect(content().string(containsString("Publish")))
                 .andExpect(content().string(containsString("value=\"SCHOOL\"")))
                 .andExpect(content().string(containsString("School-wide")));
+
+        mockMvc.perform(post("/announcements/manage/update")
+                        .with(user(principal(admin, "ADMIN", true)))
+                        .with(csrf())
+                        .param("announcementId", created.getId().toString())
+                        .param("title", "Updated notice")
+                        .param("content", "Updated content")
+                        .param("scope", "DEPARTMENT")
+                        .param("departmentId", cntt.getId().toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/announcements/manage"));
+        AnnouncementEntity updated = announcementRepository.findById(created.getId()).orElseThrow();
+        org.assertj.core.api.Assertions.assertThat(updated.getTitle()).isEqualTo("Updated notice");
+        org.assertj.core.api.Assertions.assertThat(updated.getContent()).isEqualTo("Updated content");
+        org.assertj.core.api.Assertions.assertThat(updated.getStatus()).isEqualTo(AnnouncementStatus.DRAFT);
 
         mockMvc.perform(post("/announcements/manage/publish")
                         .with(user(principal(admin, "ADMIN", true)))
