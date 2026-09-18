@@ -41,7 +41,7 @@
             class="flex flex-col justify-between gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:justify-end sm:p-6"
           >
             <form
-              class="flex w-fit max-w-full gap-2"
+              class="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end"
               th:action="@{/faculty/registrations/review}"
               method="get"
             >
@@ -62,7 +62,28 @@
                 th:value="${registrationPage.direction}"
               />
               <label
-                class="relative block w-80 max-w-full flex-none"
+                class="relative block min-w-0 sm:w-64 sm:shrink-0"
+                for="registration-review-department"
+              >
+                <span class="sr-only">Filter by department</span>
+                <select
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
+                  id="registration-review-department"
+                  name="departmentId"
+                >
+                  <option value="">All departments</option>
+                  <option
+                    th:each="department : ${departments}"
+                    th:value="${department.id}"
+                    th:selected="${registrationPage.departmentId != null and registrationPage.departmentId == department.id}"
+                    th:text="${department.code + ' · ' + department.name}"
+                  >
+                    CNTT · Information Technology
+                  </option>
+                </select>
+              </label>
+              <label
+                class="relative block min-w-0 sm:w-80 sm:shrink-0"
                 for="registration-review-search"
               >
                 <span class="sr-only">Search pending registrations</span>
@@ -96,7 +117,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/faculty/registrations/review(page=0,size=${registrationPage.size},search=${registrationSearch},sort='group',direction=${registrationPage.sort == 'group' and registrationPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/faculty/registrations/review(page=0,size=${registrationPage.size},search=${registrationSearch},departmentId=${registrationPage.departmentId},sort='group',direction=${registrationPage.sort == 'group' and registrationPage.direction == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Group
                       <span
@@ -108,7 +129,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/faculty/registrations/review(page=0,size=${registrationPage.size},search=${registrationSearch},sort='topic',direction=${registrationPage.sort == 'topic' and registrationPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/faculty/registrations/review(page=0,size=${registrationPage.size},search=${registrationSearch},departmentId=${registrationPage.departmentId},sort='topic',direction=${registrationPage.sort == 'topic' and registrationPage.direction == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Topic
                       <span
@@ -120,7 +141,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/faculty/registrations/review(page=0,size=${registrationPage.size},search=${registrationSearch},sort='department',direction=${registrationPage.sort == 'department' and registrationPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/faculty/registrations/review(page=0,size=${registrationPage.size},search=${registrationSearch},departmentId=${registrationPage.departmentId},sort='department',direction=${registrationPage.sort == 'department' and registrationPage.direction == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Department
                       <span
@@ -132,7 +153,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/faculty/registrations/review(page=0,size=${registrationPage.size},search=${registrationSearch},sort='period',direction=${registrationPage.sort == 'period' and registrationPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/faculty/registrations/review(page=0,size=${registrationPage.size},search=${registrationSearch},departmentId=${registrationPage.departmentId},sort='period',direction=${registrationPage.sort == 'period' and registrationPage.direction == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Registration period
                       <span
@@ -144,7 +165,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/faculty/registrations/review(page=0,size=${registrationPage.size},search=${registrationSearch},sort='submitted',direction=${registrationPage.sort == 'submitted' and registrationPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/faculty/registrations/review(page=0,size=${registrationPage.size},search=${registrationSearch},departmentId=${registrationPage.departmentId},sort='submitted',direction=${registrationPage.sort == 'submitted' and registrationPage.direction == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Submitted
                       <span
@@ -298,7 +319,7 @@
                     class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${!registrationPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
                     th:attr="aria-disabled=${!registrationPage.hasPrevious}"
-                    th:href="@{/faculty/registrations/review(page=${registrationPage.page - 1},size=${registrationPage.size},sort=${registrationPage.sort},direction=${registrationPage.direction},search=${registrationSearch})}"
+                    th:href="@{/faculty/registrations/review(page=${registrationPage.page - 1},size=${registrationPage.size},sort=${registrationPage.sort},direction=${registrationPage.direction},search=${registrationSearch},departmentId=${registrationPage.departmentId})}"
                     >Previous</a
                   >
                 </li>
@@ -309,7 +330,7 @@
                     class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${pageNumber == registrationPage.page ? 'bg-blue-50 text-blue-700' : ''}"
                     th:attr="aria-current=${pageNumber == registrationPage.page ? 'page' : null}"
-                    th:href="@{/faculty/registrations/review(page=${pageNumber},size=${registrationPage.size},sort=${registrationPage.sort},direction=${registrationPage.direction},search=${registrationSearch})}"
+                    th:href="@{/faculty/registrations/review(page=${pageNumber},size=${registrationPage.size},sort=${registrationPage.sort},direction=${registrationPage.direction},search=${registrationSearch},departmentId=${registrationPage.departmentId})}"
                     th:text="${pageNumber + 1}"
                     >1</a
                   >
@@ -319,7 +340,7 @@
                     class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${!registrationPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
                     th:attr="aria-disabled=${!registrationPage.hasNext}"
-                    th:href="@{/faculty/registrations/review(page=${registrationPage.page + 1},size=${registrationPage.size},sort=${registrationPage.sort},direction=${registrationPage.direction},search=${registrationSearch})}"
+                    th:href="@{/faculty/registrations/review(page=${registrationPage.page + 1},size=${registrationPage.size},sort=${registrationPage.sort},direction=${registrationPage.direction},search=${registrationSearch},departmentId=${registrationPage.departmentId})}"
                     >Next</a
                   >
                 </li>
@@ -351,21 +372,21 @@
             </div>
             <h3
               class="text-base font-semibold text-gray-900"
-              th:text="${#strings.isEmpty(registrationSearch) ? 'No pending registrations' : 'No matching registrations'}"
+              th:text="${#strings.isEmpty(registrationSearch) and registrationPage.departmentId == null ? 'No pending registrations' : 'No matching registrations'}"
             >
               No pending registrations
             </h3>
             <p
               class="mt-1 max-w-sm text-sm leading-6 text-gray-500"
-              th:text="${#strings.isEmpty(registrationSearch) ? 'There are no topic registrations waiting for review right now.' : 'Try a different keyword or clear the search to see more registrations.'}"
+              th:text="${#strings.isEmpty(registrationSearch) and registrationPage.departmentId == null ? 'There are no topic registrations waiting for review right now.' : 'Try a different keyword or clear the search to see more registrations.'}"
             >
               There are no topic registrations waiting for review right now.
             </p>
             <a
               class="mt-4 text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline"
-              th:if="${!#strings.isEmpty(registrationSearch)}"
+              th:if="${!#strings.isEmpty(registrationSearch) or registrationPage.departmentId != null}"
               th:href="@{/faculty/registrations/review(page=0,size=${registrationPage.size},sort=${registrationPage.sort},direction=${registrationPage.direction})}"
-              >Clear search</a
+              >Clear filters</a
             >
           </div>
         </section>

@@ -42,18 +42,89 @@
           aria-labelledby="registrations-heading"
         >
           <div
+            class="flex flex-col justify-end gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:justify-end sm:p-6"
+          >
+            <form
+              class="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end"
+              th:action="@{/student/registrations}"
+              method="get"
+            >
+              <input type="hidden" name="page" value="0" />
+              <input type="hidden" name="size" th:value="${registrationPage.size}" />
+              <input type="hidden" name="sort" th:value="${registrationPage.sort}" />
+              <input type="hidden" name="direction" th:value="${registrationPage.direction}" />
+              <label class="relative block min-w-0 w-48 sm:shrink-0" for="registration-status-filter">
+                <span class="sr-only">Filter registrations by status</span>
+                <select
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 pr-10 text-sm text-gray-900"
+                  id="registration-status-filter"
+                  name="status"
+                >
+                  <option value="" th:selected="${registrationPage.status == ''}">All statuses</option>
+                  <option value="PENDING" th:selected="${registrationPage.status == 'PENDING'}">Pending</option>
+                  <option value="APPROVED" th:selected="${registrationPage.status == 'APPROVED'}">Approved</option>
+                  <option value="REJECTED" th:selected="${registrationPage.status == 'REJECTED'}">Rejected</option>
+                  <option value="CANCELLED" th:selected="${registrationPage.status == 'CANCELLED'}">Cancelled</option>
+                </select>
+              </label>
+              <label class="relative block min-w-0 sm:w-80 sm:shrink-0" for="registration-search">
+                <span class="sr-only">Search registrations</span>
+                <input
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
+                  id="registration-search"
+                  name="search"
+                  type="search"
+                  placeholder="Search registrations"
+                  autocomplete="off"
+                  th:value="${registrationPage.search}"
+                />
+              </label>
+              <button
+                class="shrink-0 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800"
+                type="submit"
+              >
+                Search
+              </button>
+            </form>
+          </div>
+          <div
             th:if="${!#lists.isEmpty(registrations)}"
             class="overflow-x-auto"
           >
             <table class="w-full min-w-[980px] text-left text-sm text-gray-500">
               <thead class="bg-gray-50 text-xs uppercase text-gray-700">
                 <tr>
-                  <th scope="col" class="px-6 py-3">Group</th>
-                  <th scope="col" class="px-6 py-3">Topic</th>
-                  <th scope="col" class="px-6 py-3">Period</th>
+                  <th scope="col" class="px-6 py-3">
+                    <a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{/student/registrations(page=0,size=${registrationPage.size},search=${registrationPage.search},status=${registrationPage.status},sort='group',direction=${registrationPage.sort == 'group' and registrationPage.direction == 'asc' ? 'desc' : 'asc'})}">
+                      Group
+                      <span th:text="${registrationPage.sort == 'group' ? (registrationPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{/student/registrations(page=0,size=${registrationPage.size},search=${registrationPage.search},status=${registrationPage.status},sort='topic',direction=${registrationPage.sort == 'topic' and registrationPage.direction == 'asc' ? 'desc' : 'asc'})}">
+                      Topic
+                      <span th:text="${registrationPage.sort == 'topic' ? (registrationPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{/student/registrations(page=0,size=${registrationPage.size},search=${registrationPage.search},status=${registrationPage.status},sort='period',direction=${registrationPage.sort == 'period' and registrationPage.direction == 'asc' ? 'desc' : 'asc'})}">
+                      Period
+                      <span th:text="${registrationPage.sort == 'period' ? (registrationPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
                   <th scope="col" class="px-6 py-3">Submitted by</th>
-                  <th scope="col" class="px-6 py-3">Submitted at</th>
-                  <th scope="col" class="px-6 py-3">Status</th>
+                  <th scope="col" class="px-6 py-3">
+                    <a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{/student/registrations(page=0,size=${registrationPage.size},search=${registrationPage.search},status=${registrationPage.status},sort='submitted',direction=${registrationPage.sort == 'submitted' and registrationPage.direction == 'asc' ? 'desc' : 'asc'})}">
+                      Submitted at
+                      <span th:text="${registrationPage.sort == 'submitted' ? (registrationPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{/student/registrations(page=0,size=${registrationPage.size},search=${registrationPage.search},status=${registrationPage.status},sort='status',direction=${registrationPage.sort == 'status' and registrationPage.direction == 'asc' ? 'desc' : 'asc'})}">
+                      Status
+                      <span th:text="${registrationPage.sort == 'status' ? (registrationPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
                   <th scope="col" class="px-6 py-3">Report</th>
                 </tr>
               </thead>
@@ -168,6 +239,28 @@
             </table>
           </div>
           <div
+            class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between"
+            th:if="${registrationPage.totalItems > 0}"
+          >
+            <p class="text-gray-500">
+              Showing <span class="font-medium text-gray-900" th:text="${registrationPage.page * registrationPage.size + 1}">1</span>–<span class="font-medium text-gray-900" th:text="${registrationPage.page * registrationPage.size + #lists.size(registrations)}">10</span>
+              of <span class="font-medium text-gray-900" th:text="${registrationPage.totalItems}">15</span>
+            </p>
+            <nav aria-label="Registration pagination">
+              <ul class="inline-flex -space-x-px">
+                <li>
+                  <a class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100" th:classappend="${!registrationPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}" th:attr="aria-disabled=${!registrationPage.hasPrevious}" th:href="@{/student/registrations(page=${registrationPage.page - 1},size=${registrationPage.size},search=${registrationPage.search},status=${registrationPage.status},sort=${registrationPage.sort},direction=${registrationPage.direction})}">Previous</a>
+                </li>
+                <li th:each="pageNumber : ${#numbers.sequence(0, registrationPage.totalPages - 1)}">
+                  <a class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100" th:classappend="${pageNumber == registrationPage.page ? 'bg-blue-50 text-blue-700' : ''}" th:attr="aria-current=${pageNumber == registrationPage.page ? 'page' : null}" th:href="@{/student/registrations(page=${pageNumber},size=${registrationPage.size},search=${registrationPage.search},status=${registrationPage.status},sort=${registrationPage.sort},direction=${registrationPage.direction})}" th:text="${pageNumber + 1}">1</a>
+                </li>
+                <li>
+                  <a class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100" th:classappend="${!registrationPage.hasNext ? 'pointer-events-none opacity-50' : ''}" th:attr="aria-disabled=${!registrationPage.hasNext}" th:href="@{/student/registrations(page=${registrationPage.page + 1},size=${registrationPage.size},search=${registrationPage.search},status=${registrationPage.status},sort=${registrationPage.sort},direction=${registrationPage.direction})}">Next</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+          <div
             th:if="${#lists.isEmpty(registrations)}"
             class="flex flex-col items-center justify-center px-6 py-16 text-center"
           >
@@ -190,12 +283,11 @@
                 />
               </svg>
             </div>
-            <h3 class="text-base font-semibold text-gray-900">
+            <h3 class="text-base font-semibold text-gray-900" th:text="${#strings.isEmpty(registrationPage.search) and #strings.isEmpty(registrationPage.status) ? 'No registrations yet' : 'No matching registrations'}">
               No registrations yet
             </h3>
             <p class="mt-1 max-w-sm text-sm leading-6 text-gray-500">
-              A group leader can choose a published topic from the group
-              workspace.
+              <span th:text="${#strings.isEmpty(registrationPage.search) and #strings.isEmpty(registrationPage.status) ? 'A group leader can choose a published topic from the group workspace.' : 'Try a different keyword or status filter.'}">A group leader can choose a published topic from the group workspace.</span>
             </p>
             <a
               class="mt-4 text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline"
