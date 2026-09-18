@@ -7,7 +7,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -58,9 +57,22 @@ public class ResultController {
 
     @GetMapping("/student/results")
     @PreAuthorize("hasRole('STUDENT') and hasAuthority('RESULT_VIEW')")
-    public String studentResults(Authentication authentication, Model model) {
+    public String studentResults(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(required = false) Long periodId,
+            @RequestParam(defaultValue = "topic") String sort,
+            @RequestParam(defaultValue = "asc") String direction,
+            Model model) {
+        ResultPublicationService.StudentResultPage resultPage = resultPublicationService.listForStudentPage(
+                authentication.getName(), search, departmentId, periodId,
+                page, size, sort, direction);
         model.addAttribute("pageTitle", "My results");
-        model.addAttribute("results", resultPublicationService.listForStudent(authentication.getName()));
+        model.addAttribute("resultPage", resultPage);
+        model.addAttribute("results", resultPage.results());
         return "student/results";
     }
 }
