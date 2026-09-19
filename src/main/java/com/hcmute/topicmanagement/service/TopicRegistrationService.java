@@ -21,6 +21,7 @@ import com.hcmute.topicmanagement.model.enums.RegistrationPeriodStatus;
 import com.hcmute.topicmanagement.model.enums.TopicRegistrationStatus;
 import com.hcmute.topicmanagement.model.enums.TopicStatus;
 import com.hcmute.topicmanagement.repository.RegistrationPeriodRepository;
+import com.hcmute.topicmanagement.repository.ReportRepository;
 import com.hcmute.topicmanagement.repository.StudentGroupRepository;
 import com.hcmute.topicmanagement.repository.TopicRegistrationRepository;
 import com.hcmute.topicmanagement.repository.TopicRepository;
@@ -39,6 +40,7 @@ public class TopicRegistrationService {
     private final RegistrationPeriodRepository registrationPeriodRepository;
     private final UserRepository userRepository;
     private final RegistrationPeriodService registrationPeriodService;
+    private final ReportRepository reportRepository;
 
     public TopicRegistrationService(
             TopicRegistrationRepository topicRegistrationRepository,
@@ -46,13 +48,15 @@ public class TopicRegistrationService {
             TopicRepository topicRepository,
             RegistrationPeriodRepository registrationPeriodRepository,
             UserRepository userRepository,
-            RegistrationPeriodService registrationPeriodService) {
+            RegistrationPeriodService registrationPeriodService,
+            ReportRepository reportRepository) {
         this.topicRegistrationRepository = topicRegistrationRepository;
         this.studentGroupRepository = studentGroupRepository;
         this.topicRepository = topicRepository;
         this.registrationPeriodRepository = registrationPeriodRepository;
         this.userRepository = userRepository;
         this.registrationPeriodService = registrationPeriodService;
+        this.reportRepository = reportRepository;
     }
 
     @Transactional
@@ -86,6 +90,11 @@ public class TopicRegistrationService {
             throw new TopicRegistrationValidationException(
                     "The selected topic must belong to the group's registration period.");
         }
+        if (student.getDepartment() == null || topic.getDepartment() == null
+                || !student.getDepartment().getId().equals(topic.getDepartment().getId())) {
+            throw new TopicRegistrationValidationException(
+                    "The selected topic must belong to the student's department.");
+        }
         if (topicRegistrationRepository.existsByStudentGroup_IdAndRegistrationPeriod_IdAndStatusIn(
                 group.getId(), period.getId(), CURRENT_STATUSES)) {
             throw new TopicRegistrationValidationException(
@@ -100,7 +109,7 @@ public class TopicRegistrationService {
     public List<TopicRegistrationSummary> listForStudent(String studentEmail) {
         UserEntity student = findActiveStudent(studentEmail);
         return topicRegistrationRepository.findForStudentWithDetails(student.getId()).stream()
-                .map(TopicRegistrationService::toSummary)
+                .map(this::toSummary)
                 .toList();
     }
 
@@ -116,7 +125,7 @@ public class TopicRegistrationService {
         int safeSize = Math.min(Math.max(size, 5), 100);
         List<TopicRegistrationSummary> filtered = topicRegistrationRepository
             .findForStudentWithDetails(student.getId()).stream()
-            .map(TopicRegistrationService::toSummary)
+            .map(this::toSummary)
             .filter(registration -> normalizedStatus.isBlank()
                 || normalizedStatus.equals(registration.getStatusCode()))
             .filter(registration -> matchesSearch(registration, normalizedSearch))
@@ -145,8 +154,10 @@ public class TopicRegistrationService {
         LocalDateTime now = LocalDateTime.now();
         RegistrationPeriodService.PeriodAccess periodAccess = registrationPeriodService.inspect(
                 period.getId(), now);
-        List<PublishedTopicOption> topics = topicRepository.findPublishedForStudent(
-                        TopicStatus.PUBLISHED, RegistrationPeriodStatus.OPEN, now).stream()
+        Long departmentId = student.getDepartment() == null ? null : student.getDepartment().getId();
+        List<PublishedTopicOption> topics = departmentId == null ? List.of()
+                : topicRepository.findPublishedForStudentByDepartment(
+                        TopicStatus.PUBLISHED, RegistrationPeriodStatus.OPEN, departmentId, now).stream()
                 .filter(topic -> period.getId().equals(topic.getRegistrationPeriod().getId()))
                 .map(TopicRegistrationService::toTopicOption)
                 .toList();
@@ -220,7 +231,7 @@ public class TopicRegistrationService {
         }
     }
 
-    private static TopicRegistrationSummary toSummary(TopicRegistrationEntity registration) {
+    private TopicRegistrationSummary toSummary(TopicRegistrationEntity registration) {
         return new TopicRegistrationSummary(
                 registration.getId(), registration.getStudentGroup().getId(),
                 registration.getStudentGroup().getName(), registration.getTopic().getId(),
@@ -228,7 +239,11 @@ public class TopicRegistrationService {
                 registration.getRegistrationPeriod().getName(), registration.getSubmittedBy().getId(),
                 registration.getSubmittedBy().getFullName(), registration.getSubmittedBy().getEmailOrCode(),
                 registration.getSubmittedAt(), registration.getStatus().name(),
-                statusLabel(registration.getStatus()), registration.getRejectionReason());
+                statusLabel(registration.getStatus()), registration.getRejectionReason(),
+                reportRepository.findByTopicRegistration_IdOrderBySubmittedAtDesc(registration.getId()).stream()
+                        .map(report -> new ReportFileSummary(
+                                report.getId(), report.getOriginalName(), report.getFileSize(), report.getSubmittedAt()))
+                        .toList());
     }
 
     private static PublishedTopicOption toTopicOption(TopicEntity topic) {
@@ -324,12 +339,13 @@ public class TopicRegistrationService {
         private final String statusCode;
         private final String statusLabel;
         private final String rejectionReason;
+        private final List<ReportFileSummary> reportFiles;
 
         public TopicRegistrationSummary(
                 Long id, Long groupId, String groupName, Long topicId, String topicTitle,
                 Long periodId, String periodName, Long submittedById, String submittedByName,
                 String submittedByLogin, LocalDateTime submittedAt, String statusCode,
-                String statusLabel, String rejectionReason) {
+                String statusLabel, String rejectionReason, List<ReportFileSummary> reportFiles) {
             this.id = id;
             this.groupId = groupId;
             this.groupName = groupName;
@@ -344,6 +360,7 @@ public class TopicRegistrationService {
             this.statusCode = statusCode;
             this.statusLabel = statusLabel;
             this.rejectionReason = rejectionReason;
+            this.reportFiles = List.copyOf(reportFiles);
         }
 
         public Long getId() { return id; }
@@ -360,6 +377,26 @@ public class TopicRegistrationService {
         public String getStatusCode() { return statusCode; }
         public String getStatusLabel() { return statusLabel; }
         public String getRejectionReason() { return rejectionReason; }
+        public List<ReportFileSummary> getReportFiles() { return reportFiles; }
+    }
+
+    public static final class ReportFileSummary {
+        private final Long id;
+        private final String originalName;
+        private final Long fileSize;
+        private final LocalDateTime submittedAt;
+
+        public ReportFileSummary(Long id, String originalName, Long fileSize, LocalDateTime submittedAt) {
+            this.id = id;
+            this.originalName = originalName;
+            this.fileSize = fileSize;
+            this.submittedAt = submittedAt;
+        }
+
+        public Long getId() { return id; }
+        public String getOriginalName() { return originalName; }
+        public Long getFileSize() { return fileSize; }
+        public LocalDateTime getSubmittedAt() { return submittedAt; }
     }
 
     public static final class TopicRegistrationPage {

@@ -11,6 +11,50 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    document.querySelectorAll('[data-password-change-form]').forEach((form) => {
+        const password = form.querySelector('[name="password"]');
+        const confirmation = form.querySelector('[name="passwordConfirmation"]');
+        const passwordError = form.querySelector('[data-password-client-error="password"]');
+        const confirmationError = form.querySelector('[data-password-client-error="confirmation"]');
+
+        const setError = (element, message) => {
+            if (!element) {
+                return;
+            }
+            element.textContent = message;
+            element.classList.toggle('hidden', !message);
+        };
+
+        form.addEventListener('submit', (event) => {
+            const passwordValue = password?.value || '';
+            const confirmationValue = confirmation?.value || '';
+            let valid = true;
+
+            setError(passwordError, '');
+            setError(confirmationError, '');
+
+            if (!passwordValue.trim()) {
+                setError(passwordError, 'New password is required.');
+                valid = false;
+            } else if (passwordValue.length < 8 || passwordValue.length > 72) {
+                setError(passwordError, 'Password must be between 8 and 72 characters.');
+                valid = false;
+            }
+
+            if (!confirmationValue.trim()) {
+                setError(confirmationError, 'Password confirmation is required.');
+                valid = false;
+            } else if (passwordValue !== confirmationValue) {
+                setError(confirmationError, 'Passwords do not match.');
+                valid = false;
+            }
+
+            if (!valid || !form.reportValidity()) {
+                event.preventDefault();
+            }
+        });
+    });
+
     document.querySelectorAll('[data-department-form]').forEach((form) => {
         const fields = {
             code: form.querySelector('[data-department-field="code"]'),
@@ -1016,6 +1060,157 @@ document.addEventListener('DOMContentLoaded', () => {
             confirmModal.classList.add('hidden');
             confirmModal.setAttribute('aria-hidden', 'true');
             form.requestSubmit();
+        });
+    });
+
+    document.querySelectorAll('[data-report-upload-modal]').forEach((modal) => {
+        const openButton = document.querySelector(`[data-report-upload-open="${modal.id}"]`);
+        const closeButtons = modal.querySelectorAll('[data-report-upload-close]');
+        const form = modal.querySelector('[data-report-upload-form]');
+        const fileInput = modal.querySelector('[data-report-file-input]');
+        const fileCount = modal.querySelector('[data-report-file-count]');
+        const fileList = modal.querySelector('[data-report-selected-file-list]');
+        const existingFileList = modal.querySelector('[data-report-existing-file-list]');
+        const existingFileCount = modal.querySelector('[data-report-existing-count]');
+        const uploadError = modal.querySelector('[data-report-upload-error]');
+        const maxFiles = 10;
+        const maxFileSizeBytes = 10 * 1024 * 1024;
+        const pendingDeleteIds = new Set();
+        let lastFocusedElement;
+
+        const setUploadError = (message) => {
+            if (!uploadError) {
+                return;
+            }
+            uploadError.textContent = message;
+            uploadError.classList.toggle('hidden', !message);
+        };
+
+        const renderFiles = () => {
+            if (!fileInput || !fileCount || !fileList) {
+                return true;
+            }
+            const files = Array.from(fileInput.files || []);
+            setUploadError('');
+            fileList.replaceChildren();
+            if (files.length === 0) {
+                fileCount.textContent = 'No files selected';
+                fileList.classList.add('hidden');
+                return true;
+            }
+            if (files.length > maxFiles) {
+                fileInput.value = '';
+                fileCount.textContent = 'No files selected';
+                fileList.classList.add('hidden');
+                setUploadError(`You can select at most ${maxFiles} files.`);
+                return false;
+            }
+            const oversizedFile = files.find((file) => file.size > maxFileSizeBytes);
+            if (oversizedFile) {
+                fileInput.value = '';
+                fileCount.textContent = 'No files selected';
+                fileList.classList.add('hidden');
+                setUploadError(`${oversizedFile.name} exceeds the 10 MB limit.`);
+                return false;
+            }
+            fileCount.textContent = `${files.length} file(s) selected`;
+            files.forEach((file) => {
+                const item = document.createElement('li');
+                item.className = 'truncate';
+                item.textContent = file.name;
+                fileList.appendChild(item);
+            });
+            fileList.classList.remove('hidden');
+            return true;
+        };
+
+        const updateExistingFileCount = () => {
+            if (!existingFileCount || !existingFileList) {
+                return;
+            }
+            const visibleCount = existingFileList.querySelectorAll('[data-report-existing-item]:not(.hidden)').length;
+            existingFileCount.textContent = `${visibleCount} file(s) currently uploaded`;
+        };
+
+        const resetDraft = () => {
+            pendingDeleteIds.clear();
+            form?.querySelectorAll('input[name="removeReportIds"]').forEach((input) => input.remove());
+            existingFileList?.querySelectorAll('[data-report-existing-item]').forEach((item) => {
+                item.classList.remove('hidden');
+            });
+            if (fileInput) {
+                fileInput.value = '';
+            }
+            if (fileCount) {
+                fileCount.textContent = 'No files selected';
+            }
+            fileList?.replaceChildren();
+            fileList?.classList.add('hidden');
+            setUploadError('');
+            updateExistingFileCount();
+        };
+
+        existingFileList?.querySelectorAll('[data-report-remove-file]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const item = button.closest('[data-report-existing-item]');
+                const reportId = item?.dataset.reportId;
+                if (!item || !reportId) {
+                    return;
+                }
+                pendingDeleteIds.add(reportId);
+                item.classList.add('hidden');
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'removeReportIds';
+                input.value = reportId;
+                form?.appendChild(input);
+                updateExistingFileCount();
+            });
+        });
+
+        const closeModal = () => {
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('overflow-hidden');
+            lastFocusedElement?.focus();
+        };
+
+        openButton?.addEventListener('click', () => {
+            lastFocusedElement = openButton;
+            resetDraft();
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('overflow-hidden');
+            window.setTimeout(() => modal.querySelector('input[type="file"]')?.focus(), 0);
+        });
+        fileInput?.addEventListener('change', renderFiles);
+        const originalCloseModal = closeModal;
+        const closeAndReset = () => {
+            resetDraft();
+            originalCloseModal();
+        };
+        closeButtons.forEach((button) => button.addEventListener('click', closeAndReset));
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                closeAndReset();
+            }
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+                closeAndReset();
+            }
+        });
+        form?.addEventListener('submit', (event) => {
+            const hasSelectedFiles = fileInput && fileInput.files && fileInput.files.length > 0;
+            const hasPendingDeletes = pendingDeleteIds.size > 0;
+            if (!hasSelectedFiles && !hasPendingDeletes) {
+                setUploadError('Select at least one file or remove an uploaded file.');
+                event.preventDefault();
+                return;
+            }
+            if (!renderFiles() || !form.reportValidity()) {
+                event.preventDefault();
+            }
         });
     });
 

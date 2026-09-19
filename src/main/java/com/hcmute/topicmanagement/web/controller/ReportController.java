@@ -1,5 +1,7 @@
 package com.hcmute.topicmanagement.web.controller;
 
+import java.util.List;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -30,13 +32,19 @@ public class ReportController {
             @PathVariable Long registrationId,
             @RequestParam("groupId") Long groupId,
             @RequestParam("periodId") Long periodId,
-            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "files", required = false) List<MultipartFile> files,
+            @RequestParam(value = "file", required = false) MultipartFile legacyFile,
+            @RequestParam(value = "removeReportIds", required = false) List<Long> removeReportIds,
             RedirectAttributes redirectAttributes) {
         try {
-            ReportService.ReportSummary report = reportService.upload(
-                    authentication.getName(), groupId, registrationId, periodId, file);
+            List<MultipartFile> uploadedFiles = files != null
+                    ? files
+                    : (legacyFile == null ? List.of() : List.of(legacyFile));
+            List<ReportService.ReportSummary> reports = reportService.upload(
+                    authentication.getName(), groupId, registrationId, periodId, uploadedFiles,
+                    removeReportIds == null ? List.of() : removeReportIds);
             redirectAttributes.addFlashAttribute(
-                    "successMessage", "Report " + report.originalName() + " uploaded successfully.");
+                    "successMessage", reports.size() + " report file(s) uploaded successfully.");
         } catch (ReportService.ReportAccessException exception) {
             return "redirect:/forbidden";
         } catch (ReportService.ReportNotFoundException

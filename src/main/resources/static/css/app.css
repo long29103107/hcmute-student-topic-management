@@ -10,6 +10,13 @@
 }
 
 @layer components {
+    #profile-edit-modal:not(.hidden),
+    #profile-edit-modal.profile-modal-open {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
     body.app-layout [data-app-shell] {
         min-height: 100vh;
         display: flex;

@@ -73,11 +73,17 @@ public class TopicPublicationService {
     /** Returns only published topics in an open period and active student window. */
     @PreAuthorize("hasAuthority('TOPIC_VIEW')")
     public List<PublishedTopicSummary> listPublished(
-            String search, Long departmentId, Long periodId, LocalDateTime now) {
+            String viewerEmail, String search, Long departmentId, Long periodId, LocalDateTime now) {
+        UserEntity viewer = findActiveTopicViewer(viewerEmail);
+        boolean unrestricted = isAdmin(viewer) && departmentId == null;
+        Long scopedDepartmentId = isAdmin(viewer) ? departmentId : departmentIdFor(viewer);
+        if (!unrestricted && scopedDepartmentId == null) {
+            return List.of();
+        }
         String normalizedSearch = normalizeSearch(search);
-        return publishedTopics(now).stream()
+        return publishedTopics(now, scopedDepartmentId).stream()
                 .map(TopicPublicationService::toPublishedSummary)
-                .filter(topic -> departmentId == null || departmentId.equals(topic.getDepartmentId()))
+                .filter(topic -> unrestricted || scopedDepartmentId.equals(topic.getDepartmentId()))
                 .filter(topic -> periodId == null || periodId.equals(topic.getPeriodId()))
                 .filter(topic -> matchesSearch(topic, normalizedSearch))
                 .toList();
@@ -85,12 +91,15 @@ public class TopicPublicationService {
 
     @PreAuthorize("hasAuthority('TOPIC_VIEW')")
     public PublishedTopicPage listPublishedPage(
-            String search, Long departmentId, Long periodId,
+            String viewerEmail, String search, Long departmentId, Long periodId,
             int page, int size, String sort, String direction, LocalDateTime now) {
-        List<PublishedTopicSummary> filtered = listPublished(search, departmentId, periodId, now).stream()
+        UserEntity viewer = findActiveTopicViewer(viewerEmail);
+        Long scopedDepartmentId = isAdmin(viewer) ? departmentId : departmentIdFor(viewer);
+        List<PublishedTopicSummary> filtered = listPublished(
+                viewerEmail, search, scopedDepartmentId, periodId, now).stream()
                 .sorted(publishedComparator(normalizeSort(sort), normalizeDirection(direction)))
                 .toList();
-        return paginatePublished(filtered, page, size, search, sort, direction, departmentId, periodId);
+        return paginatePublished(filtered, page, size, search, sort, direction, scopedDepartmentId, periodId);
     }
 
     @PreAuthorize("hasAuthority('TOPIC_VIEW')")
@@ -121,9 +130,23 @@ public class TopicPublicationService {
                 department.getId(), TopicStatus.APPROVED);
     }
 
-    private List<TopicEntity> publishedTopics(LocalDateTime now) {
-        return topicRepository.findPublishedForStudent(
-                TopicStatus.PUBLISHED, RegistrationPeriodStatus.OPEN, normalizeNow(now));
+    private List<TopicEntity> publishedTopics(LocalDateTime now, Long departmentId) {
+        return departmentId == null
+                ? topicRepository.findPublishedForStudent(
+                        TopicStatus.PUBLISHED, RegistrationPeriodStatus.OPEN, normalizeNow(now))
+                : topicRepository.findPublishedForStudentByDepartment(
+                        TopicStatus.PUBLISHED, RegistrationPeriodStatus.OPEN, departmentId, normalizeNow(now));
+    }
+
+    private UserEntity findActiveTopicViewer(String email) {
+        return userRepository.findByEmailIgnoreCaseWithRolesAndDepartment(email)
+                .filter(UserEntity::isActive)
+                .orElseThrow(() -> new TopicPublicationAccessException(
+                        "Active topic viewer account is not available."));
+    }
+
+    private static Long departmentIdFor(UserEntity viewer) {
+        return viewer.getDepartment() == null ? null : viewer.getDepartment().getId();
     }
 
     private static void assertCanPublish(UserEntity publisher, TopicEntity topic) {

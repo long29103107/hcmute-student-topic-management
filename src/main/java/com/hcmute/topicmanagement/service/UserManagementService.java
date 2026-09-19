@@ -285,6 +285,16 @@ public class UserManagementService {
     }
 
     @Transactional
+    public void changeOwnPassword(String email, String newPassword) {
+        UserEntity user = userRepository.findByEmailIgnoreCaseWithRolesAndDepartment(email)
+                .filter(UserEntity::isActive)
+                .orElseThrow(() -> new UserValidationException("The profile account could not be found."));
+        validatePassword(newPassword, true);
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    @Transactional
     public void updateLecturer(
             Long id,
             String fullName,
