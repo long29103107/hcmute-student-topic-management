@@ -358,6 +358,21 @@ class StudentGroupControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("No matching groups")))
                 .andExpect(content().string(not(containsString("Showing"))));
+
+        mockMvc.perform(get("/student/groups")
+                        .with(user(studentPrincipal(student.getEmailOrCode())))
+                        .param("sort", "group")
+                        .param("direction", "asc"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("student/groups"))
+                .andExpect(content().string(containsString("sort=group&amp;direction=desc")))
+                .andExpect(content().string(containsString("sort=period&amp;direction=asc")))
+                .andExpect(content().string(containsString("sort=leader&amp;direction=asc")))
+                .andExpect(content().string(containsString("sort=members&amp;direction=asc")))
+                .andExpect(content().string(containsString("sort=status&amp;direction=asc")))
+                .andExpect(content().string(containsString("name=\"page\" value=\"0\"")))
+                .andExpect(content().string(containsString("↑")))
+                .andExpect(content().string(containsString("↕")));
     }
 
     @Test
