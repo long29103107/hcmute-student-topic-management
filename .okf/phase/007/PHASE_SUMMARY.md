@@ -81,3 +81,13 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/26
   12 pre-existing H2 schema setup errors in `RegistrationPeriodControllerTest`
   and `ReviewBoardControllerTest`; the container configuration does not change
   those test fixtures.
+
+## Phase 8 directory UX follow-up
+
+- `/faculty/topics/supervisors` now combines server-side search, department,
+  registration-period and topic-status filters before sorting and pagination.
+  Filter options remain scoped to the manager's authorized topic set; Admin
+  can work across departments while Faculty Head remains department-scoped.
+- Sort and pagination links preserve all directory parameters, and empty
+  filtered results use the shared `fragments/no-data` state without topic
+  action menus or assignment modals.

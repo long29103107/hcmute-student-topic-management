@@ -35,6 +35,7 @@ import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
 import com.hcmute.topicmanagement.model.enums.PeriodType;
 import com.hcmute.topicmanagement.model.enums.RegistrationPeriodStatus;
+import com.hcmute.topicmanagement.model.enums.TopicStatus;
 import com.hcmute.topicmanagement.repository.DepartmentRepository;
 import com.hcmute.topicmanagement.repository.RegistrationPeriodRepository;
 import com.hcmute.topicmanagement.repository.RoleRepository;
@@ -317,6 +318,69 @@ class TopicSupervisorControllerTest {
                 .andExpect(jsonPath("$.size").value(5))
                 .andExpect(jsonPath("$.totalPages").value(2))
                 .andExpect(jsonPath("$.topics.length()").value(1));
+    }
+
+    @Test
+    void supervisorListCombinesDepartmentPeriodStatusAndSearchFiltersAndPreservesState() throws Exception {
+        String suffix = suffix();
+        UserEntity admin = saveUser("filter-admin-" + suffix, "Filter Admin " + suffix, "ADMIN", null);
+        DepartmentEntity matchingDepartment = department("FILTER-A-" + suffix);
+        DepartmentEntity otherDepartment = department("FILTER-B-" + suffix);
+        RegistrationPeriodEntity matchingPeriod = openPeriod("filter-a-" + suffix);
+        RegistrationPeriodEntity otherPeriod = openPeriod("filter-b-" + suffix);
+        UserEntity matchingProposer = saveUser("filter-proposer-a-" + suffix,
+                "Filter Proposer A " + suffix, "LECTURER", matchingDepartment);
+        UserEntity otherProposer = saveUser("filter-proposer-b-" + suffix,
+                "Filter Proposer B " + suffix, "LECTURER", otherDepartment);
+        TopicEntity match = topic(matchingPeriod, matchingDepartment, matchingProposer, "needle-match-" + suffix);
+        match.setStatus(TopicStatus.PUBLISHED);
+        topicRepository.saveAndFlush(match);
+        TopicEntity wrongPeriod = topic(otherPeriod, matchingDepartment, matchingProposer, "needle-period-" + suffix);
+        wrongPeriod.setStatus(TopicStatus.PUBLISHED);
+        topicRepository.saveAndFlush(wrongPeriod);
+        TopicEntity wrongDepartment = topic(matchingPeriod, otherDepartment, otherProposer, "needle-department-" + suffix);
+        wrongDepartment.setStatus(TopicStatus.PUBLISHED);
+        topicRepository.saveAndFlush(wrongDepartment);
+        TopicEntity wrongStatus = topic(matchingPeriod, matchingDepartment, matchingProposer, "needle-status-" + suffix);
+
+        mockMvc.perform(get("/faculty/topics/supervisors")
+                        .with(user(adminPrincipal(admin.getEmailOrCode())))
+                        .param("search", "needle")
+                        .param("departmentId", matchingDepartment.getId().toString())
+                        .param("periodId", matchingPeriod.getId().toString())
+                        .param("status", "PUBLISHED")
+                        .param("sort", "title")
+                        .param("direction", "asc")
+                        .param("size", "20"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(match.getTitle())))
+                .andExpect(content().string(not(containsString(wrongPeriod.getTitle()))))
+                .andExpect(content().string(not(containsString(wrongDepartment.getTitle()))))
+                .andExpect(content().string(not(containsString(wrongStatus.getTitle()))))
+                .andExpect(content().string(containsString(otherDepartment.getName())))
+                .andExpect(content().string(containsString(otherPeriod.getName())))
+                .andExpect(content().string(containsString("departmentId=" + matchingDepartment.getId())))
+                .andExpect(content().string(containsString("periodId=" + matchingPeriod.getId())))
+                .andExpect(content().string(containsString("status=PUBLISHED")));
+
+        mockMvc.perform(get("/api/faculty/topics/supervisors")
+                        .with(user(adminPrincipal(admin.getEmailOrCode())))
+                        .param("search", "needle")
+                        .param("departmentId", matchingDepartment.getId().toString())
+                        .param("periodId", matchingPeriod.getId().toString())
+                        .param("status", "PUBLISHED"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalItems").value(1))
+                .andExpect(jsonPath("$.topics[0].id").value(match.getId()));
+
+        mockMvc.perform(get("/faculty/topics/supervisors")
+                        .with(user(adminPrincipal(admin.getEmailOrCode())))
+                        .param("departmentId", otherDepartment.getId().toString())
+                        .param("periodId", otherPeriod.getId().toString())
+                        .param("status", "PUBLISHED"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("No data")))
+                .andExpect(content().string(not(containsString("Assign supervisors"))));
     }
 
     private void assertBadAssignment(UserEntity admin, TopicEntity topic, String message, Long... ids)

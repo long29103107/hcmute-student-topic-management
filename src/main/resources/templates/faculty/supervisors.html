@@ -30,7 +30,7 @@
                     <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Directory</p>
                     <h2 id="topics-heading" class="text-xl font-semibold text-gray-900">Topics</h2>
                 </div>
-                <form class="flex w-full gap-2 sm:w-auto" th:action="@{/faculty/topics/supervisors}" method="get">
+                <form class="grid w-full gap-2 sm:w-auto sm:grid-cols-2 lg:grid-cols-[minmax(16rem,20rem)_16rem_16rem_10rem_auto]" th:action="@{/faculty/topics/supervisors}" method="get">
                     <input type="hidden" name="size" th:value="${topicPage.size}">
                     <input type="hidden" name="sort" th:value="${topicSort}">
                     <input type="hidden" name="direction" th:value="${topicDirection}">
@@ -40,6 +40,29 @@
                                class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
                                placeholder="Search topics" autocomplete="off" th:value="${topicSearch}">
                     </label>
+                    <label class="sr-only" for="department-filter">Department</label>
+                    <select id="department-filter" name="departmentId"
+                            class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">All departments</option>
+                        <option th:each="department : ${topicPage.departmentOptions}" th:value="${department.id}"
+                                th:selected="${department.id == topicDepartmentId}"
+                                th:text="${department.code + ' · ' + department.name}">CNTT · Information Technology</option>
+                    </select>
+                    <label class="sr-only" for="period-filter">Registration period</label>
+                    <select id="period-filter" name="periodId"
+                            class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">All periods</option>
+                        <option th:each="period : ${topicPage.periodOptions}" th:value="${period.id}"
+                                th:selected="${period.id == topicPeriodId}"
+                                th:text="${period.name + ' · ' + period.type}">Semester 1 · COURSE</option>
+                    </select>
+                    <label class="sr-only" for="status-filter">Topic status</label>
+                    <select id="status-filter" name="status"
+                            class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">All statuses</option>
+                        <option th:each="statusOption : ${topicPage.statusOptions}" th:value="${statusOption}"
+                                th:selected="${statusOption == topicStatus}" th:text="${statusOption}">DRAFT</option>
+                    </select>
                     <button type="submit"
                             class="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300">
                         Search
@@ -52,23 +75,23 @@
                     <thead class="bg-gray-50 text-xs uppercase text-gray-700">
                     <tr>
                         <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
-                                th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},sort='topic',direction=${topicSort == 'topic' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
+                                th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},departmentId=${topicDepartmentId},periodId=${topicPeriodId},status=${topicStatus},sort='topic',direction=${topicSort == 'topic' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
                             Topic <span th:text="${topicSort == 'topic' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
                         </a></th>
                         <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
-                                th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},sort='department',direction=${topicSort == 'department' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
+                                th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},departmentId=${topicDepartmentId},periodId=${topicPeriodId},status=${topicStatus},sort='department',direction=${topicSort == 'department' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
                             Department <span th:text="${topicSort == 'department' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
                         </a></th>
                         <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
-                                th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},sort='period',direction=${topicSort == 'period' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
+                                th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},departmentId=${topicDepartmentId},periodId=${topicPeriodId},status=${topicStatus},sort='period',direction=${topicSort == 'period' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
                             Period <span th:text="${topicSort == 'period' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
                         </a></th>
                         <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
-                                th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},sort='status',direction=${topicSort == 'status' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
+                                th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},departmentId=${topicDepartmentId},periodId=${topicPeriodId},status=${topicStatus},sort='status',direction=${topicSort == 'status' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
                             Status <span th:text="${topicSort == 'status' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
                         </a></th>
                         <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
-                                th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},sort='supervisors',direction=${topicSort == 'supervisors' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
+                                th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},departmentId=${topicDepartmentId},periodId=${topicPeriodId},status=${topicStatus},sort='supervisors',direction=${topicSort == 'supervisors' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
                             Supervisors <span th:text="${topicSort == 'supervisors' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
                         </a></th>
                         <th scope="col" class="px-6 py-3"><span class="sr-only">Actions</span></th>
@@ -141,30 +164,25 @@
                             <a class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                                th:classappend="${!topicPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
                                th:attr="aria-disabled=${!topicPage.hasPrevious}"
-                               th:href="@{/faculty/topics/supervisors(page=${topicPage.page - 1},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch})}">Previous</a>
+                               th:href="@{/faculty/topics/supervisors(page=${topicPage.page - 1},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch},departmentId=${topicDepartmentId},periodId=${topicPeriodId},status=${topicStatus})}">Previous</a>
                         </li>
                         <li th:each="pageNumber : ${#numbers.sequence(0, topicPage.totalPages - 1)}">
                             <a class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                                th:classappend="${pageNumber == topicPage.page ? 'bg-blue-50 text-blue-700' : ''}"
                                th:attr="aria-current=${pageNumber == topicPage.page ? 'page' : null}"
-                               th:href="@{/faculty/topics/supervisors(page=${pageNumber},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch})}"
+                               th:href="@{/faculty/topics/supervisors(page=${pageNumber},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch},departmentId=${topicDepartmentId},periodId=${topicPeriodId},status=${topicStatus})}"
                                th:text="${pageNumber + 1}">1</a>
                         </li>
                         <li>
                             <a class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                                th:classappend="${!topicPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
                                th:attr="aria-disabled=${!topicPage.hasNext}"
-                               th:href="@{/faculty/topics/supervisors(page=${topicPage.page + 1},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch})}">Next</a>
+                               th:href="@{/faculty/topics/supervisors(page=${topicPage.page + 1},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch},departmentId=${topicDepartmentId},periodId=${topicPeriodId},status=${topicStatus})}">Next</a>
                         </li>
                     </ul>
                 </nav>
             </div>
-            <p class="px-6 py-12 text-center text-sm text-gray-500" th:if="${#lists.isEmpty(topics) and #strings.isEmpty(topicSearch)}">
-                No topics are available in your management scope.
-            </p>
-            <p class="px-6 py-12 text-center text-sm text-gray-500" th:if="${#lists.isEmpty(topics) and !#strings.isEmpty(topicSearch)}">
-                No topics match your search.
-            </p>
+            <div th:if="${#lists.isEmpty(topics)}" th:replace="~{fragments/no-data :: noData}"></div>
         </section>
     </section>
 

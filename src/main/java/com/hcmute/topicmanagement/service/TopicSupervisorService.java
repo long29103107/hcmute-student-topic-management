@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +19,7 @@ import com.hcmute.topicmanagement.model.RoleEntity;
 import com.hcmute.topicmanagement.model.TopicEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
+import com.hcmute.topicmanagement.model.enums.TopicStatus;
 import com.hcmute.topicmanagement.repository.TopicRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
 
@@ -36,26 +40,35 @@ public class TopicSupervisorService {
 
     @PreAuthorize("hasAuthority('SUPERVISOR_MANAGE')")
     public TopicAssignmentPage listManageableTopics(String actorEmail) {
-        return listManageableTopics(actorEmail, "", 0, 10, "topic", "asc");
+        return listManageableTopics(actorEmail, "", null, null, "", 0, 20, "topic", "asc");
     }
 
     @PreAuthorize("hasAuthority('SUPERVISOR_MANAGE')")
     public TopicAssignmentPage listManageableTopics(
             String actorEmail, String search, int page, int size, String sort, String direction) {
+        return listManageableTopics(actorEmail, search, null, null, "", page, size, sort, direction);
+    }
+
+    @PreAuthorize("hasAuthority('SUPERVISOR_MANAGE')")
+    public TopicAssignmentPage listManageableTopics(
+            String actorEmail, String search, Long departmentId, Long periodId, String status,
+            int page, int size, String sort, String direction) {
         UserEntity actor = findActiveActor(actorEmail);
         ManagementScope scope = scopeFor(actor);
         String normalizedSearch = search == null ? "" : search.trim().toLowerCase(java.util.Locale.ROOT);
+        TopicStatus selectedStatus = parseStatus(status);
+        String normalizedStatus = selectedStatus == null ? "" : selectedStatus.name();
         String normalizedSort = normalizeSort(sort);
         String normalizedDirection = normalizeDirection(direction);
         int safeSize = Math.min(Math.max(size, 5), 100);
         if (!scope.hasDepartmentScope()) {
             return new TopicAssignmentPage(
-                    List.of(), 0, safeSize, 0, 1, normalizedSearch, normalizedSort, normalizedDirection, scope.label());
+                    List.of(), 0, safeSize, 0, 1, normalizedSearch, departmentId, periodId, normalizedStatus,
+                    normalizedSort, normalizedDirection, scope.label(), List.of(), List.of(),
+                    java.util.Arrays.stream(TopicStatus.values()).map(Enum::name).toList());
         }
 
-        List<TopicEntity> topics = scope.isAdmin()
-                ? topicRepository.findAllForSupervisorManagement()
-                : topicRepository.findForSupervisorManagementByDepartmentId(scope.departmentId());
+        Long scopeDepartmentId = scope.isAdmin() ? null : scope.departmentId();
         Map<Long, List<SupervisorOption>> optionsByDepartment = userRepository
                 .findActiveLecturerCapabilitiesOrderByFullName().stream()
                 .filter(user -> user.getDepartment() != null && user.getDepartment().getId() != null)
@@ -64,28 +77,75 @@ public class TopicSupervisorService {
                         SupervisorOption::getDepartmentId,
                         java.util.LinkedHashMap::new,
                         Collectors.toList()));
-        List<TopicSummary> filtered = topics.stream()
-                .map(topic -> toSummary(
-                        topic,
-                        optionsByDepartment.getOrDefault(topic.getDepartment().getId(), List.of())))
-                .filter(topic -> matchesSearch(topic, normalizedSearch))
-                .sorted(topicComparator(normalizedSort, normalizedDirection))
+        List<DepartmentFilterOption> departmentOptions = topicRepository
+                .findSupervisorManagementDepartments(scopeDepartmentId).stream()
+                .map(department -> new DepartmentFilterOption(department.getId(), department.getCode(), department.getName()))
                 .toList();
-        int totalItems = filtered.size();
+        List<PeriodFilterOption> periodOptions = topicRepository
+                .findSupervisorManagementPeriods(scopeDepartmentId).stream()
+                .map(period -> new PeriodFilterOption(period.getId(), period.getName(), period.getType().name()))
+                .toList();
+        int totalItems = Math.toIntExact(topicRepository.countSupervisorManagementTopics(
+                scopeDepartmentId, departmentId, periodId, selectedStatus, normalizedSearch));
         int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / safeSize));
         int safePage = Math.min(Math.max(page, 0), totalPages - 1);
-        int from = Math.min(safePage * safeSize, totalItems);
-        int to = Math.min(from + safeSize, totalItems);
+Pageable pageable;
+
+List<Long> topicIds;
+
+if ("supervisors".equals(normalizedSort)) {
+    pageable = PageRequest.of(safePage, safeSize);
+
+    topicIds = topicRepository.findSupervisorManagementIdsSortedBySupervisor(
+            scopeDepartmentId,
+            departmentId,
+            periodId,
+            selectedStatus,
+            normalizedSearch,
+            "asc".equals(normalizedDirection),
+            pageable
+    );
+} else {
+    pageable = pageableFor(
+            safePage,
+            safeSize,
+            normalizedSort,
+            normalizedDirection
+    );
+
+    topicIds = topicRepository.findSupervisorManagementIds(
+            scopeDepartmentId,
+            departmentId,
+            periodId,
+            selectedStatus,
+            normalizedSearch,
+            pageable
+    );
+}
+        Map<Long, TopicEntity> topicsById = topicRepository.findAllByIdForSupervisorManagement(topicIds).stream()
+                .collect(Collectors.toMap(TopicEntity::getId, topic -> topic));
+        List<TopicSummary> topicSummaries = topicIds.stream()
+                .map(topicsById::get)
+                .filter(java.util.Objects::nonNull)
+                .map(topic -> toSummary(
+                        topic, optionsByDepartment.getOrDefault(topic.getDepartment().getId(), List.of())))
+                .toList();
         return new TopicAssignmentPage(
-                filtered.subList(from, to),
+                topicSummaries,
                 safePage,
                 safeSize,
                 totalItems,
                 totalPages,
                 normalizedSearch,
+                departmentId,
+                periodId,
+                normalizedStatus,
                 normalizedSort,
                 normalizedDirection,
-                scope.label());
+                scope.label(),
+                departmentOptions,
+                periodOptions,
+                java.util.Arrays.stream(TopicStatus.values()).map(Enum::name).toList());
     }
 
     @Transactional
@@ -179,52 +239,17 @@ public class TopicSupervisorService {
                 .anyMatch(role -> roleCode.equalsIgnoreCase(role.getCode()));
     }
 
-    private static boolean matchesSearch(TopicSummary topic, String search) {
-        if (search.isBlank()) {
-            return true;
-        }
-        String supervisorText = topic.getSupervisors().stream()
-                .map(supervisor -> supervisor.getFullName() + " " + supervisor.getEmail())
-                .collect(Collectors.joining(" "));
-        return contains(topic.getTitle(), search)
-                || contains(topic.getDepartmentCode(), search)
-                || contains(topic.getDepartmentName(), search)
-                || contains(topic.getPeriodName(), search)
-                || contains(topic.getPeriodType(), search)
-                || contains(topic.getStatus(), search)
-                || contains(topic.getProposedByName(), search)
-                || contains(supervisorText, search);
-    }
-
-    private static boolean contains(String value, String search) {
-        return value != null && value.toLowerCase(java.util.Locale.ROOT).contains(search);
-    }
-
-    private static Comparator<TopicSummary> topicComparator(String sort, String direction) {
-        Comparator<TopicSummary> comparator = switch (sort) {
-            case "department" -> Comparator.comparing(
-                    TopicSummary::getDepartmentCode, String.CASE_INSENSITIVE_ORDER)
-                    .thenComparing(TopicSummary::getDepartmentName, String.CASE_INSENSITIVE_ORDER)
-                    .thenComparing(TopicSummary::getTitle, String.CASE_INSENSITIVE_ORDER);
-            case "period" -> Comparator.comparing(
-                    TopicSummary::getPeriodName, String.CASE_INSENSITIVE_ORDER)
-                    .thenComparing(TopicSummary::getTitle, String.CASE_INSENSITIVE_ORDER);
-            case "status" -> Comparator.comparing(
-                    TopicSummary::getStatus, String.CASE_INSENSITIVE_ORDER)
-                    .thenComparing(TopicSummary::getTitle, String.CASE_INSENSITIVE_ORDER);
-            case "proposer" -> Comparator.comparing(
-                    TopicSummary::getProposedByName, String.CASE_INSENSITIVE_ORDER)
-                    .thenComparing(TopicSummary::getTitle, String.CASE_INSENSITIVE_ORDER);
-            case "supervisors" -> Comparator.comparing(
-                    (TopicSummary topic) -> topic.getSupervisors().stream()
-                            .map(SupervisorSummary::getFullName)
-                            .collect(Collectors.joining(", ")),
-                    String.CASE_INSENSITIVE_ORDER).thenComparing(
-                            TopicSummary::getTitle, String.CASE_INSENSITIVE_ORDER);
-            default -> Comparator.comparing(TopicSummary::getTitle, String.CASE_INSENSITIVE_ORDER)
-                    .thenComparing(TopicSummary::getDepartmentCode, String.CASE_INSENSITIVE_ORDER);
+    private static Pageable pageableFor(int page, int size, String sort, String direction) {
+        Sort.Direction sortDirection = "desc".equals(direction) ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort sortOrder = switch (sort) {
+            case "department" -> Sort.by(sortDirection, "department.code").and(Sort.by(sortDirection, "department.name"));
+            case "period" -> Sort.by(sortDirection, "registrationPeriod.name");
+            case "status" -> Sort.by(sortDirection, "status");
+            case "proposer" -> Sort.by(sortDirection, "proposedBy.fullName");
+            case "supervisors" -> Sort.by(sortDirection, "id");
+            default -> Sort.by(sortDirection, "title");
         };
-        return "desc".equals(direction) ? comparator.reversed() : comparator;
+        return PageRequest.of(page, size, sortOrder.and(Sort.by(sortDirection, "id")));
     }
 
     private static String normalizeSort(String sort) {
@@ -237,6 +262,15 @@ public class TopicSupervisorService {
 
     private static String normalizeDirection(String direction) {
         return "desc".equalsIgnoreCase(direction == null ? "" : direction.trim()) ? "desc" : "asc";
+    }
+
+    private static TopicStatus parseStatus(String status) {
+        String normalized = status == null ? "" : status.trim().toUpperCase(java.util.Locale.ROOT);
+        try {
+            return normalized.isBlank() ? null : TopicStatus.valueOf(normalized);
+        } catch (IllegalArgumentException exception) {
+            return null;
+        }
     }
 
     private static TopicSummary toSummary(TopicEntity topic, List<SupervisorOption> supervisorOptions) {
@@ -291,9 +325,15 @@ public class TopicSupervisorService {
         private final int totalItems;
         private final int totalPages;
         private final String search;
+        private final Long departmentId;
+        private final Long periodId;
+        private final String status;
         private final String sort;
         private final String direction;
         private final String scopeLabel;
+        private final List<DepartmentFilterOption> departmentOptions;
+        private final List<PeriodFilterOption> periodOptions;
+        private final List<String> statusOptions;
 
         public TopicAssignmentPage(
                 List<TopicSummary> topics,
@@ -302,18 +342,30 @@ public class TopicSupervisorService {
                 int totalItems,
                 int totalPages,
                 String search,
+                Long departmentId,
+                Long periodId,
+                String status,
                 String sort,
                 String direction,
-                String scopeLabel) {
+                String scopeLabel,
+                List<DepartmentFilterOption> departmentOptions,
+                List<PeriodFilterOption> periodOptions,
+                List<String> statusOptions) {
             this.topics = List.copyOf(topics);
             this.page = page;
             this.size = size;
             this.totalItems = totalItems;
             this.totalPages = totalPages;
             this.search = search;
+            this.departmentId = departmentId;
+            this.periodId = periodId;
+            this.status = status;
             this.sort = sort;
             this.direction = direction;
             this.scopeLabel = scopeLabel;
+            this.departmentOptions = List.copyOf(departmentOptions);
+            this.periodOptions = List.copyOf(periodOptions);
+            this.statusOptions = List.copyOf(statusOptions);
         }
 
         public List<TopicSummary> getTopics() { return topics; }
@@ -322,12 +374,22 @@ public class TopicSupervisorService {
         public int getTotalItems() { return totalItems; }
         public int getTotalPages() { return totalPages; }
         public String getSearch() { return search; }
+        public Long getDepartmentId() { return departmentId; }
+        public Long getPeriodId() { return periodId; }
+        public String getStatus() { return status; }
         public String getSort() { return sort; }
         public String getDirection() { return direction; }
         public boolean isHasPrevious() { return page > 0; }
         public boolean isHasNext() { return page + 1 < totalPages; }
         public String getScopeLabel() { return scopeLabel; }
+        public List<DepartmentFilterOption> getDepartmentOptions() { return departmentOptions; }
+        public List<PeriodFilterOption> getPeriodOptions() { return periodOptions; }
+        public List<String> getStatusOptions() { return statusOptions; }
     }
+
+    public record DepartmentFilterOption(Long id, String code, String name) { }
+
+    public record PeriodFilterOption(Long id, String name, String type) { }
 
     public static final class TopicSummary {
         private final Long id;
