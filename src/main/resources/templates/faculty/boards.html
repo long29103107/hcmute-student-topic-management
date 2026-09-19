@@ -93,6 +93,8 @@
                 method="post"
                 th:action="@{/faculty/boards/save}"
                 class="grid gap-5 p-6 lg:grid-cols-2"
+                novalidate
+                data-review-board-form
               >
                 <input
                   type="hidden"
@@ -103,11 +105,12 @@
                   <label
                     class="mb-2 block text-sm font-medium text-gray-900"
                     for="create-registration-id"
-                    >Approved registration</label
+                    >Approved registration <span class="text-red-600" aria-hidden="true">*</span></label
                   >
                   <select
                     id="create-registration-id"
                     name="registrationId"
+                    data-review-board-field="registration"
                     required
                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
                   >
@@ -120,24 +123,28 @@
                       Group Phoenix · Topic · CNTT
                     </option>
                   </select>
+                  <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="registration" role="alert"></p>
                 </div>
                 <div>
                   <label
                     class="mb-2 block text-sm font-medium text-gray-900"
                     for="create-scheduled-at"
-                    >Scheduled at</label
+                    >Scheduled at <span class="text-red-600" aria-hidden="true">*</span></label
                   >
                   <input
                     id="create-scheduled-at"
                     name="scheduledAt"
                     type="datetime-local"
+                    required
+                    data-review-board-field="scheduledAt"
                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
                   />
+                  <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="scheduledAt" role="alert"></p>
                 </div>
                 <div class="lg:col-span-2">
                   <fieldset>
                     <legend class="text-sm font-medium text-gray-900">
-                      Board lecturers
+                      Board lecturers <span class="text-red-600" aria-hidden="true">*</span>
                     </legend>
                     <p class="mt-1 text-xs text-gray-500">
                       Select 3–5 lecturers. Only active lecturer-capability
@@ -145,6 +152,7 @@
                     </p>
                     <div
                       class="mt-4 max-h-72 space-y-2 overflow-y-auto rounded-lg border border-gray-200 p-3"
+                      data-review-board-lecturers
                     >
                       <label
                         class="flex cursor-pointer items-start gap-3 rounded-lg p-3 hover:bg-gray-50"
@@ -181,6 +189,7 @@
                         No active lecturer-capability accounts are available.
                       </p>
                     </div>
+                    <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="lecturers" role="alert"></p>
                   </fieldset>
                 </div>
                 <div class="space-y-4">
@@ -188,12 +197,13 @@
                     <label
                       class="mb-2 block text-sm font-medium text-gray-900"
                       for="create-chair-id"
-                      >Chair</label
+                      >Chair <span class="text-red-600" aria-hidden="true">*</span></label
                     >
                     <select
                       id="create-chair-id"
                       name="chairId"
                       required
+                      data-review-board-field="chair"
                       class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
                     >
                       <option value="">Select Chair</option>
@@ -205,17 +215,19 @@
                         Lecturer
                       </option>
                     </select>
+                    <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="chair" role="alert"></p>
                   </div>
                   <div>
                     <label
                       class="mb-2 block text-sm font-medium text-gray-900"
                       for="create-secretary-id"
-                      >Secretary</label
+                      >Secretary <span class="text-red-600" aria-hidden="true">*</span></label
                     >
                     <select
                       id="create-secretary-id"
                       name="secretaryId"
                       required
+                      data-review-board-field="secretary"
                       class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
                     >
                       <option value="">Select Secretary</option>
@@ -227,6 +239,7 @@
                         Lecturer
                       </option>
                     </select>
+                    <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="secretary" role="alert"></p>
                   </div>
                 </div>
                 <div
@@ -456,6 +469,8 @@
               method="post"
               th:action="@{/faculty/boards/save}"
               class="grid gap-5 p-6 sm:grid-cols-2"
+              novalidate
+              data-review-board-form
             >
               <input
                 type="hidden"
@@ -470,19 +485,24 @@
               />
               <div>
                 <label class="mb-2 block text-sm font-medium text-gray-900"
-                  >Scheduled at</label
+                  >Scheduled at <span class="text-red-600" aria-hidden="true">*</span></label
                 ><input
                   name="scheduledAt"
                   type="datetime-local"
+                  required
+                  data-review-board-field="scheduledAt"
                   th:value="${board.scheduledAt == null ? '' : #temporals.format(board.scheduledAt, 'yyyy-MM-dd''T''HH:mm')}"
                   class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
                 />
+                <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="scheduledAt" role="alert"></p>
               </div>
               <div>
                 <label class="mb-2 block text-sm font-medium text-gray-900"
-                  >Status</label
+                  >Status <span class="text-red-600" aria-hidden="true">*</span></label
                 ><select
                   name="status"
+                  required
+                  data-review-board-field="status"
                   class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
                 >
                   <option
@@ -494,11 +514,12 @@
                     ACTIVE
                   </option>
                 </select>
+                <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="status" role="alert"></p>
               </div>
               <div class="sm:col-span-2">
                 <fieldset>
                   <legend class="text-sm font-medium text-gray-900">
-                    Board lecturers
+                    Board lecturers <span class="text-red-600" aria-hidden="true">*</span>
                   </legend>
                   <p class="mt-1 text-xs text-gray-500">
                     Select 3–5 lecturers. Only active lecturer-capability
@@ -506,6 +527,7 @@
                   </p>
                   <div
                     class="mt-4 max-h-72 space-y-2 overflow-y-auto rounded-lg border border-gray-200 p-3"
+                    data-review-board-lecturers
                   >
                     <label
                       class="flex cursor-pointer items-start gap-3 rounded-lg p-3 hover:bg-gray-50"
@@ -537,15 +559,17 @@
                       </span>
                     </label>
                   </div>
+                  <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="lecturers" role="alert"></p>
                 </fieldset>
               </div>
               <div class="space-y-4">
                 <div>
                   <label class="mb-2 block text-sm font-medium text-gray-900"
-                    >Chair</label
+                    >Chair <span class="text-red-600" aria-hidden="true">*</span></label
                   ><select
                     name="chairId"
                     required
+                    data-review-board-field="chair"
                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
                   >
                     <option
@@ -558,13 +582,15 @@
                       Chair
                     </option>
                   </select>
+                  <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="chair" role="alert"></p>
                 </div>
                 <div>
                   <label class="mb-2 block text-sm font-medium text-gray-900"
-                    >Secretary</label
+                    >Secretary <span class="text-red-600" aria-hidden="true">*</span></label
                   ><select
                     name="secretaryId"
                     required
+                    data-review-board-field="secretary"
                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
                   >
                     <option
@@ -577,7 +603,10 @@
                       Secretary
                     </option>
                   </select>
+                  <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="secretary" role="alert"></p>
                 </div>
+              </div>
+              <div class="flex justify-end border-t border-gray-200 pt-5 sm:col-span-2">
                 <button
                   type="submit"
                   class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white"

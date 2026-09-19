@@ -378,10 +378,228 @@ document.addEventListener('DOMContentLoaded', () => {
         form.addEventListener('submit', syncPasswordConfirmation);
     });
 
+    document.querySelectorAll('[data-group-form]').forEach((form) => {
+        const fields = {};
+        const messages = {};
+        form.querySelectorAll('[data-group-field]').forEach((field) => {
+            const fieldName = field.dataset.groupField;
+            fields[fieldName] = field;
+            messages[fieldName] = form.querySelector(`[data-group-error="${fieldName}"]`);
+        });
+        const errorMessages = {
+            name: 'Group name is required.',
+            period: 'Registration period is required.',
+            groupId: 'Group ID is required.'
+        };
+
+        const validateField = (fieldName) => {
+            const field = fields[fieldName];
+            const message = messages[fieldName];
+            if (!field || !message) {
+                return true;
+            }
+
+            const value = field.value.trim();
+            const error = value ? '' : errorMessages[fieldName];
+            message.textContent = error;
+            message.hidden = !error;
+            field.setAttribute('aria-invalid', String(Boolean(error)));
+            field.classList.toggle('border-red-500', Boolean(error));
+            field.classList.toggle('focus:border-red-500', Boolean(error));
+            field.classList.toggle('focus:ring-red-500', Boolean(error));
+            field.classList.toggle('border-gray-300', !error);
+            field.setCustomValidity(error);
+            return !error;
+        };
+
+        Object.keys(fields).forEach((fieldName) => {
+            fields[fieldName]?.addEventListener('input', () => validateField(fieldName));
+            fields[fieldName]?.addEventListener('change', () => validateField(fieldName));
+            fields[fieldName]?.addEventListener('blur', () => validateField(fieldName));
+        });
+
+        form.addEventListener('submit', (event) => {
+            const valid = Object.keys(fields).every(validateField);
+            if (!valid) {
+                event.preventDefault();
+                const firstInvalid = Object.values(fields).find((field) =>
+                    field?.getAttribute('aria-invalid') === 'true');
+                firstInvalid?.focus();
+            }
+        });
+    });
+
     document.querySelectorAll('[data-confirm]').forEach((form) => {
         form.addEventListener('submit', (event) => {
             if (!window.confirm(form.dataset.confirm)) {
                 event.preventDefault();
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-review-board-form]').forEach((form) => {
+        const fields = {
+            registration: form.querySelector('[data-review-board-field="registration"]'),
+            scheduledAt: form.querySelector('[data-review-board-field="scheduledAt"]'),
+            status: form.querySelector('[data-review-board-field="status"]'),
+            chair: form.querySelector('[data-review-board-field="chair"]'),
+            secretary: form.querySelector('[data-review-board-field="secretary"]')
+        };
+        const errors = {
+            registration: form.querySelector('[data-review-board-error="registration"]'),
+            scheduledAt: form.querySelector('[data-review-board-error="scheduledAt"]'),
+            status: form.querySelector('[data-review-board-error="status"]'),
+            lecturers: form.querySelector('[data-review-board-error="lecturers"]'),
+            chair: form.querySelector('[data-review-board-error="chair"]'),
+            secretary: form.querySelector('[data-review-board-error="secretary"]')
+        };
+        const lecturerCheckboxes = [...form.querySelectorAll('input[name="lecturerIds"]')];
+
+        const setFieldError = (fieldName, error) => {
+            const field = fields[fieldName];
+            const message = errors[fieldName];
+            if (!field || !message) {
+                return !error;
+            }
+            message.textContent = error;
+            message.hidden = !error;
+            field.setAttribute('aria-invalid', String(Boolean(error)));
+            field.classList.toggle('border-red-500', Boolean(error));
+            field.classList.toggle('focus:border-red-500', Boolean(error));
+            field.classList.toggle('focus:ring-red-500', Boolean(error));
+            field.classList.toggle('border-gray-300', !error);
+            field.setCustomValidity(error);
+            return !error;
+        };
+
+        const validate = () => {
+            let valid = true;
+            Object.entries(fields).forEach(([fieldName, field]) => {
+                if (!field) {
+                    return;
+                }
+                const error = field.value.trim() ? '' : `${fieldName === 'scheduledAt' ? 'Scheduled time' : fieldName[0].toUpperCase() + fieldName.slice(1)} is required.`;
+                valid = setFieldError(fieldName, error) && valid;
+            });
+
+            const selectedIds = lecturerCheckboxes
+                .filter((checkbox) => checkbox.checked)
+                .map((checkbox) => checkbox.value);
+            let lecturerError = '';
+            if (selectedIds.length < 3 || selectedIds.length > 5) {
+                lecturerError = 'Select between 3 and 5 lecturers.';
+            }
+            if (errors.lecturers) {
+                errors.lecturers.textContent = lecturerError;
+                errors.lecturers.hidden = !lecturerError;
+            }
+            if (lecturerCheckboxes[0]) {
+                lecturerCheckboxes[0].setCustomValidity(lecturerError);
+            }
+            valid = !lecturerError && valid;
+
+            const chairId = fields.chair?.value || '';
+            const secretaryId = fields.secretary?.value || '';
+            const chairError = chairId && !selectedIds.includes(chairId)
+                ? 'Chair must be one of the selected board lecturers.'
+                : '';
+            const secretaryError = secretaryId && !selectedIds.includes(secretaryId)
+                ? 'Secretary must be one of the selected board lecturers.'
+                : '';
+            const differentError = chairId && secretaryId && chairId === secretaryId
+                ? 'Chair and Secretary must be different lecturers.'
+                : '';
+            valid = setFieldError('chair', chairError || differentError) && valid;
+            valid = setFieldError('secretary', secretaryError || differentError) && valid;
+            return valid;
+        };
+
+        [...Object.values(fields).filter(Boolean), ...lecturerCheckboxes].forEach((field) => {
+            field.addEventListener('input', validate);
+            field.addEventListener('change', validate);
+            field.addEventListener('blur', validate);
+        });
+        form.addEventListener('submit', (event) => {
+            if (!validate()) {
+                event.preventDefault();
+                const firstInvalid = Object.values(fields).find((field) =>
+                    field?.getAttribute('aria-invalid') === 'true');
+                firstInvalid?.focus();
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-evaluator-form]').forEach((form) => {
+        const field = form.querySelector('[data-evaluator-field]');
+        const message = form.querySelector('[data-evaluator-error]');
+        if (!field || !message) {
+            return;
+        }
+
+        const validate = () => {
+            const error = field.value.trim() ? '' : 'Evaluator is required.';
+            message.textContent = error;
+            message.hidden = !error;
+            field.setAttribute('aria-invalid', String(Boolean(error)));
+            field.classList.toggle('border-red-500', Boolean(error));
+            field.classList.toggle('focus:border-red-500', Boolean(error));
+            field.classList.toggle('focus:ring-red-500', Boolean(error));
+            field.classList.toggle('border-gray-300', !error);
+            field.setCustomValidity(error);
+            return !error;
+        };
+
+        field.addEventListener('change', validate);
+        field.addEventListener('blur', validate);
+        form.addEventListener('submit', (event) => {
+            if (!validate()) {
+                event.preventDefault();
+                field.focus();
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-scoring-form]').forEach((form) => {
+        const field = form.querySelector('[data-scoring-field="score"]');
+        const message = form.querySelector('[data-scoring-error="score"]');
+        if (!field || !message) {
+            return;
+        }
+
+        const validate = () => {
+            const value = field.value.trim();
+            let error = '';
+            if (!value) {
+                error = 'Score is required.';
+            } else {
+                const score = Number(value);
+                const minimum = Number(field.min);
+                const maximum = Number(field.max);
+                if (!Number.isFinite(score)) {
+                    error = 'Score must be a valid number.';
+                } else if (score < minimum || score > maximum) {
+                    error = `Score must be between ${minimum} and ${maximum}.`;
+                }
+            }
+
+            message.textContent = error;
+            message.hidden = !error;
+            field.setAttribute('aria-invalid', String(Boolean(error)));
+            field.classList.toggle('border-red-500', Boolean(error));
+            field.classList.toggle('focus:border-red-500', Boolean(error));
+            field.classList.toggle('focus:ring-red-500', Boolean(error));
+            field.classList.toggle('border-gray-300', !error);
+            field.setCustomValidity(error);
+            return !error;
+        };
+
+        field.addEventListener('input', validate);
+        field.addEventListener('change', validate);
+        field.addEventListener('blur', validate);
+        form.addEventListener('submit', (event) => {
+            if (!validate()) {
+                event.preventDefault();
+                field.focus();
             }
         });
     });
@@ -538,19 +756,86 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-announcement-scope-form]').forEach((form) => {
         const scope = form.querySelector('[data-announcement-scope]');
         const department = form.querySelector('[data-announcement-department]');
+        const departmentRequired = form.querySelector('[data-announcement-department-required]');
+        const fields = {
+            title: form.querySelector('[data-announcement-field="title"]'),
+            content: form.querySelector('[data-announcement-field="content"]'),
+            scope: form.querySelector('[data-announcement-field="scope"]'),
+            department: form.querySelector('[data-announcement-field="department"]')
+        };
         if (!scope || !department) {
             return;
         }
+
+        const messages = {
+            title: form.querySelector('[data-announcement-error="title"]'),
+            content: form.querySelector('[data-announcement-error="content"]'),
+            scope: form.querySelector('[data-announcement-error="scope"]'),
+            department: form.querySelector('[data-announcement-error="department"]')
+        };
+
         const syncDepartment = () => {
             const schoolWide = scope.value === 'SCHOOL';
             department.disabled = schoolWide;
             department.required = !schoolWide;
+            if (departmentRequired) {
+                departmentRequired.hidden = schoolWide;
+            }
             if (schoolWide) {
                 department.value = '';
             }
         };
+
+        const validateField = (fieldName) => {
+            const field = fields[fieldName];
+            const message = messages[fieldName];
+            if (!field || !message) {
+                return true;
+            }
+
+            const value = field.value.trim();
+            let error = '';
+            if (fieldName === 'title' && !value) {
+                error = 'Title is required.';
+            } else if (fieldName === 'content' && !value) {
+                error = 'Content is required.';
+            } else if (fieldName === 'scope' && !value) {
+                error = 'Audience is required.';
+            } else if (fieldName === 'department' && scope.value === 'DEPARTMENT' && !value) {
+                error = 'Department is required for department announcements.';
+            }
+
+            message.textContent = error;
+            message.hidden = !error;
+            field.setAttribute('aria-invalid', String(Boolean(error)));
+            field.classList.toggle('border-red-500', Boolean(error));
+            field.classList.toggle('focus:border-red-500', Boolean(error));
+            field.classList.toggle('focus:ring-red-500', Boolean(error));
+            field.classList.toggle('border-gray-300', !error);
+            field.setCustomValidity(error);
+            return !error;
+        };
+
+        Object.keys(fields).forEach((fieldName) => {
+            fields[fieldName]?.addEventListener('input', () => validateField(fieldName));
+            fields[fieldName]?.addEventListener('change', () => validateField(fieldName));
+            fields[fieldName]?.addEventListener('blur', () => validateField(fieldName));
+        });
+
         scope.addEventListener('change', syncDepartment);
+        scope.addEventListener('change', () => validateField('department'));
         syncDepartment();
+
+        form.addEventListener('submit', (event) => {
+            syncDepartment();
+            const valid = Object.keys(fields).every(validateField);
+            if (!valid) {
+                event.preventDefault();
+                const firstInvalid = Object.values(fields).find((field) =>
+                    field?.getAttribute('aria-invalid') === 'true');
+                firstInvalid?.focus();
+            }
+        });
     });
 
     const announcementModal = document.querySelector('[data-announcement-confirm-modal]');
@@ -703,6 +988,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    document.querySelectorAll('[data-kick-form]').forEach((form) => {
+        const confirmModal = document.getElementById(form.dataset.kickConfirmModal);
+        const confirmButton = confirmModal?.querySelector('[data-kick-confirm-submit]');
+        const memberSelect = form.querySelector('[name="memberId"]');
+        if (!confirmModal || !confirmButton || !memberSelect) {
+            return;
+        }
+
+        form.addEventListener('submit', (event) => {
+            if (form.dataset.kickConfirmed === 'true') {
+                delete form.dataset.kickConfirmed;
+                return;
+            }
+            event.preventDefault();
+            if (!form.reportValidity()) {
+                return;
+            }
+            confirmModal.classList.remove('hidden');
+            confirmModal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('overflow-hidden');
+            window.setTimeout(() => confirmButton.focus(), 0);
+        });
+
+        confirmButton.addEventListener('click', () => {
+            form.dataset.kickConfirmed = 'true';
+            confirmModal.classList.add('hidden');
+            confirmModal.setAttribute('aria-hidden', 'true');
+            form.requestSubmit();
+        });
+    });
+
     const registrationRejectModal = document.querySelector('[data-registration-reject-modal]');
     if (registrationRejectModal) {
         const registrationIdInput = registrationRejectModal.querySelector('[data-registration-rejection-id]');
@@ -727,6 +1043,116 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
+    document.querySelectorAll('[data-period-form]').forEach((form) => {
+        const fields = {};
+        const messages = {};
+        form.querySelectorAll('[data-period-field]').forEach((field) => {
+            const fieldName = field.dataset.periodField;
+            fields[fieldName] = field;
+            messages[fieldName] = form.querySelector(`[data-period-error="${fieldName}"]`);
+        });
+        const errorMessages = {
+            name: 'Period name is required.',
+            type: 'Period type is required.',
+            status: 'Status is required.',
+            lecturerStart: 'Lecturer registration start is required.',
+            lecturerEnd: 'Lecturer registration end is required.',
+            studentStart: 'Student registration start is required.',
+            studentEnd: 'Student registration end is required.'
+        };
+
+        const validateField = (fieldName) => {
+            const field = fields[fieldName];
+            const message = messages[fieldName];
+            if (!field || !message) {
+                return true;
+            }
+
+            const error = field.value.trim() ? '' : errorMessages[fieldName];
+            message.textContent = error;
+            message.hidden = !error;
+            field.setAttribute('aria-invalid', String(Boolean(error)));
+            field.classList.toggle('border-red-500', Boolean(error));
+            field.classList.toggle('focus:border-red-500', Boolean(error));
+            field.classList.toggle('focus:ring-red-500', Boolean(error));
+            field.classList.toggle('border-gray-300', !error);
+            field.setCustomValidity(error);
+            return !error;
+        };
+
+        Object.keys(fields).forEach((fieldName) => {
+            fields[fieldName]?.addEventListener('input', () => validateField(fieldName));
+            fields[fieldName]?.addEventListener('change', () => validateField(fieldName));
+            fields[fieldName]?.addEventListener('blur', () => validateField(fieldName));
+        });
+
+        form.addEventListener('submit', (event) => {
+            const valid = Object.keys(fields).every(validateField);
+            if (!valid) {
+                event.preventDefault();
+                const firstInvalid = Object.values(fields).find((field) =>
+                    field?.getAttribute('aria-invalid') === 'true');
+                firstInvalid?.focus();
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-topic-proposal-form]').forEach((form) => {
+        const fields = {
+            title: form.querySelector('[data-topic-field="title"]'),
+            description: form.querySelector('[data-topic-field="description"]'),
+            department: form.querySelector('[data-topic-field="department"]'),
+            period: form.querySelector('[data-topic-field="period"]')
+        };
+        const messages = {
+            title: form.querySelector('[data-topic-error="title"]'),
+            description: form.querySelector('[data-topic-error="description"]'),
+            department: form.querySelector('[data-topic-error="department"]'),
+            period: form.querySelector('[data-topic-error="period"]')
+        };
+        const errorMessages = {
+            title: 'Title is required.',
+            description: 'Description is required.',
+            department: 'Department is required.',
+            period: 'Registration period is required.'
+        };
+
+        const validateField = (fieldName) => {
+            const field = fields[fieldName];
+            const message = messages[fieldName];
+            if (!field || !message) {
+                return true;
+            }
+
+            const error = field.value.trim() ? '' : errorMessages[fieldName];
+            message.textContent = error;
+            message.hidden = !error;
+            field.setAttribute('aria-invalid', String(Boolean(error)));
+            field.classList.toggle('border-red-500', Boolean(error));
+            field.classList.toggle('focus:border-red-500', Boolean(error));
+            field.classList.toggle('focus:ring-red-500', Boolean(error));
+            field.classList.toggle('border-gray-300', !error);
+            field.setCustomValidity(error);
+            return !error;
+        };
+
+        Object.keys(fields).forEach((fieldName) => {
+            fields[fieldName]?.addEventListener('input', () => validateField(fieldName));
+            fields[fieldName]?.addEventListener('change', () => validateField(fieldName));
+            fields[fieldName]?.addEventListener('blur', () => validateField(fieldName));
+        });
+
+        form.addEventListener('submit', (event) => {
+            const valid = Object.keys(fields).every(validateField);
+            if (!valid) {
+                event.preventDefault();
+                const firstInvalid = Object.values(fields).find((field) =>
+                    field?.getAttribute('aria-invalid') === 'true');
+                firstInvalid?.focus();
+            }
+        });
+    });
 
     document.querySelectorAll('[data-seed-page]').forEach((page) => {
         const csrfInput = page.querySelector('[data-seed-csrf]');

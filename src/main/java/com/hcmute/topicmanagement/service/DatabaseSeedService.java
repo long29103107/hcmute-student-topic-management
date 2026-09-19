@@ -176,13 +176,15 @@ public class DatabaseSeedService {
             new DepartmentSeed("MOBILE", "Công nghệ di động"),
             new DepartmentSeed("HTN", "Hệ thống nhúng"),
             new DepartmentSeed("CDS", "Chuyển đổi số"),
-            new DepartmentSeed("QLCNTT", "Quản lý công nghệ thông tin"));
+            new DepartmentSeed("QLCNTT", "Quản lý công nghệ thông tin"),
+            new DepartmentSeed("KT", "Kế toán"));
 
     private static final List<UserSeed> FACULTY_HEADS = List.of(
             facultyHead("nguyen.van.khang", "PGS. TS. Nguyễn Văn Khang", "CNTT"),
             facultyHead("tran.thi.hong.gam", "TS. Trần Thị Hồng Gấm", "KHMT"),
             facultyHead("le.quang.huy", "TS. Lê Quang Huy", "CNPM"),
-            facultyHead("pham.minh.tuan", "PGS. TS. Phạm Minh Tuấn", "HTTT"));
+            facultyHead("pham.minh.tuan", "PGS. TS. Phạm Minh Tuấn", "HTTT"),
+            facultyHead("hoang.thai.xuan.khoa", "Hoàng Thái Xuân Khoa", "KT"));
 
     private static final List<UserSeed> LECTURERS = List.of(
             lecturer("nguyen.thanh.binh", "Nguyễn Thanh Bình", "CNTT"),
@@ -200,7 +202,11 @@ public class DatabaseSeedService {
             lecturer("hoang.duc.long", "Hoàng Đức Long", "HTTT"),
             lecturer("nguyen.thi.thu", "Nguyễn Thị Thu", "HTTT"),
             lecturer("ta.minh.quan", "Tạ Minh Quân", "HTTT"),
-            lecturer("cao.ngoc.han", "Cao Ngọc Hân", "HTTT"));
+            lecturer("cao.ngoc.han", "Cao Ngọc Hân", "HTTT"),
+            lecturer("nguyen.hoang.long", "Nguyễn Hoàng Long", "KT"),
+            lecturer("nguyen.anh.quan", "Nguyễn Anh Quân", "KT"),
+            lecturer("thai.gia.khang", "Thái Gia Khang", "KT"),
+            lecturer("nguyen.anh.minh", "Nguyễn Anh Minh", "KT"));
 
     private static final List<UserSeed> STUDENTS = List.of(
             student("24110000", "Nguyễn Minh Anh", "CNTT"),
@@ -252,7 +258,10 @@ public class DatabaseSeedService {
             student("24110046", "Huỳnh Quốc Trung", "HTTT"),
             student("24110047", "Trương Minh Tâm", "HTTT"),
             student("24110048", "Lý Ngọc Huyền", "HTTT"),
-            student("24110049", "Nguyễn Đức Toàn", "HTTT"));
+            student("24110049", "Nguyễn Đức Toàn", "HTTT"),
+            student("24910000", "Dương Gia Huy", "KT"),
+            student("24910001", "Vương Tâm", "KT"),
+            student("24910002", "Châu Thành Lợi", "KT"));
 
     private static final List<TopicSeed> TOPICS = List.of(
             new TopicSeed(

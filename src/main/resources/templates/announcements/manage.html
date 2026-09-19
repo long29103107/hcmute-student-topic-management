@@ -83,6 +83,7 @@
                 th:action="@{/announcements/manage}"
                 class="grid gap-5 p-6 lg:grid-cols-2"
                 data-announcement-scope-form
+                novalidate
               >
                 <input
                   type="hidden"
@@ -93,7 +94,7 @@
                   <label
                     for="announcement-title"
                     class="mb-2 block text-sm font-medium text-gray-900"
-                    >Title</label
+                    >Title <span class="text-red-600" aria-hidden="true">*</span></label
                   >
                   <input
                     id="announcement-title"
@@ -103,13 +104,15 @@
                     required
                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
                     placeholder="Announcement title"
+                    data-announcement-field="title"
                   />
+                  <p class="mt-1 text-xs font-medium text-red-600" hidden data-announcement-error="title" role="alert"></p>
                 </div>
                 <div class="lg:col-span-2">
                   <label
                     for="announcement-content"
                     class="mb-2 block text-sm font-medium text-gray-900"
-                    >Content</label
+                    >Content <span class="text-red-600" aria-hidden="true">*</span></label
                   >
                   <textarea
                     id="announcement-content"
@@ -119,19 +122,22 @@
                     required
                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
                     placeholder="Write the notice content"
+                    data-announcement-field="content"
                   ></textarea>
+                  <p class="mt-1 text-xs font-medium text-red-600" hidden data-announcement-error="content" role="alert"></p>
                 </div>
                 <div>
                   <label
                     for="announcement-scope"
                     class="mb-2 block text-sm font-medium text-gray-900"
-                    >Audience</label
+                    >Audience <span class="text-red-600" aria-hidden="true">*</span></label
                   >
                   <select
                     id="announcement-scope"
                     name="scope"
                     required
                     data-announcement-scope
+                    data-announcement-field="scope"
                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
                   >
                     <option
@@ -142,18 +148,20 @@
                       Department
                     </option>
                   </select>
+                  <p class="mt-1 text-xs font-medium text-red-600" hidden data-announcement-error="scope" role="alert"></p>
                 </div>
                 <div>
                   <label
                     for="announcement-department"
                     class="mb-2 block text-sm font-medium text-gray-900"
-                    >Department</label
+                    >Department <span class="text-red-600" data-announcement-department-required aria-hidden="true">*</span></label
                   >
                   <select
                     id="announcement-department"
                     name="departmentId"
                     required
                     data-announcement-department
+                    data-announcement-field="department"
                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
                   >
                     <option value="">Select department</option>
@@ -165,6 +173,7 @@
                       CNTT · Công nghệ thông tin
                     </option>
                   </select>
+                  <p class="mt-1 text-xs font-medium text-red-600" hidden data-announcement-error="department" role="alert"></p>
                 </div>
                 <div
                   class="flex justify-end gap-3 border-t border-gray-200 pt-5 lg:col-span-2"
@@ -524,6 +533,7 @@
                 th:action="@{/announcements/manage/update}"
                 class="grid gap-5 p-6 lg:grid-cols-2"
                 data-announcement-scope-form
+                novalidate
               >
                 <input
                   type="hidden"
@@ -539,7 +549,7 @@
                   <label
                     th:for="${'edit-announcement-title-' + announcement.id}"
                     class="mb-2 block text-sm font-medium text-gray-900"
-                    >Title</label
+                    >Title <span class="text-red-600" aria-hidden="true">*</span></label
                   >
                   <input
                     th:id="${'edit-announcement-title-' + announcement.id}"
@@ -549,13 +559,15 @@
                     required
                     th:value="${announcement.title}"
                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                    data-announcement-field="title"
                   />
+                  <p class="mt-1 text-xs font-medium text-red-600" hidden data-announcement-error="title" role="alert"></p>
                 </div>
                 <div class="lg:col-span-2">
                   <label
                     th:for="${'edit-announcement-content-' + announcement.id}"
                     class="mb-2 block text-sm font-medium text-gray-900"
-                    >Content</label
+                    >Content <span class="text-red-600" aria-hidden="true">*</span></label
                   >
                   <textarea
                     th:id="${'edit-announcement-content-' + announcement.id}"
@@ -565,19 +577,22 @@
                     required
                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
                     th:text="${announcement.content}"
+                    data-announcement-field="content"
                   ></textarea>
+                  <p class="mt-1 text-xs font-medium text-red-600" hidden data-announcement-error="content" role="alert"></p>
                 </div>
                 <div>
                   <label
                     th:for="${'edit-announcement-scope-' + announcement.id}"
                     class="mb-2 block text-sm font-medium text-gray-900"
-                    >Audience</label
+                    >Audience <span class="text-red-600" aria-hidden="true">*</span></label
                   >
                   <select
                     th:id="${'edit-announcement-scope-' + announcement.id}"
                     name="scope"
                     required
                     data-announcement-scope
+                    data-announcement-field="scope"
                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
                   >
                     <option
@@ -594,17 +609,19 @@
                       Department
                     </option>
                   </select>
+                  <p class="mt-1 text-xs font-medium text-red-600" hidden data-announcement-error="scope" role="alert"></p>
                 </div>
                 <div>
                   <label
                     th:for="${'edit-announcement-department-' + announcement.id}"
                     class="mb-2 block text-sm font-medium text-gray-900"
-                    >Department</label
+                    >Department <span class="text-red-600" data-announcement-department-required aria-hidden="true">*</span></label
                   >
                   <select
                     th:id="${'edit-announcement-department-' + announcement.id}"
                     name="departmentId"
                     data-announcement-department
+                    data-announcement-field="department"
                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
                   >
                     <option value="">Select department</option>
@@ -617,6 +634,7 @@
                       CNTT · Information Technology
                     </option>
                   </select>
+                  <p class="mt-1 text-xs font-medium text-red-600" hidden data-announcement-error="department" role="alert"></p>
                 </div>
                 <div
                   class="flex justify-end gap-3 border-t border-gray-200 pt-5 lg:col-span-2"

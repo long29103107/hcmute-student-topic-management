@@ -123,7 +123,9 @@ public class ResultPublicationService {
             throw new ResultPublicationValidationException(
                     "Review board evaluations must be assigned to every active board member.");
         }
-        if (context.board() != null && context.board().getStatus() != ReviewBoardStatus.COMPLETED) {
+        if (context.board() != null
+                && context.board().getStatus() != ReviewBoardStatus.COMPLETED
+                && context.board().getStatus() != ReviewBoardStatus.PUBLISHED) {
             throw new ResultPublicationValidationException(
                     "A review board must be completed before its result can be published.");
         }
@@ -273,7 +275,8 @@ public class ResultPublicationService {
                 ? scoreCalculator.averageScore(requiredEvaluations)
                 : null;
         boolean boardCompleted = context.board() == null
-                || context.board().getStatus() == ReviewBoardStatus.COMPLETED;
+                || context.board().getStatus() == ReviewBoardStatus.COMPLETED
+                || context.board().getStatus() == ReviewBoardStatus.PUBLISHED;
         return new ResultSummary(
                 registration.getId(),
                 registration.getStudentGroup().getId(),

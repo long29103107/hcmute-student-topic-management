@@ -238,6 +238,41 @@ public class StudentGroupService {
                 hasActiveRole(actor, "STUDENT") ? actor.getId() : null);
     }
 
+    @Transactional
+    @PreAuthorize("hasRole('STUDENT') and hasAuthority('GROUP_MANAGE')")
+    public StudentGroupSummary kickMember(String actorEmail, Long groupId, Long memberId) {
+        UserEntity actor = findActiveStudent(actorEmail);
+        StudentGroupEntity group = findGroup(groupId);
+        ensureActive(group);
+        lockPeriod(group.getRegistrationPeriod().getId());
+        ensureLeaderInvariant(group);
+
+        if (!isMember(group, actor.getId())) {
+            throw new StudentGroupAccessException("You can only manage a group that you belong to.");
+        }
+        if (group.getLeader() == null || !actor.getId().equals(group.getLeader().getId())) {
+            throw new StudentGroupAccessException("Only the current group leader can remove a member.");
+        }
+        if (memberId == null) {
+            throw new StudentGroupValidationException("Select a group member to remove.");
+        }
+        if (actor.getId().equals(memberId)) {
+            throw new StudentGroupValidationException("The group leader cannot remove themselves.");
+        }
+
+        UserEntity member = group.getMembers().stream()
+                .filter(candidate -> memberId.equals(candidate.getId()))
+                .findFirst()
+                .orElseThrow(() -> new StudentGroupValidationException(
+                        "The selected student must be a member of this group."));
+        if (!isActiveStudent(member)) {
+            throw new StudentGroupValidationException("Only an active student can be removed from the group.");
+        }
+
+        group.getMembers().removeIf(candidate -> memberId.equals(candidate.getId()));
+        return toSummary(studentGroupRepository.saveAndFlush(group), actor.getId());
+    }
+
     private UserEntity findActiveStudent(String email) {
         UserEntity student = userRepository.findByEmailIgnoreCaseWithRolesAndDepartment(email)
                 .filter(UserEntity::isActive)

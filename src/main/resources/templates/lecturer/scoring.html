@@ -272,6 +272,8 @@
             <form
               class="space-y-5 p-6 sm:p-8"
               method="post"
+              novalidate
+              data-scoring-form
               th:attr="action=${'/lecturer/scoring/' + evaluation.id}"
             >
               <input
@@ -283,7 +285,7 @@
                 <label
                   class="mb-2 block text-sm font-medium text-gray-900"
                   th:for="${'score-' + evaluation.id}"
-                  >Score</label
+                  >Score <span class="text-red-600" aria-hidden="true">*</span></label
                 >
                 <input
                   required
@@ -294,8 +296,15 @@
                   th:max="${maximumScore}"
                   th:value="${evaluation.score}"
                   th:id="${'score-' + evaluation.id}"
+                  data-scoring-field="score"
                   class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
                 />
+                <p
+                  class="mt-1 text-xs font-medium text-red-600"
+                  data-scoring-error="score"
+                  role="alert"
+                  hidden
+                ></p>
               </div>
               <div>
                 <label

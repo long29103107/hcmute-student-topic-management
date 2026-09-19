@@ -324,6 +324,36 @@
               </svg>
             </summary>
             <ul class="space-y-1.5">
+              <li sec:authorize="hasRole('FACULTY_HEAD')">
+                <a th:href="@{/faculty/departments}" th:aria-current="${pageTitle == 'My department' ? 'page' : null}" class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700" data-sidebar-link th:classappend="${pageTitle == 'My department' ? 'bg-blue-50 text-blue-700' : ''}">
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'My department' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 21h18M5 21V5l7-3 7 3v16M9 9h1m4 0h1M9 13h1m4 0h1M9 17h1m4 0h1"/></svg>
+                  <span class="ms-3" data-sidebar-label>My department</span>
+                </a>
+              </li>
+              <li sec:authorize="hasAuthority('PERIOD_MANAGE')">
+                <a th:href="@{/faculty/periods}" th:aria-current="${pageTitle == 'Registration period management' ? 'page' : null}" class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700" data-sidebar-link th:classappend="${pageTitle == 'Registration period management' ? 'bg-blue-50 text-blue-700' : ''}">
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Registration period management' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3v4m10-4v4M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm3 8h3m-3 4h6"/></svg>
+                  <span class="ms-3" data-sidebar-label>Registration periods</span>
+                </a>
+              </li>
+              <li sec:authorize="hasAuthority('ANNOUNCEMENT_MANAGE')">
+                <a th:href="@{/announcements/manage}" th:aria-current="${pageTitle == 'Manage announcements' ? 'page' : null}" class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700" data-sidebar-link th:classappend="${pageTitle == 'Manage announcements' ? 'bg-blue-50 text-blue-700' : ''}">
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Manage announcements' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 5h16M4 9h16M4 13h10m-10 4h7"/></svg>
+                  <span class="ms-3" data-sidebar-label>Manage announcements</span>
+                </a>
+              </li>
+              <li sec:authorize="hasAuthority('TOPIC_REVIEW')">
+                <a th:href="@{/faculty/topics/review}" th:aria-current="${pageTitle == 'Topic review' ? 'page' : null}" class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700" data-sidebar-link th:classappend="${pageTitle == 'Topic review' ? 'bg-blue-50 text-blue-700' : ''}">
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Topic review' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m9 12 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                  <span class="ms-3" data-sidebar-label>Topic review</span>
+                </a>
+              </li>
+              <li sec:authorize="hasAnyRole('ADMIN', 'FACULTY_HEAD') and hasAuthority('TOPIC_REVIEW')">
+                <a th:href="@{/faculty/topics/publish}" th:aria-current="${pageTitle == 'Publish topics' ? 'page' : null}" class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700" data-sidebar-link th:classappend="${pageTitle == 'Publish topics' ? 'bg-blue-50 text-blue-700' : ''}">
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Publish topics' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>
+                  <span class="ms-3" data-sidebar-label>Publish topics</span>
+                </a>
+              </li>
               <li sec:authorize="hasAuthority('GROUP_READ')">
                 <a
                   th:href="@{/faculty/groups}"
@@ -336,32 +366,10 @@
                   <span class="ms-3" data-sidebar-label>Student groups</span>
                 </a>
               </li>
-              <li sec:authorize="hasRole('FACULTY_HEAD')">
-                <a
-                  th:href="@{/faculty/departments}"
-                  th:aria-current="${pageTitle == 'My department' ? 'page' : null}"
-                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
-                  data-sidebar-link
-                  th:classappend="${pageTitle == 'My department' ? 'bg-blue-50 text-blue-700' : ''}"
-                >
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'My department' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 21h18M5 21V5l7-3 7 3v16M9 9h1m4 0h1M9 13h1m4 0h1M9 17h1m4 0h1"/>
-                  </svg>
-                  <span class="ms-3" data-sidebar-label>My department</span>
-                </a>
-              </li>
-              <li sec:authorize="hasAuthority('PERIOD_MANAGE')">
-                <a
-                  th:href="@{/faculty/periods}"
-                  th:aria-current="${pageTitle == 'Registration period management' ? 'page' : null}"
-                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
-                  data-sidebar-link
-                  th:classappend="${pageTitle == 'Registration period management' ? 'bg-blue-50 text-blue-700' : ''}"
-                >
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Registration period management' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3v4m10-4v4M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm3 8h3m-3 4h6"/>
-                  </svg>
-                  <span class="ms-3" data-sidebar-label>Registration periods</span>
+              <li sec:authorize="hasAuthority('REGISTRATION_REVIEW')">
+                <a th:href="@{/faculty/registrations/review}" th:aria-current="${pageTitle == 'Registration review' ? 'page' : null}" class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700" data-sidebar-link th:classappend="${pageTitle == 'Registration review' ? 'bg-blue-50 text-blue-700' : ''}">
+                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Registration review' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5h6m-9 4h12M6 13h8m-8 4h5m7.5-2.5 1.5 1.5 3-3"/></svg>
+                  <span class="ms-3" data-sidebar-label>Registration review</span>
                 </a>
               </li>
               <li sec:authorize="hasAuthority('SUPERVISOR_MANAGE')">
@@ -378,21 +386,7 @@
                   <span class="ms-3" data-sidebar-label>Supervisor assignments</span>
                 </a>
               </li>
-              <li sec:authorize="hasAuthority('TOPIC_REVIEW')">
-                <a
-                  th:href="@{/faculty/topics/review}"
-                  th:aria-current="${pageTitle == 'Topic review' ? 'page' : null}"
-                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
-                  data-sidebar-link
-                  th:classappend="${pageTitle == 'Topic review' ? 'bg-blue-50 text-blue-700' : ''}"
-                >
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Topic review' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m9 12 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
-                  </svg>
-                  <span class="ms-3" data-sidebar-label>Topic review</span>
-                </a>
-              </li>
-              <li sec:authorize="hasAuthority('REGISTRATION_REVIEW')">
+              <li th:remove="all" sec:authorize="hasAuthority('REGISTRATION_REVIEW')">
                 <a
                   th:href="@{/faculty/registrations/review}"
                   th:aria-current="${pageTitle == 'Registration review' ? 'page' : null}"
@@ -415,7 +409,8 @@
                   <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Review boards' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 3h12v18H6zM9 7h6m-6 4h6m-6 4h4"/></svg>
                   <span class="ms-3" data-sidebar-label>Review boards</span>
                 </a>
-              </li>              <li sec:authorize="hasAuthority('ANNOUNCEMENT_MANAGE')">
+              </li>
+              <li th:remove="all" sec:authorize="hasAuthority('ANNOUNCEMENT_MANAGE')">
                 <a
                   th:href="@{/announcements/manage}"
                   th:aria-current="${pageTitle == 'Manage announcements' ? 'page' : null}"
@@ -441,7 +436,7 @@
                   <span class="ms-3" data-sidebar-label>Evaluator assignments</span>
                 </a>
               </li>
-              <li sec:authorize="hasAnyRole('ADMIN', 'FACULTY_HEAD') and hasAuthority('TOPIC_REVIEW')">
+              <li th:remove="all" sec:authorize="hasAnyRole('ADMIN', 'FACULTY_HEAD') and hasAuthority('TOPIC_REVIEW')">
                 <a
                   th:href="@{/faculty/topics/publish}"
                   th:aria-current="${pageTitle == 'Publish topics' ? 'page' : null}"

@@ -328,6 +328,8 @@
             <form
               class="p-6 sm:p-8"
               method="post"
+              novalidate
+              data-evaluator-form
               th:attr="action=${'/faculty/registrations/' + registration.id + '/evaluator'}"
             >
               <input
@@ -338,14 +340,14 @@
               <label
                 class="block text-sm font-medium text-gray-900"
                 th:for="${'evaluator-' + registration.id}"
-                >Evaluator</label
+                >Evaluator <span class="text-red-600" aria-hidden="true">*</span></label
               >
-              <p class="mt-1 text-xs text-gray-500">
-                Only active Lecturer and Faculty Head accounts from this topic's
-                department are listed. Topic supervisors are excluded.
+              <p class="mt-1 text-xs text-gray-500" th:text="${registration.evaluatorOptions.isEmpty() ? 'No eligible evaluator is available. Review board members must be active and topic supervisors are excluded.' : 'Only eligible active evaluators are listed. Topic supervisors are excluded; registrations with a review board use its active members.'}">
+                Only eligible active evaluators are listed. Topic supervisors are excluded.
               </p>
               <select
                 required
+                data-evaluator-field
                 name="evaluatorId"
                 class="mt-4 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
                 th:id="${'evaluator-' + registration.id}"
@@ -360,6 +362,7 @@
                   Nguyễn Thanh Bình · lecturer@hcmute.edu.vn · CNTT
                 </option>
               </select>
+              <p class="mt-1 text-xs font-medium text-red-600" hidden data-evaluator-error role="alert"></p>
               <div
                 class="mt-7 flex flex-wrap justify-end gap-3 border-t border-gray-200 pt-6"
               >
