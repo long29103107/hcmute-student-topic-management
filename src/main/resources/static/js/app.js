@@ -11,6 +11,66 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    document.querySelectorAll('[data-department-form]').forEach((form) => {
+        const fields = {
+            code: form.querySelector('[data-department-field="code"]'),
+            name: form.querySelector('[data-department-field="name"]')
+        };
+
+        const messages = {
+            code: form.querySelector('[data-department-error="code"]'),
+            name: form.querySelector('[data-department-error="name"]')
+        };
+
+        const validateField = (fieldName) => {
+            const field = fields[fieldName];
+            const message = messages[fieldName];
+            if (!field || !message) {
+                return true;
+            }
+
+            const value = field.value.trim();
+            let error = '';
+
+            if (!value) {
+                error = fieldName === 'code' ? 'Code is required.' : 'Department name is required.';
+            } else if (fieldName === 'code' && !/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(value)) {
+                error = 'Code may contain letters, numbers, hyphens and underscores only.';
+            } else if (fieldName === 'name' && !/[\p{L}\p{N}]/u.test(value)) {
+                error = 'Department name must contain a letter or number.';
+            } else if (value.length > (fieldName === 'code' ? 30 : 150)) {
+                error = fieldName === 'code'
+                    ? 'Code must be at most 30 characters.'
+                    : 'Department name must be at most 150 characters.';
+            }
+
+            message.textContent = error;
+            message.hidden = !error;
+            field.setAttribute('aria-invalid', String(Boolean(error)));
+            field.classList.toggle('border-red-500', Boolean(error));
+            field.classList.toggle('focus:border-red-500', Boolean(error));
+            field.classList.toggle('focus:ring-red-500', Boolean(error));
+            field.classList.toggle('border-gray-300', !error);
+            field.setCustomValidity(error);
+            return !error;
+        };
+
+        Object.keys(fields).forEach((fieldName) => {
+            const field = fields[fieldName];
+            field?.addEventListener('blur', () => validateField(fieldName));
+            field?.addEventListener('input', () => validateField(fieldName));
+        });
+
+        form.addEventListener('submit', (event) => {
+            const valid = Object.keys(fields).every(validateField);
+            if (!valid) {
+                event.preventDefault();
+                const firstInvalid = Object.values(fields).find((field) => field?.getAttribute('aria-invalid') === 'true');
+                firstInvalid?.focus();
+            }
+        });
+    });
+
     const toastElements = [...document.querySelectorAll('[data-toast]')];
     const maxToasts = 3;
     toastElements.slice(0, Math.max(0, toastElements.length - maxToasts)).forEach((toast) => toast.remove());

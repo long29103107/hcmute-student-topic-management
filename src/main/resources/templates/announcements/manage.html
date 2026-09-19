@@ -197,11 +197,15 @@
               class="flex flex-col justify-between gap-3 sm:flex-row sm:items-end"
             ></div>
             <form
-              class="grid gap-3 lg:grid-cols-6"
+              class="flex w-full flex-col gap-2 justify-end sm:flex-row sm:items-center"
               th:if="${announcementPage.totalItems > 0}"
               th:action="@{/announcements/manage}"
               method="get"
             >
+              <input type="hidden" name="page" value="0" />
+              <input type="hidden" name="size" th:value="${announcementPage.size}" />
+              <input type="hidden" name="sort" th:value="${announcementSort}" />
+              <input type="hidden" name="direction" th:value="${announcementDirection}" />
               <label class="sr-only" for="announcement-search"
                 >Search announcements</label
               >
@@ -211,203 +215,199 @@
                 type="search"
                 th:value="${announcementSearch}"
                 placeholder="Search title, content, status or department"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 lg:col-span-2"
+                class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm sm:w-80"
               />
-              <label class="sr-only" for="announcement-sort"
-                >Sort announcements</label
-              >
-              <select
-                id="announcement-sort"
-                name="sort"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-              >
-                <option
-                  value="updated"
-                  th:selected="${announcementSort == 'updated'}"
-                >
-                  Recently updated
-                </option>
-                <option
-                  value="title"
-                  th:selected="${announcementSort == 'title'}"
-                >
-                  Title
-                </option>
-                <option
-                  value="status"
-                  th:selected="${announcementSort == 'status'}"
-                >
-                  Status
-                </option>
-                <option
-                  value="scope"
-                  th:selected="${announcementSort == 'scope'}"
-                >
-                  Audience
-                </option>
-                <option
-                  value="department"
-                  th:selected="${announcementSort == 'department'}"
-                >
-                  Department
-                </option>
-                <option
-                  value="author"
-                  th:selected="${announcementSort == 'author'}"
-                >
-                  Author
-                </option>
-              </select>
-              <label class="sr-only" for="announcement-direction"
-                >Sort direction</label
-              >
-              <select
-                id="announcement-direction"
-                name="direction"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-              >
-                <option
-                  value="desc"
-                  th:selected="${announcementDirection == 'desc'}"
-                >
-                  Descending
-                </option>
-                <option
-                  value="asc"
-                  th:selected="${announcementDirection == 'asc'}"
-                >
-                  Ascending
-                </option>
-              </select>
-              <label class="sr-only" for="announcement-size"
-                >Announcements per page</label
-              >
-              <select
-                id="announcement-size"
-                name="size"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-              >
-                <option value="10" th:selected="${announcementPage.size == 10}">
-                  10 / page
-                </option>
-                <option value="20" th:selected="${announcementPage.size == 20}">
-                  20 / page
-                </option>
-                <option value="50" th:selected="${announcementPage.size == 50}">
-                  50 / page
-                </option>
-              </select>
               <button
                 type="submit"
-                class="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                class="shrink-0 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800"
               >
                 Search
               </button>
             </form>
           </div>
           <div
-            class="divide-y divide-gray-100"
+            class="directory-table-scroll overflow-x-auto"
             th:if="${!#lists.isEmpty(announcements)}"
           >
-            <article
-              class="p-5 sm:p-6"
-              th:each="announcement : ${announcements}"
+            <table
+              class="w-full min-w-[1100px] table-fixed text-left text-sm text-gray-500"
+              style="table-layout: fixed; width: 1100px; min-width: 1100px"
             >
-              <div
-                class="flex flex-col justify-between gap-4 lg:flex-row lg:items-start"
-              >
-                <div class="min-w-0">
-                  <div class="flex flex-wrap items-center gap-2">
+              <colgroup>
+                <col style="width: 110px" />
+                <col style="width: 176px" />
+                <col style="width: 198px" />
+                <col style="width: 176px" />
+                <col style="width: 132px" />
+                <col style="width: 308px" />
+              </colgroup>
+              <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                <tr>
+                  <th class="px-6 py-3" style="width: 10%" scope="col">Announcement</th>
+                  <th class="px-6 py-3" style="width: 16%" scope="col">Audience</th>
+                  <th class="px-6 py-3" style="width: 18%" scope="col">Author</th>
+                  <th class="px-6 py-3" style="width: 16%" scope="col">Updated</th>
+                  <th class="px-6 py-3" style="width: 12%" scope="col">Status</th>
+                  <th class="px-6 py-3" style="width: 28%" scope="col">
+                    <span class="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  class="border-b border-gray-100 hover:bg-gray-50"
+                  th:each="announcement : ${announcements}"
+                >
+                  <td class="px-6 py-4 align-top" style="width: 10%">
+                    <strong
+                      class="block truncate font-semibold text-gray-900"
+                      style="display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap"
+                      th:title="${announcement.title}"
+                      th:text="${announcement.title}"
+                      >Announcement title</strong
+                    >
+                    <span
+                      class="mt-1 block truncate text-gray-500"
+                      style="display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap"
+                      th:title="${announcement.content}"
+                      th:text="${announcement.content}"
+                      >Announcement content.</span
+                    >
+                  </td>
+                  <td class="px-6 py-4 align-top">
+                    <span
+                      class="font-medium text-gray-900"
+                      th:text="${announcement.scopeCode == 'SCHOOL' ? 'School-wide' : announcement.departmentCode}"
+                      >School-wide</span
+                    >
+                    <span
+                      class="mt-1 block text-xs text-gray-500"
+                      th:if="${announcement.scopeCode == 'DEPARTMENT'}"
+                      th:text="${announcement.departmentName}"
+                      >Department name</span
+                    >
+                  </td>
+                  <td class="px-6 py-4 align-top">
+                    <span
+                      class="font-medium text-gray-900"
+                      th:text="${announcement.authorName}"
+                      >Author</span
+                    >
+                  </td>
+                  <td
+                    class="whitespace-nowrap px-6 py-4 align-top text-gray-600"
+                    th:text="${#temporals.format(announcement.updatedAt, 'dd/MM/yyyy HH:mm')}"
+                  >
+                    18/09/2026 21:35
+                  </td>
+                  <td class="px-6 py-4 align-top">
                     <span
                       class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
                       th:classappend="${announcement.statusCode == 'PUBLISHED' ? 'bg-emerald-100 text-emerald-800' : announcement.statusCode == 'HIDDEN' ? 'bg-gray-200 text-gray-700' : 'bg-yellow-100 text-yellow-800'}"
                       th:text="${announcement.statusCode}"
                       >DRAFT</span
                     >
-                    <span
-                      class="text-xs text-gray-500"
-                      th:text="${announcement.scopeCode == 'SCHOOL' ? 'School-wide' : announcement.departmentCode}"
-                      >School-wide</span
-                    >
-                  </div>
-                  <h3
-                    class="mt-3 text-lg font-semibold text-gray-900"
-                    th:text="${announcement.title}"
-                  >
-                    Announcement title
-                  </h3>
-                  <p
-                    class="mt-2 max-w-3xl whitespace-pre-line text-sm leading-6 text-gray-600"
-                    th:text="${announcement.content}"
-                  >
-                    Announcement content.
-                  </p>
-                  <p
-                    class="mt-3 text-xs text-gray-500"
-                    th:text="${'By ' + announcement.authorName + ' · Updated ' + #temporals.format(announcement.updatedAt, 'dd/MM/yyyy HH:mm')}"
-                  >
-                    By author · Updated date
-                  </p>
-                </div>
-                <div class="flex shrink-0 flex-wrap gap-2">
-                  <button
-                    type="button"
-                    th:attr="data-modal-target=${'edit-announcement-modal-' + announcement.id},data-modal-toggle=${'edit-announcement-modal-' + announcement.id}"
-                    class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
-                  >
-                    Edit
-                  </button>
-                  <form
-                    method="post"
-                    th:if="${announcement.statusCode == 'DRAFT' or announcement.statusCode == 'HIDDEN'}"
-                    th:action="@{/announcements/manage/publish}"
-                    data-announcement-action-form
-                    th:attr="data-announcement-action='publish',data-announcement-title=${announcement.title}"
-                  >
-                    <input
-                      type="hidden"
-                      name="announcementId"
-                      th:value="${announcement.id}"
-                    />
-                    <input
-                      type="hidden"
-                      th:name="${_csrf.parameterName}"
-                      th:value="${_csrf.token}"
-                    />
-                    <button
-                      type="submit"
-                      class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-                    >
-                      Publish
-                    </button>
-                  </form>
-                  <form
-                    method="post"
-                    th:if="${announcement.statusCode == 'PUBLISHED'}"
-                    th:action="@{/announcements/manage/hide}"
-                    data-announcement-action-form
-                    th:attr="data-announcement-action='hide',data-announcement-title=${announcement.title}"
-                  >
-                    <input
-                      type="hidden"
-                      name="announcementId"
-                      th:value="${announcement.id}"
-                    />
-                    <input
-                      type="hidden"
-                      th:name="${_csrf.parameterName}"
-                      th:value="${_csrf.token}"
-                    />
-                    <button
-                      type="submit"
-                      class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
-                    >
-                      Hide
-                    </button>
-                  </form>
-                </div>
-              </div>
-            </article>
+                  </td>
+                  <td class="px-6 py-4 align-top">
+                    <div class="flex justify-end">
+                      <button
+                        type="button"
+                        class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                        th:id="${'announcement-actions-' + announcement.id}"
+                        th:attr="data-dropdown-toggle=${'announcement-actions-menu-' + announcement.id},aria-controls=${'announcement-actions-menu-' + announcement.id},aria-haspopup='true'"
+                      >
+                        Actions<svg
+                          class="ms-2 h-4 w-4"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="m19 9-7 7-7-7"
+                          />
+                        </svg>
+                      </button>
+                      <div
+                        class="z-10 hidden w-44 divide-y divide-gray-100 rounded-lg bg-white shadow"
+                        th:id="${'announcement-actions-menu-' + announcement.id}"
+                      >
+                        <ul
+                          class="py-2 text-sm text-gray-700"
+                          th:attr="aria-labelledby=${'announcement-actions-' + announcement.id}"
+                        >
+                          <li>
+                            <button
+                              type="button"
+                              class="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                              th:attr="data-modal-target=${'edit-announcement-modal-' + announcement.id},data-modal-toggle=${'edit-announcement-modal-' + announcement.id}"
+                            >
+                              Edit
+                            </button>
+                          </li>
+                          <li
+                            th:if="${announcement.statusCode == 'DRAFT' or announcement.statusCode == 'HIDDEN'}"
+                          >
+                            <form
+                              method="post"
+                              th:action="@{/announcements/manage/publish}"
+                              data-announcement-action-form
+                              th:attr="data-announcement-action='publish',data-announcement-title=${announcement.title}"
+                            >
+                              <input
+                                type="hidden"
+                                name="announcementId"
+                                th:value="${announcement.id}"
+                              />
+                              <input
+                                type="hidden"
+                                th:name="${_csrf.parameterName}"
+                                th:value="${_csrf.token}"
+                              />
+                              <button
+                                type="submit"
+                                class="block w-full px-4 py-2 text-left text-emerald-700 hover:bg-emerald-50"
+                              >
+                                Publish
+                              </button>
+                            </form>
+                          </li>
+                          <li th:if="${announcement.statusCode == 'PUBLISHED'}">
+                            <form
+                              method="post"
+                              th:action="@{/announcements/manage/hide}"
+                              data-announcement-action-form
+                              th:attr="data-announcement-action='hide',data-announcement-title=${announcement.title}"
+                            >
+                              <input
+                                type="hidden"
+                                name="announcementId"
+                                th:value="${announcement.id}"
+                              />
+                              <input
+                                type="hidden"
+                                th:name="${_csrf.parameterName}"
+                                th:value="${_csrf.token}"
+                              />
+                              <button
+                                type="submit"
+                                class="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                              >
+                                Hide
+                              </button>
+                            </form>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
           <div
             class="px-6 py-14 text-center"
@@ -427,18 +427,29 @@
             >
           </div>
           <div
-            class="flex flex-col items-center justify-between gap-3 border-t border-gray-200 px-6 py-4 text-sm text-gray-500 sm:flex-row"
+            class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between"
             th:if="${announcementPage.totalItems > 0}"
           >
-            <span
-              th:text="${'Showing ' + (announcementPage.page * announcementPage.size + 1) + '-' + (announcementPage.page * announcementPage.size + #lists.size(announcements)) + ' of ' + announcementPage.totalItems}"
-              >Showing 1-1 of 1</span
-            >
-            <nav
-              aria-label="Announcement pagination"
-              th:if="${announcementPage.totalPages > 1}"
-            >
-              <ul class="inline-flex -space-x-px text-sm">
+            <p class="text-gray-500">
+              Showing
+              <span
+                class="font-medium text-gray-900"
+                th:text="${announcementPage.page * announcementPage.size + 1}"
+                >1</span
+              >–<span
+                class="font-medium text-gray-900"
+                th:text="${announcementPage.page * announcementPage.size + #lists.size(announcements)}"
+                >10</span
+              >
+              of
+              <span
+                class="font-medium text-gray-900"
+                th:text="${announcementPage.totalItems}"
+                >10</span
+              >
+            </p>
+            <nav aria-label="Pagination">
+              <ul class="inline-flex -space-x-px">
                 <li>
                   <a
                     class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
@@ -451,8 +462,9 @@
                   th:each="pageNumber : ${#numbers.sequence(0, announcementPage.totalPages - 1)}"
                 >
                   <a
-                    class="border border-gray-300 px-3 py-2 leading-tight hover:bg-gray-100"
+                    class="border border-gray-300 px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${pageNumber == announcementPage.page ? 'bg-blue-50 text-blue-700' : 'bg-white text-gray-500'}"
+                    th:attr="aria-current=${pageNumber == announcementPage.page ? 'page' : null}"
                     th:href="@{/announcements/manage(page=${pageNumber},size=${announcementPage.size},search=${announcementSearch},sort=${announcementSort},direction=${announcementDirection})}"
                     th:text="${pageNumber + 1}"
                     >1</a

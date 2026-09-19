@@ -64,7 +64,7 @@ public class AnnouncementService {
                 .filter(announcement -> matchesSearch(announcement, normalizedSearch))
                 .sorted(announcementComparator(normalizedSort, normalizedDirection))
                 .toList();
-        int safeSize = Math.min(Math.max(size, 5), 50);
+        int safeSize = Math.min(Math.max(size, 5), 100);
         int totalItems = filtered.size();
         int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / safeSize));
         int safePage = Math.min(Math.max(page, 0), totalPages - 1);

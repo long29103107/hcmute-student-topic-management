@@ -85,6 +85,10 @@
         pointer-events: none;
     }
 
+    .faculty-department-search {
+        margin-inline-start: auto;
+    }
+
     .ui-info-tooltip-content {
         position: absolute;
         z-index: 30;
@@ -147,6 +151,10 @@
         [data-user-directory] .directory-table-scroll {
             max-width: 100%;
             overflow-x: auto;
+        }
+
+        .faculty-department-search {
+            margin-inline-start: 0;
         }
     }
 

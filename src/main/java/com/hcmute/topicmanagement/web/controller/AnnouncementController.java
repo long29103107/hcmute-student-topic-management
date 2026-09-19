@@ -55,7 +55,7 @@ public class AnnouncementController {
     public String manage(
             Authentication authentication,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "") String search,
             @RequestParam(defaultValue = "updated") String sort,
             @RequestParam(defaultValue = "desc") String direction,

@@ -265,18 +265,75 @@ class UserManagementControllerTest {
     }
 
     @Test
-    void lecturerEditModalHidesLoginPasswordAndRoleControls() throws Exception {
+    void lecturerEditModalShowsRoleSwitchControlsWithoutLoginOrPasswordFields() throws Exception {
         saveUser("lecturer-edit", "Lecturer Edit", "LECTURER", "Password123");
 
         mockMvc.perform(get("/admin/lecturers").with(user(admin("USER_READ", "USER_UPDATE", "USER_ROLE_ASSIGN"))))
                 .andExpect(status().isOk())
                 .andExpect(content().string(not(containsString("Login identifier is immutable after account creation."))))
                 .andExpect(content().string(not(containsString("New password (optional)"))))
-                .andExpect(content().string(not(containsString("System roles"))))
+                .andExpect(content().string(containsString("System roles")))
+                .andExpect(content().string(containsString("data-role-code=\"LECTURER\"")))
+                .andExpect(content().string(containsString("data-role-code=\"FACULTY_HEAD\"")))
                 .andExpect(content().string(containsString("Confirm password")))
                 .andExpect(content().string(containsString("name=\"confirmPassword\"")))
                 .andExpect(content().string(containsString("aria-label=\"Password requirements\"")))
                 .andExpect(content().string(containsString("text-red-600")));
+    }
+
+    @Test
+    void adminCanSwitchLecturerToFacultyHeadFromLecturerDirectory() throws Exception {
+        UserEntity lecturer = saveUser("switch-role", "Switch Role", "LECTURER", "Password123");
+        RoleEntity facultyHead = role("FACULTY_HEAD", "Faculty Head");
+
+        mockMvc.perform(post("/admin/lecturers/" + lecturer.getId() + "/edit")
+                        .with(user(admin("USER_UPDATE", "USER_ROLE_ASSIGN")))
+                        .with(csrf())
+                        .param("fullName", "Switch Role")
+                        .param("emailOrCode", "switch-role@hcmute.local")
+                        .param("roleIds", facultyHead.getId().toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/lecturers"))
+                .andExpect(flash().attribute("successMessage", "Lecturer account updated successfully."));
+
+        org.junit.jupiter.api.Assertions.assertFalse(
+                userRoleRepository.existsByUser_IdAndRole_IdAndActiveTrue(lecturer.getId(), role("LECTURER", "Lecturer").getId()));
+        org.junit.jupiter.api.Assertions.assertTrue(
+                userRoleRepository.existsByUser_IdAndRole_IdAndActiveTrue(lecturer.getId(), facultyHead.getId()));
+
+        RoleEntity lecturerRole = role("LECTURER", "Lecturer");
+        mockMvc.perform(post("/admin/lecturers/" + lecturer.getId() + "/edit")
+                        .with(user(admin("USER_UPDATE", "USER_ROLE_ASSIGN")))
+                        .with(csrf())
+                        .param("fullName", "Switch Role")
+                        .param("emailOrCode", "switch-role@hcmute.local")
+                        .param("roleIds", lecturerRole.getId().toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/lecturers"));
+
+        org.junit.jupiter.api.Assertions.assertFalse(
+                userRoleRepository.existsByUser_IdAndRole_IdAndActiveTrue(lecturer.getId(), facultyHead.getId()));
+        org.junit.jupiter.api.Assertions.assertTrue(
+                userRoleRepository.existsByUser_IdAndRole_IdAndActiveTrue(lecturer.getId(), lecturerRole.getId()));
+    }
+
+    @Test
+    void adminCanCreateFacultyHeadDirectlyFromLecturerDirectory() throws Exception {
+        RoleEntity facultyHead = role("FACULTY_HEAD", "Faculty Head");
+
+        mockMvc.perform(post("/admin/lecturers")
+                        .with(user(admin("USER_CREATE", "USER_ROLE_ASSIGN")))
+                        .with(csrf())
+                        .param("fullName", "Created Faculty Head")
+                        .param("emailOrCode", "created.faculty.head@lecturer.hcmute.edu.vn")
+                        .param("roleIds", facultyHead.getId().toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/lecturers"));
+
+        UserEntity created = userRepository.findByLoginIdentifier(
+                "created.faculty.head@lecturer.hcmute.edu.vn").orElseThrow();
+        org.junit.jupiter.api.Assertions.assertTrue(
+                userRoleRepository.existsByUser_IdAndRole_IdAndActiveTrue(created.getId(), facultyHead.getId()));
     }
 
     @Test
@@ -491,7 +548,8 @@ class UserManagementControllerTest {
                         .param("accountType", "LECTURER")
                         .param("loginIdentifier", "this-value-must-be-ignored")
                         .param("fullName", "Dedicated Lecturer")
-                        .param("emailOrCode", "dedicated.lecturer@hcmute.edu.vn"))
+                        .param("emailOrCode", "dedicated.lecturer@hcmute.edu.vn")
+                        .param("roleIds", lecturer.getId().toString()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/users"));
 

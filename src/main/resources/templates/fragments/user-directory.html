@@ -462,7 +462,7 @@
         sec:authorize="hasAuthority('USER_UPDATE') and hasAuthority('USER_ROLE_ASSIGN')"
         ><th:block th:each="user : ${users}"
           ><div
-            th:replace="~{fragments/user-form :: userModal(modalId=${'edit-user-modal-' + user.id}, formObjectName=${'editForm' + user.id}, formAction=${editBasePath + '/' + user.id + '/edit'}, editing=true, studentAccount=${user.student}, accountType=${user.student ? 'STUDENT' : 'LECTURER'}, roles=${roles}, departments=${departments}, title='Edit user', submitLabel='Save changes', fieldPrefix=${'edit-user-' + user.id})}"
+            th:replace="~{fragments/user-form :: userModal(modalId=${'edit-user-modal-' + user.id}, formObjectName=${'editForm' + user.id}, formAction=${editBasePath + '/' + user.id + '/edit'}, editing=true, studentAccount=${user.student}, accountType=${user.student ? 'STUDENT' : 'LECTURER'}, roles=${user.student ? roles : lecturerRoles}, departments=${departments}, title='Edit user', submitLabel='Save changes', fieldPrefix=${'edit-user-' + user.id})}"
           ></div></th:block
       ></th:block>
       <th:block sec:authorize="hasAuthority('USER_UPDATE')"
