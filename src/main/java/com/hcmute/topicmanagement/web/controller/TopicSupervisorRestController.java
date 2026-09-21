@@ -39,12 +39,15 @@ public class TopicSupervisorRestController {
     public TopicAssignmentPage list(
             Authentication authentication,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(required = false) Long periodId,
+            @RequestParam(defaultValue = "") String status,
             @RequestParam(defaultValue = "topic") String sort,
             @RequestParam(defaultValue = "asc") String direction) {
         return topicSupervisorService.listManageableTopics(
-                authentication.getName(), search, page, size, sort, direction);
+                authentication.getName(), search, departmentId, periodId, status, page, size, sort, direction);
     }
 
     @PutMapping("/{id}/supervisors")

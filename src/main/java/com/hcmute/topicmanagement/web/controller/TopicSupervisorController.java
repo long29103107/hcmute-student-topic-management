@@ -30,12 +30,15 @@ public class TopicSupervisorController {
     public String list(
             Authentication authentication,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(required = false) Long periodId,
+            @RequestParam(defaultValue = "") String status,
             @RequestParam(defaultValue = "topic") String sort,
             @RequestParam(defaultValue = "asc") String direction,
             Model model) {
-        populatePage(authentication.getName(), model, search, page, size, sort, direction);
+        populatePage(authentication.getName(), model, search, departmentId, periodId, status, page, size, sort, direction);
         return "faculty/supervisors";
     }
 
@@ -59,13 +62,18 @@ public class TopicSupervisorController {
     }
 
     private void populatePage(
-            String actorEmail, Model model, String search, int page, int size, String sort, String direction) {
+            String actorEmail, Model model, String search, Long departmentId, Long periodId, String status,
+            int page, int size, String sort, String direction) {
         TopicSupervisorService.TopicAssignmentPage topicPage =
-                topicSupervisorService.listManageableTopics(actorEmail, search, page, size, sort, direction);
+                topicSupervisorService.listManageableTopics(
+                        actorEmail, search, departmentId, periodId, status, page, size, sort, direction);
         model.addAttribute("pageTitle", "Supervisor assignments");
         model.addAttribute("topicPage", topicPage);
         model.addAttribute("topics", topicPage.getTopics());
         model.addAttribute("topicSearch", topicPage.getSearch());
+        model.addAttribute("topicDepartmentId", topicPage.getDepartmentId());
+        model.addAttribute("topicPeriodId", topicPage.getPeriodId());
+        model.addAttribute("topicStatus", topicPage.getStatus());
         model.addAttribute("topicSort", topicPage.getSort());
         model.addAttribute("topicDirection", topicPage.getDirection());
         model.addAttribute("supervisorScope", topicPage.getScopeLabel());
