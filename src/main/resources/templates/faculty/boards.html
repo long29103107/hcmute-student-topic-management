@@ -15,6 +15,7 @@
       class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8"
     >
       <section aria-labelledby="page-title">
+        <!-- Page header -->
         <div
           class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center"
         >
@@ -30,13 +31,21 @@
             >
               Review boards
             </h1>
+
+            <p class="mt-3 max-w-3xl text-sm leading-6 text-gray-500">
+              Create one board for each approved registration and assign 3–5
+              lecturers with exactly one Chair and one Secretary.
+            </p>
           </div>
+
           <div class="flex flex-wrap items-center gap-3">
             <span
               class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800"
               th:text="${boardScope}"
-              >Faculty Head · CNTT</span
             >
+              Faculty Head · CNTT
+            </span>
+
             <button
               sec:authorize="hasAuthority('REVIEW_BOARD_MANAGE')"
               type="button"
@@ -48,6 +57,24 @@
             </button>
           </div>
         </div>
+
+        <!-- Information -->
+        <div
+          class="mb-6 flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-5 text-blue-900"
+          role="status"
+        >
+          <span class="mt-0.5 text-blue-600">ⓘ</span>
+
+          <span>
+            Only approved registrations in your management scope are available.
+            Topic supervisors and lecturers outside the topic department are
+            rejected by the server.
+          </span>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- CREATE BOARD MODAL -->
+        <!-- ========================================================= -->
 
         <div
           sec:authorize="hasAuthority('REVIEW_BOARD_MANAGE')"
@@ -72,6 +99,10 @@
                   >
                     Create review board
                   </h2>
+<<<<<<< HEAD
+
+=======
+>>>>>>> main
                   <p
                     id="create-board-modal-description"
                     class="mt-1 text-sm text-gray-500"
@@ -86,31 +117,35 @@
                   class="rounded-lg p-2 text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-900"
                   aria-label="Close create review board dialog"
                 >
-                  <span aria-hidden="true" class="text-xl leading-none">×</span>
+                  <span aria-hidden="true" class="text-xl leading-none">
+                    ×
+                  </span>
                 </button>
               </div>
+
               <form
                 method="post"
                 th:action="@{/faculty/boards/save}"
                 class="grid gap-5 p-6 lg:grid-cols-2"
-                novalidate
-                data-review-board-form
               >
                 <input
                   type="hidden"
                   th:name="${_csrf.parameterName}"
                   th:value="${_csrf.token}"
                 />
+
+                <!-- Registration -->
                 <div>
                   <label
                     class="mb-2 block text-sm font-medium text-gray-900"
                     for="create-registration-id"
-                    >Approved registration <span class="text-red-600" aria-hidden="true">*</span></label
                   >
+                    Approved registration
+                  </label>
+
                   <select
                     id="create-registration-id"
                     name="registrationId"
-                    data-review-board-field="registration"
                     required
                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
                   >
@@ -123,36 +158,39 @@
                       Group Phoenix · Topic · CNTT
                     </option>
                   </select>
-                  <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="registration" role="alert"></p>
                 </div>
+
+                <!-- Scheduled time -->
                 <div>
                   <label
                     class="mb-2 block text-sm font-medium text-gray-900"
                     for="create-scheduled-at"
-                    >Scheduled at <span class="text-red-600" aria-hidden="true">*</span></label
                   >
+                    Scheduled at
+                  </label>
+
                   <input
                     id="create-scheduled-at"
                     name="scheduledAt"
                     type="datetime-local"
-                    required
-                    data-review-board-field="scheduledAt"
                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
                   />
-                  <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="scheduledAt" role="alert"></p>
                 </div>
+
+                <!-- Board lecturers -->
                 <div class="lg:col-span-2">
                   <fieldset>
                     <legend class="text-sm font-medium text-gray-900">
-                      Board lecturers <span class="text-red-600" aria-hidden="true">*</span>
+                      Board lecturers
                     </legend>
+
                     <p class="mt-1 text-xs text-gray-500">
                       Select 3–5 lecturers. Only active lecturer-capability
                       accounts from this department are listed.
                     </p>
+
                     <div
                       class="mt-4 max-h-72 space-y-2 overflow-y-auto rounded-lg border border-gray-200 p-3"
-                      data-review-board-lecturers
                     >
                       <label
                         class="flex cursor-pointer items-start gap-3 rounded-lg p-3 hover:bg-gray-50"
@@ -168,20 +206,26 @@
                           <span
                             class="block text-sm font-medium text-gray-900"
                             th:text="${lecturer.fullName}"
-                            >Lecturer</span
                           >
+                            Lecturer
+                          </span>
+
                           <span
                             class="block truncate text-xs text-gray-500"
                             th:text="${lecturer.email}"
-                            >lecturer@lecturer.hcmute.edu.vn</span
                           >
+                            lecturer@lecturer.hcmute.edu.vn
+                          </span>
+
                           <span
                             class="block text-xs text-gray-500"
                             th:text="${lecturer.departmentCode}"
-                            >CNTT</span
                           >
+                            CNTT
+                          </span>
                         </span>
                       </label>
+
                       <p
                         class="px-2 py-4 text-sm text-gray-500"
                         th:if="${#lists.isEmpty(boardLecturers)}"
@@ -189,24 +233,27 @@
                         No active lecturer-capability accounts are available.
                       </p>
                     </div>
-                    <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="lecturers" role="alert"></p>
                   </fieldset>
                 </div>
+
+                <!-- Chair + Secretary -->
                 <div class="space-y-4">
                   <div>
                     <label
                       class="mb-2 block text-sm font-medium text-gray-900"
                       for="create-chair-id"
-                      >Chair <span class="text-red-600" aria-hidden="true">*</span></label
                     >
+                      Chair
+                    </label>
+
                     <select
                       id="create-chair-id"
                       name="chairId"
                       required
-                      data-review-board-field="chair"
                       class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
                     >
                       <option value="">Select Chair</option>
+
                       <option
                         th:each="lecturer : ${boardLecturers}"
                         th:value="${lecturer.id}"
@@ -215,22 +262,24 @@
                         Lecturer
                       </option>
                     </select>
-                    <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="chair" role="alert"></p>
                   </div>
+
                   <div>
                     <label
                       class="mb-2 block text-sm font-medium text-gray-900"
                       for="create-secretary-id"
-                      >Secretary <span class="text-red-600" aria-hidden="true">*</span></label
                     >
+                      Secretary
+                    </label>
+
                     <select
                       id="create-secretary-id"
                       name="secretaryId"
                       required
-                      data-review-board-field="secretary"
                       class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
                     >
                       <option value="">Select Secretary</option>
+
                       <option
                         th:each="lecturer : ${boardLecturers}"
                         th:value="${lecturer.id}"
@@ -239,9 +288,10 @@
                         Lecturer
                       </option>
                     </select>
-                    <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="secretary" role="alert"></p>
                   </div>
                 </div>
+
+                <!-- Buttons -->
                 <div
                   class="flex justify-end gap-3 border-t border-gray-200 pt-5 lg:col-span-2"
                 >
@@ -264,183 +314,494 @@
           </div>
         </div>
 
+        <!-- ========================================================= -->
+        <!-- FILTER + SORT -->
+        <!-- ========================================================= -->
+
+        <form
+          id="board-filters"
+          action="/faculty/boards#board-filters"
+          method="get"
+          class="mb-6 flex w-full flex-col gap-2 justify-end sm:flex-row sm:flex-wrap sm:items-center rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+        >
+          <input type="hidden" name="page" value="0" />
+          <input type="hidden" name="size" value="10" />
+
+          <!-- Department -->
+          <label class="sr-only" for="department-filter">
+            Filter by department
+          </label>
+
+          <select
+            id="department-filter"
+            name="departmentId"
+            class="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+          >
+            <option value="" th:selected="${boardPage.departmentId == null}">
+              All departments
+            </option>
+
+            <option
+              th:each="department : ${boardDepartments}"
+              th:value="${department.id}"
+              th:text="${department.code + ' · ' + department.name}"
+              th:selected="${boardPage.departmentId != null && boardPage.departmentId.equals(department.id)}"
+            >
+              CNTT · Công nghệ thông tin
+            </option>
+          </select>
+
+          <!-- Status -->
+          <label class="sr-only" for="status-filter"> Filter by status </label>
+
+          <select
+            id="status-filter"
+            name="status"
+            class="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+          >
+            <option
+              value=""
+              th:selected="${boardPage.status == null || boardPage.status.isEmpty()}"
+            >
+              All statuses
+            </option>
+
+            <!-- Status -->
+            <option
+              th:each="candidateStatus : ${T(com.hcmute.topicmanagement.model.enums.ReviewBoardStatus).values()}"
+              th:value="${candidateStatus.name()}"
+              th:text="${candidateStatus.name()}"
+              th:selected="${boardPage.status == candidateStatus.name()}"
+            >
+              ACTIVE
+            </option>
+          </select>
+          <!-- Sort -->
+          <label class="sr-only" for="sort-filter">Sort by</label>
+          <select
+            id="sort-filter"
+            name="sort"
+            class="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+          >
+            <option value="topic" th:selected="${boardPage.sort == 'topic'}">
+              Topic
+            </option>
+
+            <option value="group" th:selected="${boardPage.sort == 'group'}">
+              Group
+            </option>
+
+            <option
+              value="department"
+              th:selected="${boardPage.sort == 'department'}"
+            >
+              Department
+            </option>
+
+            <option value="period" th:selected="${boardPage.sort == 'period'}">
+              Registration period
+            </option>
+
+            <option
+              value="scheduled"
+              th:selected="${boardPage.sort == 'scheduled'}"
+            >
+              Scheduled time
+            </option>
+
+            <option value="status" th:selected="${boardPage.sort == 'status'}">
+              Status
+            </option>
+          </select>
+
+          <!-- Direction -->
+          <label class="sr-only" for="direction-filter">Direction</label>
+          <select
+            id="direction-filter"
+            name="direction"
+            class="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+          >
+            <option value="asc" th:selected="${boardPage.direction == 'asc'}">
+              Ascending
+            </option>
+
+            <option value="desc" th:selected="${boardPage.direction == 'desc'}">
+              Descending
+            </option>
+          </select>
+
+          <!-- Action Buttons (Reset & Apply filters) -->
+          <div
+            class="flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto"
+          >
+            <a
+              href="/faculty/boards?size=10"
+              class="inline-flex shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-4 focus:ring-gray-100"
+            >
+              Reset
+            </a>
+
+            <button
+              type="submit"
+              class="shrink-0 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
+            >
+              Apply filters
+            </button>
+          </div>
+        </form>
+        <!-- ========================================================= -->
+        <!-- BOARDS -->
+        <!-- ========================================================= -->
+
         <section
           class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
           aria-labelledby="boards-heading"
         >
+          <!-- Section header -->
           <div
-            class="flex flex-col justify-between gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:justify-end sm:p-6"
+            class="flex flex-col justify-between gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-end sm:p-6"
           >
-            <form
-              class="flex w-full justify-end gap-2 sm:w-auto"
-              th:action="@{/faculty/boards}"
-              method="get"
-            >
-              <label class="relative block w-full sm:w-80" for="board-search">
-                <span class="sr-only">Search review boards</span>
-                <input
-                  id="board-search"
-                  name="search"
-                  type="search"
-                  placeholder="Search boards"
-                  autocomplete="off"
-                  th:value="${boardSearch}"
-                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
-                />
-              </label>
-              <button
-                type="submit"
-                class="shrink-0 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800"
+            <div>
+              <p
+                class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500"
               >
-                Search
-              </button>
-            </form>
-          </div>
-          <div class="overflow-x-auto" th:if="${!#lists.isEmpty(boards)}">
-            <table
-              class="w-full min-w-[1200px] text-left text-sm text-gray-500"
+                Assignment queue
+              </p>
+
+              <h2
+                id="boards-heading"
+                class="text-xl font-semibold text-gray-900"
+              >
+                Managed boards
+              </h2>
+            </div>
+
+            <span
+              class="text-sm text-gray-500"
+              th:text="${boardPage.totalItems + ' boards'}"
             >
-              <thead class="bg-gray-50 text-xs uppercase text-gray-700">
-                <tr>
-                  <th scope="col" class="px-6 py-3">Topic</th>
-                  <th scope="col" class="px-6 py-3">Department</th>
-                  <th scope="col" class="px-6 py-3">Registration period</th>
-                  <th scope="col" class="px-6 py-3">Status</th>
-                  <th scope="col" class="px-6 py-3">Scheduled</th>
-                  <th scope="col" class="px-6 py-3">Members</th>
-                  <th scope="col" class="px-6 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  th:each="board : ${boards}"
-                  class="border-b border-gray-100 align-top hover:bg-gray-50"
-                >
-                  <td class="px-6 py-4">
-                    <strong
-                      class="block font-semibold text-gray-900"
+              0 boards
+            </span>
+          </div>
+
+          <!-- Board list -->
+          <div
+            class="divide-y divide-gray-100"
+            th:if="${!#lists.isEmpty(boards)}"
+          >
+            <article th:each="board : ${boards}" class="p-5 sm:p-6">
+              <div
+                class="flex flex-col justify-between gap-4 lg:flex-row lg:items-start"
+              >
+                <!-- Board information -->
+                <div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h3
+                      class="text-lg font-semibold text-gray-900"
                       th:text="${board.topicTitle}"
-                      >Topic title</strong
                     >
-                    <span
-                      class="mt-1 block text-xs text-gray-500"
-                      th:text="${board.groupName}"
-                      >Group</span
-                    >
-                  </td>
-                  <td class="px-6 py-4">
-                    <strong
-                      class="block text-gray-900"
-                      th:text="${board.departmentCode}"
-                      >CNTT</strong
-                    >
-                    <span class="text-xs" th:text="${board.departmentName}"
-                      >Information Technology</span
-                    >
-                  </td>
-                  <td
-                    class="px-6 py-4 text-gray-900"
-                    th:text="${board.periodName}"
-                  >
-                    Period
-                  </td>
-                  <td class="px-6 py-4">
+                      Topic title
+                    </h3>
+
                     <span
                       class="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-800"
                       th:text="${board.status}"
-                      >ACTIVE</span
                     >
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap"
-                    th:text="${board.scheduledAt == null ? 'Not scheduled' : #temporals.format(board.scheduledAt, 'dd/MM/yyyy HH:mm')}"
+                      ACTIVE
+                    </span>
+                  </div>
+
+                  <p
+                    class="mt-1 text-sm text-gray-500"
+                    th:text="${board.groupName + ' · ' + board.departmentCode + ' · ' + board.periodName}"
                   >
-                    Not scheduled
-                  </td>
-                  <td class="px-6 py-4">
-                    <div class="space-y-1">
-                      <div
-                        th:each="member : ${board.members}"
-                        th:if="${member.active}"
-                      >
-                        <strong
-                          class="text-gray-900"
-                          th:text="${member.fullName}"
-                          >Lecturer</strong
-                        >
-                        <span
-                          class="text-xs text-gray-500"
-                          th:text="${' · ' + member.role}"
-                        >
-                          · CHAIR</span
-                        >
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4">
-                    <div
-                      sec:authorize="hasAuthority('REVIEW_BOARD_MANAGE')"
-                      class="flex flex-wrap gap-2"
+                    Group · CNTT · Period
+                  </p>
+
+                  <p
+                    class="mt-1 text-xs text-gray-500"
+                    th:if="${board.scheduledAt != null}"
+                    th:text="${'Scheduled: ' + #temporals.format(board.scheduledAt, 'dd/MM/yyyy HH:mm')}"
+                  >
+                    Scheduled
+                  </p>
+                </div>
+
+                <!-- ================================================= -->
+                <!-- THREE DOT ACTION MENU -->
+                <!-- ================================================= -->
+
+                <div
+                  sec:authorize="hasAuthority('REVIEW_BOARD_MANAGE')"
+                  class="relative flex justify-end"
+                >
+                  <button
+                    type="button"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100"
+                    th:id="${'board-actions-' + board.id}"
+                    th:attr="
+                                        data-dropdown-toggle=${'board-actions-menu-' + board.id},
+                                        aria-controls=${'board-actions-menu-' + board.id}"
+                    aria-haspopup="true"
+                    aria-label="Board actions"
+                  >
+                    <svg
+                      class="h-5 w-5"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
                     >
-                      <form
-                        method="post"
-                        th:action="${'/faculty/boards/' + board.id + '/status'}"
-                      >
-                        <input
-                          type="hidden"
-                          th:name="${_csrf.parameterName}"
-                          th:value="${_csrf.token}"
-                        />
-                        <input type="hidden" name="status" value="ACTIVE" />
+                      <path
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 6.01h.01M12 12.01h.01M12 18.01h.01"
+                      />
+                    </svg>
+                  </button>
+
+                  <!-- Dropdown -->
+                  <div
+                    class="z-10 hidden w-48 divide-y divide-gray-100 rounded-lg bg-white shadow"
+                    th:id="${'board-actions-menu-' + board.id}"
+                  >
+                    <ul
+                      class="py-2 text-sm text-gray-700"
+                      th:attr="aria-labelledby=${'board-actions-' + board.id}"
+                    >
+                      <!-- Edit -->
+                      <li>
                         <button
-                          th:if="${board.status == 'DRAFT' or board.status == 'ASSIGNED' or board.status == 'SCHEDULED'}"
-                          class="rounded-lg border border-blue-600 bg-white px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50"
-                          type="submit"
+                          type="button"
+                          th:attr="
+                                                    data-modal-target=${'edit-board-' + board.id},
+                                                    data-modal-toggle=${'edit-board-' + board.id}"
+                          class="block w-full px-4 py-2 text-left hover:bg-gray-100"
                         >
-                          Start
+                          Edit board
                         </button>
-                      </form>
-                      <form
-                        method="post"
-                        th:action="${'/faculty/boards/' + board.id + '/status'}"
+                      </li>
+
+                      <!-- Start -->
+                      <li
+                        th:if="${board.status == 'DRAFT'
+                                                or board.status == 'ASSIGNED'
+                                                or board.status == 'SCHEDULED'}"
                       >
-                        <input
-                          type="hidden"
-                          th:name="${_csrf.parameterName}"
-                          th:value="${_csrf.token}"
-                        />
-                        <input type="hidden" name="status" value="COMPLETED" />
-                        <button
-                          th:if="${board.status == 'ACTIVE' or board.status == 'SCHEDULED'}"
-                          class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                          type="submit"
+                        <form
+                          method="post"
+                          class="m-0"
+                          th:action="${'/faculty/boards/' + board.id + '/status'}"
+                          th:attr="data-confirm=${'Start review board for &quot;' + board.topicTitle + '&quot;?'}"
                         >
-                          Complete
-                        </button>
-                      </form>
-                      <button
-                        type="button"
-                        class="rounded-lg border border-blue-600 bg-white px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50"
-                        th:attr="data-modal-target=${'edit-board-' + board.id},data-modal-toggle=${'edit-board-' + board.id}"
+                          <input
+                            type="hidden"
+                            th:name="${_csrf.parameterName}"
+                            th:value="${_csrf.token}"
+                          />
+
+                          <input type="hidden" name="status" value="ACTIVE" />
+
+                          <button
+                            type="submit"
+                            class="block w-full px-4 py-2 text-left text-blue-700 hover:bg-blue-50"
+                          >
+                            Start board
+                          </button>
+                        </form>
+                      </li>
+
+                      <!-- Complete -->
+                      <li
+                        th:if="${board.status == 'ACTIVE'
+                                                or board.status == 'SCHEDULED'}"
                       >
-                        Edit
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                        <form
+                          method="post"
+                          class="m-0"
+                          th:action="${'/faculty/boards/' + board.id + '/status'}"
+                          th:attr="data-confirm=${'Complete review board for &quot;' + board.topicTitle + '&quot;?'}"
+                        >
+                          <input
+                            type="hidden"
+                            th:name="${_csrf.parameterName}"
+                            th:value="${_csrf.token}"
+                          />
+
+                          <input
+                            type="hidden"
+                            name="status"
+                            value="COMPLETED"
+                          />
+
+                          <button
+                            type="submit"
+                            class="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
+                          >
+                            Complete
+                          </button>
+                        </form>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Board members -->
+              <div class="mt-5 grid gap-4 lg:grid-cols-[1fr_auto]">
+                <div class="grid gap-3 sm:grid-cols-3">
+                  <div
+                    th:each="member : ${board.members}"
+                    th:if="${member.active}"
+                    class="rounded-lg border border-gray-200 bg-gray-50 p-3"
+                  >
+                    <span
+                      class="block text-xs font-semibold uppercase tracking-wider text-gray-400"
+                      th:text="${member.role}"
+                    >
+                      CHAIR
+                    </span>
+
+                    <strong
+                      class="mt-1 block text-sm text-gray-900"
+                      th:text="${member.fullName}"
+                    >
+                      Lecturer
+                    </strong>
+
+                    <span
+                      class="mt-1 block text-xs text-gray-500"
+                      th:text="${member.email}"
+                    >
+                      lecturer@hcmute.edu.vn
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </article>
           </div>
+
+          <!-- Empty state -->
           <div th:if="${#lists.isEmpty(boards)}" class="px-6 py-14 text-center">
             <h3 class="text-base font-semibold text-gray-900">
-              No review boards yet
+              No review boards found
             </h3>
+
             <p class="mt-1 text-sm text-gray-500">
-              Create a board after a topic registration is approved.
+              No review boards match the selected filters.
             </p>
+          </div>
+
+          <!-- ========================================================= -->
+          <!-- PAGINATION -->
+          <!-- ========================================================= -->
+
+          <div
+            th:if="${boardPage.totalItems > 0}"
+            class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between"
+          >
+            <!-- Result count -->
+            <p class="text-gray-500">
+              Showing
+
+              <span
+                class="font-medium text-gray-900"
+                th:text="${boardPage.page * boardPage.size + 1}"
+              >
+                1
+              </span>
+
+              –
+
+              <span
+                class="font-medium text-gray-900"
+                th:text="${boardPage.page * boardPage.size + #lists.size(boards)}"
+              >
+                10
+              </span>
+
+              of
+
+              <span
+                class="font-medium text-gray-900"
+                th:text="${boardPage.totalItems}"
+              >
+                20
+              </span>
+            </p>
+
+            <!-- Pagination buttons -->
+            <nav aria-label="Review board pagination">
+              <ul class="inline-flex -space-x-px">
+                <!-- Previous -->
+                <li>
+                  <a
+                    class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${!boardPage.hasPrevious()} ? 'pointer-events-none opacity-50' : ''"
+                    th:href="@{/faculty/boards(
+                                    page=${boardPage.page - 1},
+                                    size=${boardPage.size},
+                                    departmentId=${boardPage.departmentId},
+                                    status=${boardPage.status},
+                                    sort=${boardPage.sort},
+                                    direction=${boardPage.direction}
+                               )}"
+                  >
+                    Previous
+                  </a>
+                </li>
+
+                <!-- Page numbers -->
+                <li
+                  th:each="pageNumber : ${#numbers.sequence(0, boardPage.totalPages - 1)}"
+                >
+                  <a
+                    class="border border-gray-300 px-3 py-2 leading-tight hover:bg-gray-100"
+                    th:classappend="${pageNumber == boardPage.page}
+                                    ? 'bg-blue-50 text-blue-700'
+                                    : 'bg-white text-gray-500'"
+                    th:href="@{/faculty/boards(
+                                    page=${pageNumber},
+                                    size=${boardPage.size},
+                                    departmentId=${boardPage.departmentId},
+                                    status=${boardPage.status},
+                                    sort=${boardPage.sort},
+                                    direction=${boardPage.direction}
+                               )}"
+                    th:text="${pageNumber + 1}"
+                  >
+                    1
+                  </a>
+                </li>
+
+                <!-- Next -->
+                <li>
+                  <a
+                    class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${!boardPage.hasNext()} ? 'pointer-events-none opacity-50' : ''"
+                    th:href="@{/faculty/boards(
+                                    page=${boardPage.page + 1},
+                                    size=${boardPage.size},
+                                    departmentId=${boardPage.departmentId},
+                                    status=${boardPage.status},
+                                    sort=${boardPage.sort},
+                                    direction=${boardPage.direction}
+                               )}"
+                  >
+                    Next
+                  </a>
+                </li>
+              </ul>
+            </nav>
           </div>
         </section>
       </section>
+
+      <!-- ========================================================= -->
+      <!-- EDIT BOARD MODALS -->
+      <!-- ========================================================= -->
 
       <div
         sec:authorize="hasAuthority('REVIEW_BOARD_MANAGE')"
@@ -469,40 +830,43 @@
               method="post"
               th:action="@{/faculty/boards/save}"
               class="grid gap-5 p-6 sm:grid-cols-2"
-              novalidate
-              data-review-board-form
             >
               <input
                 type="hidden"
                 th:name="${_csrf.parameterName}"
                 th:value="${_csrf.token}"
               />
+
               <input type="hidden" name="boardId" th:value="${board.id}" />
+
               <input
                 type="hidden"
                 name="registrationId"
                 th:value="${board.registrationId}"
               />
+
+              <!-- Scheduled -->
               <div>
-                <label class="mb-2 block text-sm font-medium text-gray-900"
-                  >Scheduled at <span class="text-red-600" aria-hidden="true">*</span></label
-                ><input
+                <label class="mb-2 block text-sm font-medium text-gray-900">
+                  Scheduled at
+                </label>
+
+                <input
                   name="scheduledAt"
                   type="datetime-local"
-                  required
-                  data-review-board-field="scheduledAt"
                   th:value="${board.scheduledAt == null ? '' : #temporals.format(board.scheduledAt, 'yyyy-MM-dd''T''HH:mm')}"
                   class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
                 />
-                <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="scheduledAt" role="alert"></p>
               </div>
+
+              <!-- Status -->
               <div>
-                <label class="mb-2 block text-sm font-medium text-gray-900"
-                  >Status <span class="text-red-600" aria-hidden="true">*</span></label
-                ><select
+                <label class="mb-2 block text-sm font-medium text-gray-900">
+                  Status
+                </label>
+
+                <select
                   name="status"
-                  required
-                  data-review-board-field="status"
                   class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
                 >
                   <option
@@ -514,20 +878,22 @@
                     ACTIVE
                   </option>
                 </select>
-                <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="status" role="alert"></p>
               </div>
+
+              <!-- Members -->
               <div class="sm:col-span-2">
                 <fieldset>
                   <legend class="text-sm font-medium text-gray-900">
-                    Board lecturers <span class="text-red-600" aria-hidden="true">*</span>
+                    Board lecturers
                   </legend>
+
                   <p class="mt-1 text-xs text-gray-500">
                     Select 3–5 lecturers. Only active lecturer-capability
                     accounts from this department are listed.
                   </p>
+
                   <div
                     class="mt-4 max-h-72 space-y-2 overflow-y-auto rounded-lg border border-gray-200 p-3"
-                    data-review-board-lecturers
                   >
                     <label
                       class="flex cursor-pointer items-start gap-3 rounded-lg p-3 hover:bg-gray-50"
@@ -544,32 +910,39 @@
                         <span
                           class="block text-sm font-medium text-gray-900"
                           th:text="${lecturer.fullName}"
-                          >Lecturer</span
                         >
+                          Lecturer
+                        </span>
+
                         <span
                           class="block truncate text-xs text-gray-500"
                           th:text="${lecturer.email}"
-                          >lecturer@lecturer.hcmute.edu.vn</span
                         >
+                          lecturer@lecturer.hcmute.edu.vn
+                        </span>
+
                         <span
                           class="block text-xs text-gray-500"
                           th:text="${lecturer.departmentCode}"
-                          >CNTT</span
                         >
+                          CNTT
+                        </span>
                       </span>
                     </label>
                   </div>
-                  <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="lecturers" role="alert"></p>
                 </fieldset>
               </div>
+
+              <!-- Chair + Secretary -->
               <div class="space-y-4">
                 <div>
-                  <label class="mb-2 block text-sm font-medium text-gray-900"
-                    >Chair <span class="text-red-600" aria-hidden="true">*</span></label
-                  ><select
+                  <label class="mb-2 block text-sm font-medium text-gray-900">
+                    Chair
+                  </label>
+
+                  <select
                     name="chairId"
                     required
-                    data-review-board-field="chair"
                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
                   >
                     <option
@@ -582,15 +955,16 @@
                       Chair
                     </option>
                   </select>
-                  <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="chair" role="alert"></p>
                 </div>
+
                 <div>
-                  <label class="mb-2 block text-sm font-medium text-gray-900"
-                    >Secretary <span class="text-red-600" aria-hidden="true">*</span></label
-                  ><select
+                  <label class="mb-2 block text-sm font-medium text-gray-900">
+                    Secretary
+                  </label>
+
+                  <select
                     name="secretaryId"
                     required
-                    data-review-board-field="secretary"
                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
                   >
                     <option
@@ -603,17 +977,25 @@
                       Secretary
                     </option>
                   </select>
-                  <p class="mt-1 text-xs font-medium text-red-600" hidden data-review-board-error="secretary" role="alert"></p>
                 </div>
-              </div>
-              <div class="flex justify-end border-t border-gray-200 pt-5 sm:col-span-2">
-                <button
-                  type="submit"
-                  class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white"
-                >
-                  Save changes
-                </button>
-              </div>
+
+                <!-- Save -->
+                <div class="flex justify-end gap-3">
+                  <button
+                    type="button"
+                    th:attr="data-modal-hide=${'edit-board-' + board.id}"
+                    class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="submit"
+                    class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800"
+                  >
+                    Save changes
+                  </button>
+                </div>
             </form>
           </div>
         </div>

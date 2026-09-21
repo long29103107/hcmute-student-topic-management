@@ -57,10 +57,12 @@ public class AnnouncementController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "") String status,
+            @RequestParam(required = false) Long departmentId,
             @RequestParam(defaultValue = "updated") String sort,
             @RequestParam(defaultValue = "desc") String direction,
             Model model) {
-        populateManagementModel(authentication, model, page, size, search, sort, direction);
+        populateManagementModel(authentication, model, page, size, search, status, departmentId, sort, direction);
         return "announcements/manage";
     }
 
@@ -149,16 +151,18 @@ public class AnnouncementController {
 
     private void populateManagementModel(
             Authentication authentication, Model model, int page, int size,
-            String search, String sort, String direction) {
+            String search, String status, Long departmentId, String sort, String direction) {
         AnnouncementService.AnnouncementManagementPage announcementPage =
                 announcementService.listForManagementPage(
-                        authentication.getName(), search, page, size, sort, direction);
+                        authentication.getName(), search, status, departmentId, page, size, sort, direction);
         model.addAttribute("pageTitle", "Manage announcements");
         model.addAttribute("announcementPage", announcementPage);
         model.addAttribute("announcements", announcementPage.getAnnouncements());
         model.addAttribute("announcementSearch", announcementPage.getSearch());
         model.addAttribute("announcementSort", announcementPage.getSort());
         model.addAttribute("announcementDirection", announcementPage.getDirection());
+        model.addAttribute("announcementStatus", announcementPage.getStatus());
+        model.addAttribute("announcementDepartmentId", announcementPage.getDepartmentId());
         model.addAttribute("departments", departmentsFor(authentication.getName()));
         boolean canManageSchoolWide = isAdmin(authentication.getName());
         model.addAttribute("canManageSchoolWide", canManageSchoolWide);
