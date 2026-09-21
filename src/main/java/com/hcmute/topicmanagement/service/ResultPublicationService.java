@@ -3,7 +3,9 @@ package com.hcmute.topicmanagement.service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -60,13 +62,32 @@ public class ResultPublicationService {
 
     @PreAuthorize("hasAuthority('REGISTRATION_REVIEW')")
     public PublicationPage listForPublication(String publisherEmail) {
+        return listForPublication(publisherEmail, "");
+    }
+
+    @PreAuthorize("hasAuthority('REGISTRATION_REVIEW')")
+    public PublicationPage listForPublication(String publisherEmail, String search) {
         UserEntity publisher = findActivePublisher(publisherEmail);
+        String normalizedSearch = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
         List<ResultSummary> results = topicRegistrationRepository
                 .findByStatusForReview(TopicRegistrationStatus.APPROVED).stream()
                 .filter(registration -> canManage(publisher, registration))
                 .map(this::toSummary)
+                .filter(result -> normalizedSearch.isEmpty() || matchesSearch(result, normalizedSearch))
                 .toList();
         return new PublicationPage(results, scopeLabel(publisher));
+    }
+
+    private boolean matchesSearch(ResultSummary result, String search) {
+        return contains(result.groupName(), search)
+                || contains(result.topicTitle(), search)
+                || contains(result.departmentCode(), search)
+                || contains(result.departmentName(), search)
+                || contains(result.periodName(), search);
+    }
+
+    private boolean contains(String value, String search) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(search);
     }
 
     @Transactional
@@ -102,7 +123,9 @@ public class ResultPublicationService {
             throw new ResultPublicationValidationException(
                     "Review board evaluations must be assigned to every active board member.");
         }
-        if (context.board() != null && context.board().getStatus() != ReviewBoardStatus.COMPLETED) {
+        if (context.board() != null
+                && context.board().getStatus() != ReviewBoardStatus.COMPLETED
+                && context.board().getStatus() != ReviewBoardStatus.PUBLISHED) {
             throw new ResultPublicationValidationException(
                     "A review board must be completed before its result can be published.");
         }
@@ -130,7 +153,50 @@ public class ResultPublicationService {
     @PreAuthorize("hasRole('STUDENT') and hasAuthority('RESULT_VIEW')")
     public List<StudentResultSummary> listForStudent(String studentEmail) {
         UserEntity student = findActiveStudent(studentEmail);
-        return topicRegistrationRepository.findForStudentWithDetails(student.getId()).stream()
+        return listPublishedStudentResults(student.getId());
+        }
+
+        @PreAuthorize("hasRole('STUDENT') and hasAuthority('RESULT_VIEW')")
+        public StudentResultPage listForStudentPage(
+            String studentEmail, String search, Long departmentId, Long periodId,
+            int page, int size, String sort, String direction) {
+        UserEntity student = findActiveStudent(studentEmail);
+        List<StudentResultSummary> allResults = listPublishedStudentResults(student.getId());
+        String normalizedSearch = normalizeSearch(search);
+        String normalizedSort = normalizeSort(sort);
+        String normalizedDirection = normalizeDirection(direction);
+        int safeSize = Math.min(Math.max(size, 5), 100);
+        List<StudentResultSummary> filtered = allResults.stream()
+            .filter(result -> departmentId == null || departmentId.equals(result.departmentId()))
+            .filter(result -> periodId == null || periodId.equals(result.periodId()))
+            .filter(result -> matchesStudentSearch(result, normalizedSearch))
+            .sorted(studentResultComparator(normalizedSort, normalizedDirection))
+            .toList();
+        int totalItems = filtered.size();
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / safeSize));
+        int safePage = Math.min(Math.max(page, 0), totalPages - 1);
+        int from = Math.min(safePage * safeSize, totalItems);
+        int to = Math.min(from + safeSize, totalItems);
+        List<FilterOption> departments = allResults.stream()
+            .filter(result -> result.departmentId() != null)
+            .map(result -> new FilterOption(result.departmentId(), result.departmentCode(), result.departmentName()))
+            .distinct()
+            .sorted(Comparator.comparing(FilterOption::label, String.CASE_INSENSITIVE_ORDER))
+            .toList();
+        List<FilterOption> periods = allResults.stream()
+            .filter(result -> result.periodId() != null)
+            .map(result -> new FilterOption(result.periodId(), result.periodName(), ""))
+            .distinct()
+            .sorted(Comparator.comparing(FilterOption::label, String.CASE_INSENSITIVE_ORDER))
+            .toList();
+        return new StudentResultPage(
+            filtered.subList(from, to), safePage, safeSize, totalItems, totalPages,
+            normalizedSearch, normalizedSort, normalizedDirection, departmentId, periodId,
+            departments, periods);
+        }
+
+        private List<StudentResultSummary> listPublishedStudentResults(Long studentId) {
+        return topicRegistrationRepository.findForStudentWithDetails(studentId).stream()
                 .filter(registration -> registration.getStatus() == TopicRegistrationStatus.APPROVED)
                 .map(registration -> registrationResultRepository
                         .findByTopicRegistration_Id(registration.getId())
@@ -138,6 +204,60 @@ public class ResultPublicationService {
                         .map(result -> toStudentSummary(registration, result)))
                 .flatMap(java.util.Optional::stream)
                 .toList();
+    }
+
+    private static boolean matchesStudentSearch(StudentResultSummary result, String search) {
+        return search.isBlank()
+                || containsStudentValue(result.groupName(), search)
+                || containsStudentValue(result.topicTitle(), search)
+                || containsStudentValue(result.departmentCode(), search)
+                || containsStudentValue(result.departmentName(), search)
+                || containsStudentValue(result.periodName(), search)
+                || containsStudentValue(result.finalComment(), search)
+                || containsStudentValue(result.averageScore() == null ? null : result.averageScore().toPlainString(), search);
+    }
+
+    private static boolean containsStudentValue(String value, String search) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(search);
+    }
+
+    private static Comparator<StudentResultSummary> studentResultComparator(String sort, String direction) {
+        Comparator<StudentResultSummary> comparator = switch (sort) {
+            case "group" -> Comparator.comparing(
+                    StudentResultSummary::groupName, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(StudentResultSummary::topicTitle, String.CASE_INSENSITIVE_ORDER);
+            case "department" -> Comparator.comparing(
+                    StudentResultSummary::departmentCode, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(StudentResultSummary::topicTitle, String.CASE_INSENSITIVE_ORDER);
+            case "period" -> Comparator.comparing(
+                    StudentResultSummary::periodName, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(StudentResultSummary::topicTitle, String.CASE_INSENSITIVE_ORDER);
+            case "score" -> Comparator.comparing(
+                    StudentResultSummary::averageScore, Comparator.nullsLast(Comparator.naturalOrder()))
+                    .thenComparing(StudentResultSummary::topicTitle, String.CASE_INSENSITIVE_ORDER);
+            case "published" -> Comparator.comparing(
+                    StudentResultSummary::publishedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                    .thenComparing(StudentResultSummary::topicTitle, String.CASE_INSENSITIVE_ORDER);
+            default -> Comparator.comparing(
+                    StudentResultSummary::topicTitle, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(StudentResultSummary::groupName, String.CASE_INSENSITIVE_ORDER);
+        };
+        return "desc".equals(direction) ? comparator.reversed() : comparator;
+    }
+
+    private static String normalizeSearch(String search) {
+        return search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static String normalizeSort(String sort) {
+        return switch (sort == null ? "" : sort.trim().toLowerCase(Locale.ROOT)) {
+            case "group", "department", "period", "score", "published" -> sort.trim().toLowerCase(Locale.ROOT);
+            default -> "topic";
+        };
+    }
+
+    private static String normalizeDirection(String direction) {
+        return "desc".equalsIgnoreCase(direction == null ? "" : direction.trim()) ? "desc" : "asc";
     }
 
     private ResultSummary toSummary(TopicRegistrationEntity registration) {
@@ -155,7 +275,8 @@ public class ResultPublicationService {
                 ? scoreCalculator.averageScore(requiredEvaluations)
                 : null;
         boolean boardCompleted = context.board() == null
-                || context.board().getStatus() == ReviewBoardStatus.COMPLETED;
+                || context.board().getStatus() == ReviewBoardStatus.COMPLETED
+                || context.board().getStatus() == ReviewBoardStatus.PUBLISHED;
         return new ResultSummary(
                 registration.getId(),
                 registration.getStudentGroup().getId(),
@@ -185,6 +306,7 @@ public class ResultPublicationService {
                 group.getName(),
                 registration.getTopic().getId(),
                 registration.getTopic().getTitle(),
+                registration.getTopic().getDepartment().getId(),
                 registration.getTopic().getDepartment().getCode(),
                 registration.getTopic().getDepartment().getName(),
                 registration.getRegistrationPeriod().getId(),
@@ -305,6 +427,7 @@ public class ResultPublicationService {
             String groupName,
             Long topicId,
             String topicTitle,
+            Long departmentId,
             String departmentCode,
             String departmentName,
             Long periodId,
@@ -312,6 +435,34 @@ public class ResultPublicationService {
             BigDecimal averageScore,
             String finalComment,
             LocalDateTime publishedAt) {
+
+    }
+
+    public record FilterOption(Long id, String label, String secondaryLabel) {
+    }
+
+    public record StudentResultPage(
+            List<StudentResultSummary> results,
+            int page,
+            int size,
+            int totalItems,
+            int totalPages,
+            String search,
+            String sort,
+            String direction,
+            Long departmentId,
+            Long periodId,
+            List<FilterOption> departments,
+            List<FilterOption> periods) {
+
+        public StudentResultPage {
+            results = List.copyOf(results);
+            departments = List.copyOf(departments);
+            periods = List.copyOf(periods);
+        }
+
+        public boolean hasPrevious() { return page > 0; }
+        public boolean hasNext() { return page + 1 < totalPages; }
     }
 
     public static class ResultPublicationNotFoundException extends RuntimeException {

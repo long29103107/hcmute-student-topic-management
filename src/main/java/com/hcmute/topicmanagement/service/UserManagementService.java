@@ -160,6 +160,13 @@ public class UserManagementService {
                 .toList();
     }
 
+    public List<RoleOption> listLecturerRoles() {
+        return listAssignableRoles().stream()
+                .filter(role -> "LECTURER".equalsIgnoreCase(role.getCode())
+                        || "FACULTY_HEAD".equalsIgnoreCase(role.getCode()))
+                .toList();
+    }
+
     public UserEditorData getUser(Long id) {
         UserEntity user = findUserWithRoles(id);
         Set<Long> roleIds = user.getUserRoles().stream()
@@ -209,7 +216,8 @@ public class UserManagementService {
     public void createLecturer(
             String fullName,
             String email,
-            Long departmentId) {
+            Long departmentId,
+            Set<Long> roleIds) {
         String normalizedEmail = validateEmail(email);
         String normalizedLogin = normalizedEmail;
         validateIdentity(normalizedLogin, fullName);
@@ -227,7 +235,7 @@ public class UserManagementService {
         user.setEmailOrCode(normalizedEmail);
         user.setDepartment(resolveDepartment(departmentId));
         UserEntity savedUser = userRepository.saveAndFlush(user);
-        saveRoleAssignments(savedUser, List.of(loadCreationRole("LECTURER")));
+        saveRoleAssignments(savedUser, validateLecturerRoles(roleIds));
     }
 
     @Transactional
@@ -273,9 +281,44 @@ public class UserManagementService {
             String newPassword,
             Set<Long> roleIds,
             Long departmentId) {
+        updateUserInternal(id, fullName, emailOrCode, newPassword, roleIds, departmentId, null);
+    }
+
+    @Transactional
+    public void changeOwnPassword(String email, String newPassword) {
+        UserEntity user = userRepository.findByEmailIgnoreCaseWithRolesAndDepartment(email)
+                .filter(UserEntity::isActive)
+                .orElseThrow(() -> new UserValidationException("The profile account could not be found."));
+        validatePassword(newPassword, true);
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void updateLecturer(
+            Long id,
+            String fullName,
+            String emailOrCode,
+            String newPassword,
+            Set<Long> roleIds,
+            Long departmentId) {
+        updateUserInternal(id, fullName, emailOrCode, newPassword, roleIds, departmentId,
+                Set.of("LECTURER", "FACULTY_HEAD"));
+    }
+
+    private void updateUserInternal(
+            Long id,
+            String fullName,
+            String emailOrCode,
+            String newPassword,
+            Set<Long> roleIds,
+            Long departmentId,
+            Set<String> allowedRoleCodes) {
         UserEntity user = findUserWithRoles(id);
         validateIdentity(user.getLoginIdentifier(), fullName);
-        List<RoleEntity> roles = validateAndLoadRoles(roleIds, true);
+        List<RoleEntity> roles = allowedRoleCodes == null
+                ? validateAndLoadRoles(roleIds, true)
+                : validateLecturerRoles(roleIds);
         boolean student = containsRole(roles, DEFAULT_ACCOUNT_ROLE_CODE);
         String normalizedEmail;
         if (student) {
@@ -296,6 +339,16 @@ public class UserManagementService {
         }
         userRepository.save(user);
         saveRoleAssignments(user, roles);
+    }
+
+    private List<RoleEntity> validateLecturerRoles(Set<Long> roleIds) {
+        List<RoleEntity> roles = validateAndLoadRoles(roleIds, true);
+        Set<String> allowedRoleCodes = Set.of("LECTURER", "FACULTY_HEAD");
+        if (roles.size() != 1 || roles.stream().anyMatch(role ->
+                !allowedRoleCodes.contains(role.getCode().toUpperCase(Locale.ROOT)))) {
+            throw new UserValidationException("Select exactly one Lecturer or Faculty Head role.");
+        }
+        return roles;
     }
 
     @Transactional

@@ -107,16 +107,21 @@ public class EvaluatorAssignmentService {
             evaluation = evaluationRepository
                     .findByTopicRegistration_IdAndLecturer_IdAndBoard_Id(
                             registrationId, evaluator.getId(), registration.getReviewBoard().getId())
+                    .or(() -> evaluationRepository.findFirstByTopicRegistration_IdAndBoard_IdOrderByCreatedAtAsc(
+                            registrationId, registration.getReviewBoard().getId()))
                     .orElseGet(() -> new EvaluationEntity(registration, evaluator));
             evaluation.setBoard(registration.getReviewBoard());
             evaluation.setBoardMember(boardMember);
         } else {
             evaluation = evaluationRepository
-                    .findFirstByTopicRegistration_IdOrderByCreatedAtAsc(registrationId)
+                    .findByTopicRegistration_IdAndLecturer_Id(registrationId, evaluator.getId())
+                    .or(() -> evaluationRepository.findFirstByTopicRegistration_IdOrderByCreatedAtAsc(registrationId))
                     .orElseGet(() -> new EvaluationEntity(registration, evaluator));
         }
         evaluation.setLecturer(evaluator);
-        return toSummary(evaluationRepository.saveAndFlush(evaluation));
+        EvaluationEntity savedEvaluation = evaluationRepository.saveAndFlush(evaluation);
+        evaluationRepository.touchUpdatedAt(savedEvaluation.getId());
+        return toSummary(savedEvaluation);
     }
 
     private UserEntity findActiveManager(String email) {
@@ -146,17 +151,32 @@ public class EvaluatorAssignmentService {
     }
 
     private RegistrationSummary toSummary(TopicRegistrationEntity registration) {
-        EvaluationEntity evaluation = evaluationRepository
-                .findFirstByTopicRegistration_IdOrderByCreatedAtAsc(registration.getId())
-                .orElse(null);
+        EvaluationEntity evaluation = registration.getReviewBoard() == null
+                ? evaluationRepository.findFirstByTopicRegistration_IdOrderByCreatedAtAsc(registration.getId())
+                        .orElse(null)
+                : evaluationRepository.findFirstByTopicRegistration_IdAndBoard_IdOrderByUpdatedAtDesc(
+                        registration.getId(), registration.getReviewBoard().getId()).orElse(null);
         Long topicDepartmentId = registration.getTopic().getDepartment() == null
                 ? null : registration.getTopic().getDepartment().getId();
-        List<EvaluatorOption> options = topicDepartmentId == null
-                ? List.of()
-                : userRepository.findActiveLecturerCapabilitiesByDepartmentIdOrderByFullName(topicDepartmentId).stream()
-                .filter(candidate -> !isTopicSupervisor(candidate, registration))
-                .map(EvaluatorAssignmentService::toOption)
-                .toList();
+        List<EvaluatorOption> options;
+        if (topicDepartmentId == null) {
+            options = List.of();
+        } else if (registration.getReviewBoard() != null) {
+            options = reviewBoardMemberRepository
+                    .findByBoard_IdAndActiveTrueOrderByMemberRoleAscAssignedAtAsc(
+                            registration.getReviewBoard().getId())
+                    .stream()
+                    .map(ReviewBoardMemberEntity::getLecturer)
+                    .filter(candidate -> !isTopicSupervisor(candidate, registration))
+                    .map(EvaluatorAssignmentService::toOption)
+                    .toList();
+        } else {
+            options = userRepository
+                    .findActiveLecturerCapabilitiesByDepartmentIdOrderByFullName(topicDepartmentId).stream()
+                    .filter(candidate -> !isTopicSupervisor(candidate, registration))
+                    .map(EvaluatorAssignmentService::toOption)
+                    .toList();
+        }
         return new RegistrationSummary(
                 registration.getId(),
                 registration.getStudentGroup().getId(),

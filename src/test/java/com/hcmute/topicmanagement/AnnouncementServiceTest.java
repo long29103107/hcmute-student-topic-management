@@ -134,7 +134,7 @@ class AnnouncementServiceTest {
 
         AnnouncementService.AnnouncementManagementPage firstPage =
                 announcementService.listForManagementPage(
-                        admin.getEmailOrCode(), "alpha", 0, 5, "title", "asc");
+                        admin.getEmailOrCode(), "alpha", "", null, 0, 5, "title", "asc");
 
         assertThat(firstPage.getTotalItems()).isEqualTo(12);
         assertThat(firstPage.getTotalPages()).isEqualTo(3);
@@ -146,7 +146,7 @@ class AnnouncementServiceTest {
 
         AnnouncementService.AnnouncementManagementPage lastPage =
                 announcementService.listForManagementPage(
-                        admin.getEmailOrCode(), "alpha", 2, 5, "title", "asc");
+                        admin.getEmailOrCode(), "alpha", "", null, 2, 5, "title", "asc");
         assertThat(lastPage.getAnnouncements())
                 .extracting(AnnouncementSummary::getTitle)
                 .containsExactly("Alpha notice 10", "Alpha notice 11");

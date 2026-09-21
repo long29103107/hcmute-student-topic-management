@@ -159,6 +159,7 @@ public class StudentManagementController {
         model.addAttribute("directoryPage", directory);
         model.addAttribute("directorySearch", search == null ? "" : search);
         model.addAttribute("roles", service.listAssignableRoles());
+        model.addAttribute("lecturerRoles", service.listLecturerRoles());
         model.addAttribute("createRoles", service.listAccountCreationRoles());
         model.addAttribute("createStudentAccount", true);
         model.addAttribute("createAccountType", "STUDENT");

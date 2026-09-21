@@ -71,6 +71,13 @@ public class StudentGroupRestController {
         return studentGroupService.leave(authentication.getName(), id);
     }
 
+    @DeleteMapping("/{id}/members/{memberId}")
+    @PreAuthorize("hasRole('STUDENT') and hasAuthority('GROUP_MANAGE')")
+    public StudentGroupSummary kickMember(
+            Authentication authentication, @PathVariable Long id, @PathVariable Long memberId) {
+        return studentGroupService.kickMember(authentication.getName(), id, memberId);
+    }
+
     @PutMapping("/{id}/leader")
     @PreAuthorize("hasAuthority('GROUP_MANAGE')")
     public StudentGroupSummary transferLeader(

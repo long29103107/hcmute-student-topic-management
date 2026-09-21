@@ -8,7 +8,7 @@
         <p class="mt-2 text-sm leading-5 text-gray-500">Set the lecturer and student registration windows for a topic cycle.</p>
     </div>
 
-    <form class="p-6 sm:p-8" th:action="${formAction}" th:object="${__${formObjectName}__}" method="post">
+    <form class="p-6 sm:p-8" th:action="${formAction}" th:object="${__${formObjectName}__}" method="post" novalidate data-period-form>
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
         <div class="flex items-start rounded-lg bg-red-50 p-4 text-sm text-red-800"
@@ -21,30 +21,33 @@
 
         <div class="space-y-5" th:classappend="${#fields.hasGlobalErrors() ? 'mt-6' : ''}">
             <div>
-                <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-name'}">Period name</label>
+                <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-name'}">Period name <span class="text-red-600" aria-hidden="true">*</span></label>
                 <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
                        th:id="${fieldPrefix + '-name'}" type="text" th:field="*{name}" maxlength="200" autocomplete="off"
-                       placeholder="Semester 1 — Academic year 2026–2027">
+                       placeholder="Semester 1 — Academic year 2026–2027" required data-period-field="name">
                 <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Period name is required.</p>
+                <p class="mt-1 text-xs font-medium text-red-600" hidden data-period-error="name" role="alert"></p>
             </div>
 
             <div class="grid gap-5 sm:grid-cols-2">
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-type'}">Period type</label>
+                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-type'}">Period type <span class="text-red-600" aria-hidden="true">*</span></label>
                     <select class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-                            th:id="${fieldPrefix + '-type'}" th:field="*{type}">
+                            th:id="${fieldPrefix + '-type'}" th:field="*{type}" required data-period-field="type">
                         <option value="">Select type</option>
                         <option th:each="periodType : ${periodTypes}" th:value="${periodType}" th:text="${periodType}">COURSE</option>
                     </select>
                     <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('type')}" th:errors="*{type}">Period type is required.</p>
+                    <p class="mt-1 text-xs font-medium text-red-600" hidden data-period-error="type" role="alert"></p>
                 </div>
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-status'}">Status</label>
+                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-status'}">Status <span class="text-red-600" aria-hidden="true">*</span></label>
                     <select class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-                            th:id="${fieldPrefix + '-status'}" th:field="*{status}">
+                            th:id="${fieldPrefix + '-status'}" th:field="*{status}" required data-period-field="status">
                         <option th:each="periodStatus : ${periodStatuses}" th:value="${periodStatus}" th:text="${periodStatus}">DRAFT</option>
                     </select>
                     <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('status')}" th:errors="*{status}">Period status is required.</p>
+                    <p class="mt-1 text-xs font-medium text-red-600" hidden data-period-error="status" role="alert"></p>
                 </div>
             </div>
 
@@ -52,16 +55,18 @@
                 <legend class="px-1 text-sm font-semibold text-gray-900">Lecturer registration window</legend>
                 <div class="mt-3 grid gap-5 sm:grid-cols-2">
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-lecturer-start'}">Starts</label>
+                        <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-lecturer-start'}">Starts <span class="text-red-600" aria-hidden="true">*</span></label>
                         <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-                               th:id="${fieldPrefix + '-lecturer-start'}" type="datetime-local" th:field="*{lecturerRegistrationStart}">
+                               th:id="${fieldPrefix + '-lecturer-start'}" type="datetime-local" th:field="*{lecturerRegistrationStart}" required data-period-field="lecturerStart">
                         <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('lecturerRegistrationStart')}" th:errors="*{lecturerRegistrationStart}">Start is required.</p>
+                        <p class="mt-1 text-xs font-medium text-red-600" hidden data-period-error="lecturerStart" role="alert"></p>
                     </div>
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-lecturer-end'}">Ends</label>
+                        <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-lecturer-end'}">Ends <span class="text-red-600" aria-hidden="true">*</span></label>
                         <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-                               th:id="${fieldPrefix + '-lecturer-end'}" type="datetime-local" th:field="*{lecturerRegistrationEnd}">
+                               th:id="${fieldPrefix + '-lecturer-end'}" type="datetime-local" th:field="*{lecturerRegistrationEnd}" required data-period-field="lecturerEnd">
                         <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('lecturerRegistrationEnd')}" th:errors="*{lecturerRegistrationEnd}">End is required.</p>
+                        <p class="mt-1 text-xs font-medium text-red-600" hidden data-period-error="lecturerEnd" role="alert"></p>
                     </div>
                 </div>
             </fieldset>
@@ -70,16 +75,18 @@
                 <legend class="px-1 text-sm font-semibold text-gray-900">Student registration window</legend>
                 <div class="mt-3 grid gap-5 sm:grid-cols-2">
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-student-start'}">Starts</label>
+                        <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-student-start'}">Starts <span class="text-red-600" aria-hidden="true">*</span></label>
                         <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-                               th:id="${fieldPrefix + '-student-start'}" type="datetime-local" th:field="*{studentRegistrationStart}">
+                               th:id="${fieldPrefix + '-student-start'}" type="datetime-local" th:field="*{studentRegistrationStart}" required data-period-field="studentStart">
                         <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('studentRegistrationStart')}" th:errors="*{studentRegistrationStart}">Start is required.</p>
+                        <p class="mt-1 text-xs font-medium text-red-600" hidden data-period-error="studentStart" role="alert"></p>
                     </div>
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-student-end'}">Ends</label>
+                        <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-student-end'}">Ends <span class="text-red-600" aria-hidden="true">*</span></label>
                         <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-                               th:id="${fieldPrefix + '-student-end'}" type="datetime-local" th:field="*{studentRegistrationEnd}">
+                               th:id="${fieldPrefix + '-student-end'}" type="datetime-local" th:field="*{studentRegistrationEnd}" required data-period-field="studentEnd">
                         <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('studentRegistrationEnd')}" th:errors="*{studentRegistrationEnd}">End is required.</p>
+                        <p class="mt-1 text-xs font-medium text-red-600" hidden data-period-error="studentEnd" role="alert"></p>
                     </div>
                 </div>
             </fieldset>

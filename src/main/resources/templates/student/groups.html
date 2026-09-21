@@ -42,6 +42,7 @@
                     <h2 id="groups-heading" class="text-xl font-semibold text-gray-900">Related groups</h2>
                 </div>
                 <form class="flex w-full gap-2 sm:w-auto" th:action="@{/student/groups}" method="get">
+                    <input type="hidden" name="page" value="0">
                     <label class="sr-only" for="group-search">Search groups</label>
                     <input id="group-search" name="search" type="search" th:value="${groupSearch}"
                            placeholder="Search groups" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 sm:w-64">
@@ -56,11 +57,11 @@
                 <table class="w-full min-w-[900px] text-left text-sm text-gray-500">
                     <thead class="bg-gray-50 text-xs uppercase text-gray-700">
                     <tr>
-                        <th scope="col" class="px-6 py-3"><a class="hover:text-blue-700" th:href="@{/student/groups(page=0,size=${groupPage.size},search=${groupSearch},sort='group',direction=${groupSort == 'group' and groupDirection == 'asc' ? 'desc' : 'asc'})}">Group</a></th>
-                        <th scope="col" class="px-6 py-3"><a class="hover:text-blue-700" th:href="@{/student/groups(page=0,size=${groupPage.size},search=${groupSearch},sort='period',direction=${groupSort == 'period' and groupDirection == 'asc' ? 'desc' : 'asc'})}">Registration period</a></th>
-                        <th scope="col" class="px-6 py-3"><a class="hover:text-blue-700" th:href="@{/student/groups(page=0,size=${groupPage.size},search=${groupSearch},sort='leader',direction=${groupSort == 'leader' and groupDirection == 'asc' ? 'desc' : 'asc'})}">Leader</a></th>
-                        <th scope="col" class="px-6 py-3"><a class="hover:text-blue-700" th:href="@{/student/groups(page=0,size=${groupPage.size},search=${groupSearch},sort='members',direction=${groupSort == 'members' and groupDirection == 'asc' ? 'desc' : 'asc'})}">Members</a></th>
-                        <th scope="col" class="px-6 py-3">Status</th>
+                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{/student/groups(page=0,size=${groupPage.size},search=${groupSearch},sort='group',direction=${groupSort == 'group' and groupDirection == 'asc' ? 'desc' : 'asc'})}">Group <span th:text="${groupSort == 'group' ? (groupDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span></a></th>
+                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{/student/groups(page=0,size=${groupPage.size},search=${groupSearch},sort='period',direction=${groupSort == 'period' and groupDirection == 'asc' ? 'desc' : 'asc'})}">Registration period <span th:text="${groupSort == 'period' ? (groupDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span></a></th>
+                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{/student/groups(page=0,size=${groupPage.size},search=${groupSearch},sort='leader',direction=${groupSort == 'leader' and groupDirection == 'asc' ? 'desc' : 'asc'})}">Leader <span th:text="${groupSort == 'leader' ? (groupDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span></a></th>
+                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{/student/groups(page=0,size=${groupPage.size},search=${groupSearch},sort='members',direction=${groupSort == 'members' and groupDirection == 'asc' ? 'desc' : 'asc'})}">Members <span th:text="${groupSort == 'members' ? (groupDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span></a></th>
+                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700" th:href="@{/student/groups(page=0,size=${groupPage.size},search=${groupSearch},sort='status',direction=${groupSort == 'status' and groupDirection == 'asc' ? 'desc' : 'asc'})}">Status <span th:text="${groupSort == 'status' ? (groupDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span></a></th>
                         <th scope="col" class="px-6 py-3"><span class="sr-only">Actions</span></th>
                     </tr>
                     </thead>

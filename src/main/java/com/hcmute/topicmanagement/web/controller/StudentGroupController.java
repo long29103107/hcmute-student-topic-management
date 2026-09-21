@@ -133,4 +133,25 @@ public class StudentGroupController {
         }
         return "redirect:/student/groups";
     }
+
+    @PostMapping("/{id}/kick")
+    @PreAuthorize("hasRole('STUDENT') and hasAuthority('GROUP_MANAGE')")
+    public String kickMember(
+            Authentication authentication,
+            @PathVariable Long id,
+            @RequestParam Long memberId,
+            RedirectAttributes redirectAttributes) {
+        try {
+            StudentGroupSummary group = studentGroupService.kickMember(
+                    authentication.getName(), id, memberId);
+            redirectAttributes.addFlashAttribute(
+                    "successMessage", "The member was removed from group " + group.getName() + ".");
+        } catch (StudentGroupService.StudentGroupAccessException exception) {
+            return "redirect:/forbidden";
+        } catch (StudentGroupService.StudentGroupNotFoundException
+                | StudentGroupService.StudentGroupValidationException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        }
+        return "redirect:/student/groups";
+    }
 }

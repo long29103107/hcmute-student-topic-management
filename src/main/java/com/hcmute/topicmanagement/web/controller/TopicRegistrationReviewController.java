@@ -31,16 +31,19 @@ public class TopicRegistrationReviewController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Long departmentId,
             @RequestParam(defaultValue = "topic") String sort,
             @RequestParam(defaultValue = "asc") String direction,
             Model model) {
         try {
             RegistrationReviewPage registrationPage = topicRegistrationReviewService.listPendingPage(
-                    authentication.getName(), search, page, size, sort, direction);
+                    authentication.getName(), search, departmentId, page, size, sort, direction);
             model.addAttribute("pageTitle", "Registration review");
             model.addAttribute("registrationPage", registrationPage);
             model.addAttribute("registrations", registrationPage.getRegistrations());
             model.addAttribute("registrationSearch", registrationPage.getSearch());
+                model.addAttribute("departments",
+                    topicRegistrationReviewService.listDepartmentOptions(authentication.getName()));
             return "faculty/registration-review";
         } catch (TopicRegistrationReviewService.TopicRegistrationReviewAccessException exception) {
             return "redirect:/forbidden";

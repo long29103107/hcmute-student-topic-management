@@ -48,7 +48,12 @@ public class LecturerManagementController {
         UserManagementService.UserDirectoryPage directory = service.listUsersPage(
                 "LECTURER", search, departmentId, status, page, size, sort, direction);
         populateDirectory(model, directory, search);
-        model.addAttribute("lecturerForm", new LecturerForm());
+        LecturerForm lecturerForm = new LecturerForm();
+        service.listLecturerRoles().stream()
+                .filter(role -> "LECTURER".equalsIgnoreCase(role.getCode()))
+                .findFirst()
+                .ifPresent(role -> lecturerForm.setRoleIds(java.util.Set.of(role.getId())));
+        model.addAttribute("lecturerForm", lecturerForm);
         model.addAttribute("createForm", model.getAttribute("lecturerForm"));
         model.addAttribute("createFormName", "lecturerForm");
         model.addAttribute("formAction", "/admin/lecturers");
@@ -76,7 +81,8 @@ public class LecturerManagementController {
             return "admin/lecturers";
         }
         try {
-            service.createLecturer(form.getFullName(), form.getEmailOrCode(), form.getDepartmentId());
+            service.createLecturer(form.getFullName(), form.getEmailOrCode(), form.getDepartmentId(),
+                    form.getRoleIds());
             redirectAttributes.addFlashAttribute("successMessage", "Lecturer account created successfully.");
         } catch (UserManagementService.UserValidationException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
@@ -128,7 +134,7 @@ public class LecturerManagementController {
     }
 
     @PostMapping("/{id}/edit")
-    @PreAuthorize("hasAuthority('USER_UPDATE')")
+    @PreAuthorize("hasAuthority('USER_UPDATE') and hasAuthority('USER_ROLE_ASSIGN')")
     public String update(@PathVariable Long id, @Valid @ModelAttribute("editForm") LecturerForm form,
             BindingResult bindingResult, RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
@@ -136,8 +142,7 @@ public class LecturerManagementController {
             return "redirect:/admin/lecturers";
         }
         try {
-            form.setRoleIds(service.getUser(id).getRoleIds());
-            service.updateUser(id, form.getFullName(), form.getEmailOrCode(), form.getPassword(), form.getRoleIds(),
+            service.updateLecturer(id, form.getFullName(), form.getEmailOrCode(), form.getPassword(), form.getRoleIds(),
                     form.getDepartmentId());
             redirectAttributes.addFlashAttribute("successMessage", "Lecturer account updated successfully.");
         } catch (UserManagementService.UserValidationException exception) {
@@ -148,8 +153,18 @@ public class LecturerManagementController {
 
     private void populateDirectory(Model model, UserManagementService.UserDirectoryPage directory, String search) {
         List<UserSummary> users = directory.getContent();
-        users.forEach(user -> model.addAttribute("editForm" + user.getId(), toForm(service.getUser(user.getId()))));
+        users.forEach(user -> {
+            LecturerForm editForm = toForm(service.getUser(user.getId()));
+            if (editForm.getRoleIds().isEmpty()) {
+                service.listLecturerRoles().stream()
+                        .filter(role -> "LECTURER".equalsIgnoreCase(role.getCode()))
+                        .findFirst()
+                        .ifPresent(role -> editForm.setRoleIds(java.util.Set.of(role.getId())));
+            }
+            model.addAttribute("editForm" + user.getId(), editForm);
+        });
         model.addAttribute("pageTitle", "Manage lecturers");
+        model.addAttribute("userRoleFilter", "LECTURER");
         model.addAttribute("userDirectoryTitle", "Lecturer accounts");
         model.addAttribute("userDirectoryDescription", "View and update lecturer accounts.");
         model.addAttribute("users", users);
@@ -158,7 +173,8 @@ public class LecturerManagementController {
         model.addAttribute("directoryPage", directory);
         model.addAttribute("directorySearch", search == null ? "" : search);
         model.addAttribute("roles", service.listAssignableRoles());
-        model.addAttribute("createRoles", service.listAccountCreationRoles());
+        model.addAttribute("lecturerRoles", service.listLecturerRoles());
+        model.addAttribute("createRoles", service.listLecturerRoles());
         model.addAttribute("createStudentAccount", false);
         model.addAttribute("createAccountType", "LECTURER");
         model.addAttribute("departments", departmentService.listDepartmentsForAssignment());

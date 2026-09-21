@@ -34,10 +34,12 @@ public class TopicPublicationRestController {
     @GetMapping("/topics")
     @PreAuthorize("hasAuthority('TOPIC_VIEW')")
     public List<PublishedTopicSummary> list(
+            Authentication authentication,
             @RequestParam(defaultValue = "") String search,
             @RequestParam(required = false) Long departmentId,
             @RequestParam(required = false) Long periodId) {
-        return topicPublicationService.listPublished(search, departmentId, periodId, LocalDateTime.now());
+        return topicPublicationService.listPublished(
+                authentication.getName(), search, departmentId, periodId, LocalDateTime.now());
     }
 
     @PostMapping({"/faculty/topics/{id}/publish", "/topics/{id}/publish"})

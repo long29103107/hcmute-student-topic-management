@@ -54,6 +54,16 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/19
 - The Faculty workflow sidebar opens automatically on the management page, so
   Faculty Heads can find the announcement entry after their seeded permission
   bundle is loaded.
+- The management queue follows the student directory pagination contract:
+  server-side paging with a default size of 20, a 5–100 server-side size
+  range, student-directory-compatible footer markup/accessibility, and
+  preserved search, sort and direction in pagination links. The management
+  filter keeps only search visible; sort, page size and direction use the
+  server defaults without extra filter controls.
+- Announcement rows use the shared directory table treatment with status,
+  announcement, audience, author, updated and actions columns. Edit, publish
+  and hide are grouped inside a per-row Flowbite Actions dropdown while
+  retaining the existing modal, confirmation and CSRF-protected form flows.
 - Publish/hide actions have confirmation UI and CSRF protection.
 - Reader SSR/REST and dashboards use the same scoped service rules.
 
@@ -83,3 +93,6 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/20
   `FACULTY_HEAD` and not for `LECTURER` or `STUDENT`.
 - Seed fixture verification: `mvn '-Dtest=DatabaseSeedControllerTest' test`
   completed with 3 tests passing.
+- Pagination regression verification: `mvn -B "-Dtest=AnnouncementServiceTest,AnnouncementControllerTest" test`
+  completed with 12 tests passing, including controller rendering of a
+  non-first page and preserved query state.

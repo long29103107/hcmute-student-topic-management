@@ -172,7 +172,17 @@ class ResultPublicationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("student/results"))
                 .andExpect(content().string(containsString("Own published result " + suffix)))
-                .andExpect(content().string(not(containsString("Other published result " + suffix))));
+                .andExpect(content().string(not(containsString("Other published result " + suffix))))
+                .andExpect(content().string(containsString("Search published results")))
+                .andExpect(content().string(containsString("Filter results by department")))
+                .andExpect(content().string(containsString("Filter results by registration period")));
+
+        mockMvc.perform(get("/student/results")
+                        .param("search", "does-not-match")
+                        .with(user(studentPrincipal(ownStudent.getEmailOrCode()))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("No matching results")))
+                .andExpect(content().string(containsString("Try a different keyword or filter.")));
     }
 
     @Test

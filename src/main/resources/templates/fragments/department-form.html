@@ -11,7 +11,7 @@
             </p>
         </div>
 
-        <form class="p-6 sm:p-8" th:action="${formAction}" th:object="${__${formObjectName}__}" method="post">
+        <form class="p-6 sm:p-8" th:action="${formAction}" th:object="${__${formObjectName}__}" method="post" data-department-form novalidate>
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
             <div class="flex items-start rounded-lg bg-red-50 p-4 text-sm text-red-800"
@@ -24,16 +24,18 @@
 
             <div class="grid gap-5 sm:grid-cols-2" th:classappend="${#fields.hasGlobalErrors() ? 'mt-6' : ''}">
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-code'}">Code</label>
+                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-code'}">Code <span class="text-red-600" aria-hidden="true">*</span></label>
                     <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm uppercase text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-                           th:id="${fieldPrefix + '-code'}" type="text" th:field="*{code}" maxlength="30" autocomplete="off">
+                           th:id="${fieldPrefix + '-code'}" type="text" th:field="*{code}" maxlength="30" autocomplete="off" required data-department-field="code" th:attr="aria-describedby=${fieldPrefix + '-code-error'}">
                     <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('code')}" th:errors="*{code}">Department code is invalid.</p>
+                    <p class="mt-1 text-xs font-medium text-red-600" hidden th:id="${fieldPrefix + '-code-error'}" data-department-error="code" role="alert"></p>
                 </div>
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-name'}">Department name</label>
+                    <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${fieldPrefix + '-name'}">Department name <span class="text-red-600" aria-hidden="true">*</span></label>
                     <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-                           th:id="${fieldPrefix + '-name'}" type="text" th:field="*{name}" maxlength="150" autocomplete="off">
+                           th:id="${fieldPrefix + '-name'}" type="text" th:field="*{name}" maxlength="150" autocomplete="off" required data-department-field="name" th:attr="aria-describedby=${fieldPrefix + '-name-error'}">
                     <p class="mt-1 text-xs font-medium text-red-600" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Department name is invalid.</p>
+                    <p class="mt-1 text-xs font-medium text-red-600" hidden th:id="${fieldPrefix + '-name-error'}" data-department-error="name" role="alert"></p>
                 </div>
             </div>
 

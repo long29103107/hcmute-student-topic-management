@@ -1,6 +1,8 @@
 package com.hcmute.topicmanagement.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -47,6 +49,21 @@ public class ReportService {
     @PreAuthorize("hasRole('STUDENT') and hasAuthority('REPORT_SUBMIT')")
     public ReportSummary upload(
             String studentEmail, Long groupId, Long registrationId, Long periodId, MultipartFile file) {
+        return upload(studentEmail, groupId, registrationId, periodId, List.of(file), List.of()).get(0);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('STUDENT') and hasAuthority('REPORT_SUBMIT')")
+    public List<ReportSummary> upload(
+            String studentEmail, Long groupId, Long registrationId, Long periodId, List<MultipartFile> files) {
+        return upload(studentEmail, groupId, registrationId, periodId, files, List.of());
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('STUDENT') and hasAuthority('REPORT_SUBMIT')")
+    public List<ReportSummary> upload(
+            String studentEmail, Long groupId, Long registrationId, Long periodId,
+            List<MultipartFile> files, List<Long> reportIdsToDelete) {
         UserEntity student = findActiveStudent(studentEmail);
         validateIds(groupId, registrationId, periodId);
 
@@ -60,17 +77,34 @@ public class ReportService {
                     "The registration does not belong to the requested group and period.");
         }
         ensureCurrentGroupLeader(student, group);
-        validateFile(file);
+        List<ReportEntity> reportsToDelete = findReportsToDelete(registrationId, reportIdsToDelete);
+        List<MultipartFile> actualFiles = files == null ? List.of()
+                : files.stream().filter(file -> file != null && !file.isEmpty()).toList();
+        validateFiles(actualFiles, reportsToDelete);
 
-        ReportStorage.StoredReport storedReport = reportStorage.store(file);
-        String originalName = safeOriginalName(file.getOriginalFilename());
-        String contentType = normalizedContentType(file.getContentType());
-        ReportEntity report = new ReportEntity(
-                registration, storedReport.storedName(), originalName, contentType, file.getSize(), student);
+        List<ReportStorage.StoredReport> storedReports = new ArrayList<>();
         try {
-            return toSummary(reportRepository.saveAndFlush(report));
+            List<ReportEntity> reports = new ArrayList<>();
+            for (MultipartFile file : actualFiles) {
+                validateFile(file);
+                ReportStorage.StoredReport storedReport = reportStorage.store(file);
+                storedReports.add(storedReport);
+                reports.add(new ReportEntity(
+                        registration,
+                        storedReport.storedName(),
+                        safeOriginalName(file.getOriginalFilename()),
+                        normalizedContentType(file.getContentType()),
+                        file.getSize(),
+                        student));
+            }
+            List<ReportEntity> savedReports = reportRepository.saveAllAndFlush(reports);
+            reportsToDelete.forEach(report -> reportStorage.delete(report.getStoredName()));
+            reportRepository.deleteAll(reportsToDelete);
+            return savedReports.stream()
+                    .map(ReportService::toSummary)
+                    .toList();
         } catch (RuntimeException | Error exception) {
-            cleanupAfterPersistenceFailure(storedReport.storedName(), exception);
+            storedReports.forEach(storedReport -> cleanupAfterPersistenceFailure(storedReport.storedName(), exception));
             throw exception;
         }
     }
@@ -204,6 +238,30 @@ public class ReportService {
         String contentType = normalizedContentType(file.getContentType());
         if (contentType == null || !uploadProperties.getAllowedContentTypes().contains(contentType)) {
             throw new ReportValidationException("The report file type is not allowed.");
+        }
+    }
+
+    private List<ReportEntity> findReportsToDelete(Long registrationId, List<Long> reportIdsToDelete) {
+        if (reportIdsToDelete == null || reportIdsToDelete.isEmpty()) {
+            return List.of();
+        }
+        List<Long> ids = reportIdsToDelete.stream().filter(Objects::nonNull).distinct().toList();
+        List<ReportEntity> reports = reportRepository.findAllById(ids);
+        if (reports.size() != ids.size() || reports.stream().anyMatch(report ->
+                report.getTopicRegistration() == null
+                        || !registrationId.equals(report.getTopicRegistration().getId()))) {
+            throw new ReportValidationException("One or more selected report files are invalid.");
+        }
+        return reports;
+    }
+
+    private void validateFiles(List<MultipartFile> files, List<ReportEntity> reportsToDelete) {
+        if ((files == null || files.isEmpty()) && reportsToDelete.isEmpty()) {
+            throw new ReportValidationException("At least one report file is required.");
+        }
+        if (files != null && files.size() > uploadProperties.getMaxFiles()) {
+            throw new ReportValidationException(
+                    "You can upload at most " + uploadProperties.getMaxFiles() + " files at a time.");
         }
     }
 

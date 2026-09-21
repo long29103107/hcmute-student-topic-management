@@ -1,151 +1,343 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      layout:decorate="~{layouts/main}">
-<head><title>Student groups</title></head>
-<body>
-<main layout:fragment="content" class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
-    <section aria-labelledby="page-title">
-        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <div>
-                <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Faculty workflow / Students</p>
-                <h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Student groups</h1>
-                <p class="mt-3 max-w-3xl text-sm leading-6 text-gray-500">View the groups available in your faculty scope, including their registration period and leader.</p>
-            </div>
-            <span class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1.5 text-sm font-medium text-blue-800"
-                  th:text="${groupScope}">Faculty Head · CNTT · Công nghệ thông tin</span>
+<!doctype html>
+<html
+  lang="en"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+  layout:decorate="~{layouts/main}"
+>
+  <head>
+    <title>Student groups</title>
+  </head>
+  <body>
+    <main
+      layout:fragment="content"
+      class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8"
+    >
+      <section aria-labelledby="page-title">
+        <div
+          class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center"
+        >
+          <div>
+            <p
+              class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500"
+            >
+              Faculty workflow / Students
+            </p>
+            <h1
+              id="page-title"
+              class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
+            >
+              Student groups
+            </h1>
+          </div>
+          <span
+            class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1.5 text-sm font-medium text-blue-800"
+            th:text="${groupScope}"
+            >Faculty Head · CNTT · Công nghệ thông tin</span
+          >
         </div>
 
-        <div class="mb-6 flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-5 text-blue-900" role="status">
-            <span class="mt-0.5 text-blue-600">ⓘ</span>
-            <span>Faculty Heads see groups with members from their department; Admin can see all departments. Only authorized accounts can update group details.</span>
-        </div>
+        <section
+          class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+          aria-labelledby="groups-heading"
+        >
+          <div
+            class="flex flex-col justify-end gap-4 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:justify-end sm:p-6"
+            style="align-items: flex-end"
+          >
+            <form
+              class="flex w-fit max-w-full gap-2"
+              th:action="@{/faculty/groups}"
+              method="get"
+            >
+              <input type="hidden" name="page" value="0" />
+              <input type="hidden" name="size" th:value="${groupPage.size}" />
+              <input type="hidden" name="sort" th:value="${groupPage.sort}" />
+              <input
+                type="hidden"
+                name="direction"
+                th:value="${groupPage.direction}"
+              />
+              <label
+                class="relative block w-80 max-w-full flex-none"
+                for="group-search"
+              >
+                <span class="sr-only">Search groups</span>
+                <input
+                  id="group-search"
+                  name="search"
+                  type="search"
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                  placeholder="Search groups"
+                  autocomplete="off"
+                  th:value="${groupSearch}"
+                />
+              </label>
+              <button
+                type="submit"
+                class="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
+              >
+                Search
+              </button>
+            </form>
+          </div>
 
-        <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm" aria-labelledby="groups-heading">
-            <div class="flex flex-col justify-between gap-4 border-b border-gray-200 p-5 sm:flex-row sm:items-end sm:p-6">
-                <div>
-                    <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Directory</p>
-                    <h2 id="groups-heading" class="text-xl font-semibold text-gray-900">Student group list</h2>
+          <div
+            class="grid gap-3 border-b border-gray-100 bg-gray-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 sm:px-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(14rem,1.25fr)_minmax(14rem,1.1fr)_minmax(7rem,auto)_minmax(14rem,1.25fr)_auto] lg:items-center lg:gap-5"
+            aria-label="Sort student groups"
+          >
+            <a
+              class="inline-flex items-center gap-1 hover:text-blue-700"
+              th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='group',direction=${groupPage.sort == 'group' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch})}"
+            >
+              Group
+              <span
+                th:text="${groupPage.sort == 'group' ? (groupPage.direction == 'asc' ? '↑' : '↓') : '↕'}"
+                >↕</span
+              >
+            </a>
+            <a
+              class="inline-flex items-center gap-1 hover:text-blue-700"
+              th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='period',direction=${groupPage.sort == 'period' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch})}"
+            >
+              Period
+              <span
+                th:text="${groupPage.sort == 'period' ? (groupPage.direction == 'asc' ? '↑' : '↓') : '↕'}"
+                >↕</span
+              >
+            </a>
+            <a
+              class="inline-flex items-center gap-1 hover:text-blue-700"
+              th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='leader',direction=${groupPage.sort == 'leader' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch})}"
+            >
+              Leader
+              <span
+                th:text="${groupPage.sort == 'leader' ? (groupPage.direction == 'asc' ? '↑' : '↓') : '↕'}"
+                >↕</span
+              >
+            </a>
+            <a
+              class="inline-flex items-center gap-1 hover:text-blue-700"
+              th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='status',direction=${groupPage.sort == 'status' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch})}"
+            >
+              Status
+              <span
+                th:text="${groupPage.sort == 'status' ? (groupPage.direction == 'asc' ? '↑' : '↓') : '↕'}"
+                >↕</span
+              >
+            </a>
+            <a
+              class="inline-flex items-center gap-1 hover:text-blue-700"
+              th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='created',direction=${groupPage.sort == 'created' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch})}"
+            >
+              Created
+              <span
+                th:text="${groupPage.sort == 'created' ? (groupPage.direction == 'asc' ? '↑' : '↓') : '↕'}"
+                >↕</span
+              >
+            </a>
+            <span class="sr-only">Actions</span>
+          </div>
+
+          <div
+            class="divide-y divide-gray-100"
+            th:if="${!#lists.isEmpty(groups)}"
+          >
+            <article
+              class="grid gap-5 px-5 py-5 sm:px-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(14rem,1.25fr)_minmax(14rem,1.1fr)_minmax(7rem,auto)_minmax(14rem,1.25fr)_auto] lg:items-center lg:gap-5"
+              th:each="group : ${groups}"
+            >
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3
+                    class="text-lg font-semibold text-gray-900"
+                    th:text="${group.name}"
+                  >
+                    Group Phoenix
+                  </h3>
+                  <span
+                    class="text-xs text-gray-500"
+                    th:text="${'ID #' + group.id}"
+                    >ID #1</span
+                  >
                 </div>
-                <form class="flex w-full gap-2 sm:w-auto" th:action="@{/faculty/groups}" method="get">
-                    <input type="hidden" name="page" value="0">
-                    <input type="hidden" name="size" th:value="${groupPage.size}">
-                    <input type="hidden" name="sort" th:value="${groupPage.sort}">
-                    <input type="hidden" name="direction" th:value="${groupPage.direction}">
-                    <label class="relative block min-w-0 flex-1 sm:w-80" for="group-search">
-                        <span class="sr-only">Search groups</span>
-                        <input id="group-search" name="search" type="search"
-                               class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-                               placeholder="Search groups" autocomplete="off" th:value="${groupSearch}">
-                    </label>
-                    <button type="submit" class="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300">Search</button>
-                </form>
-            </div>
+              </div>
+              <div class="min-w-0 text-sm text-gray-600">
+                <span
+                  class="block text-xs font-semibold uppercase tracking-wide text-gray-400"
+                  >Period</span
+                >
+                <span
+                  class="mt-1 block"
+                  th:text="${group.periodName + ' · ' + group.periodType}"
+                  >Registration period · KLTN</span
+                >
+              </div>
+              <div class="min-w-0 text-sm text-gray-600">
+                <span
+                  class="block text-xs font-semibold uppercase tracking-wide text-gray-400"
+                  >Leader</span
+                >
+                <span
+                  class="mt-1 block font-medium text-gray-900"
+                  th:text="${group.leaderName}"
+                  >Student leader</span
+                >
+                <span class="mt-1 block text-xs" th:text="${group.leaderLogin}"
+                  >student@student.hcmute.edu.vn</span
+                >
+              </div>
+              <div>
+                <span
+                  class="block text-xs font-semibold uppercase tracking-wide text-gray-400 lg:sr-only"
+                  >Status</span
+                >
+                <span
+                  class="mt-1 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
+                  th:classappend="${group.statusCode == 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : group.statusCode == 'COMPLETED' ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-700'}"
+                  th:text="${group.statusLabel}"
+                  >Active</span
+                >
+              </div>
+              <div class="min-w-0 text-sm text-gray-600">
+                <span
+                  class="block text-xs font-semibold uppercase tracking-wide text-gray-400"
+                  >Created</span
+                >
+                <span
+                  class="mt-1 block"
+                  th:text="${'by ' + group.createdByName}"
+                  >by student</span
+                >
+                <span
+                  class="mt-1 block text-xs"
+                  th:text="${#temporals.format(group.createdAt, 'dd/MM/yyyy HH:mm')}"
+                  >01/09/2026 10:00</span
+                >
+              </div>
+              <div class="flex justify-start lg:justify-end">
+                <button
+                  type="button"
+                  sec:authorize="hasAuthority('GROUP_UPDATE')"
+                  class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 bg-white text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                  th:id="${'group-detail-trigger-' + group.id}"
+                  th:attr="data-modal-target=${'group-detail-modal-' + group.id},data-modal-toggle=${'group-detail-modal-' + group.id},aria-controls=${'group-detail-modal-' + group.id}"
+                  aria-haspopup="dialog"
+                  aria-label="Edit group"
+                  title="Edit group"
+                >
+                  <svg
+                    class="h-4 w-4"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="m16.862 3.487 3.651 3.651M5 19l3.862-.966L19.513 7.383a2.586 2.586 0 0 0-3.656-3.656L5.206 14.378 5 19Z"
+                    />
+                  </svg>
+                  <span class="sr-only">Edit group</span>
+                </button>
+              </div>
+            </article>
+          </div>
 
-            <div class="grid gap-3 border-b border-gray-100 bg-gray-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 sm:px-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(14rem,1.25fr)_minmax(14rem,1.1fr)_minmax(7rem,auto)_minmax(14rem,1.25fr)_auto] lg:items-center lg:gap-5"
-                 aria-label="Sort student groups">
-                <a class="inline-flex items-center gap-1 hover:text-blue-700"
-                   th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='group',direction=${groupPage.sort == 'group' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch})}">
-                    Group <span th:text="${groupPage.sort == 'group' ? (groupPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
-                </a>
-                <a class="inline-flex items-center gap-1 hover:text-blue-700"
-                   th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='period',direction=${groupPage.sort == 'period' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch})}">
-                    Period <span th:text="${groupPage.sort == 'period' ? (groupPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
-                </a>
-                <a class="inline-flex items-center gap-1 hover:text-blue-700"
-                   th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='leader',direction=${groupPage.sort == 'leader' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch})}">
-                    Leader <span th:text="${groupPage.sort == 'leader' ? (groupPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
-                </a>
-                <a class="inline-flex items-center gap-1 hover:text-blue-700"
-                   th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='status',direction=${groupPage.sort == 'status' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch})}">
-                    Status <span th:text="${groupPage.sort == 'status' ? (groupPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
-                </a>
-                <a class="inline-flex items-center gap-1 hover:text-blue-700"
-                   th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='created',direction=${groupPage.sort == 'created' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch})}">
-                    Created <span th:text="${groupPage.sort == 'created' ? (groupPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
-                </a>
-                <span class="sr-only">Actions</span>
+          <div
+            class="flex flex-col items-center justify-center border-t border-gray-100 px-6 py-14 text-center"
+            th:if="${#lists.isEmpty(groups)}"
+          >
+            <div
+              class="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400"
+            >
+              ⌁
             </div>
+            <h3
+              class="text-base font-semibold text-gray-900"
+              th:text="${#strings.isEmpty(groupSearch) ? 'No student groups found' : 'No matching groups'}"
+            >
+              No student groups found
+            </h3>
+            <p
+              class="mt-1 max-w-sm text-sm leading-6 text-gray-500"
+              th:text="${#strings.isEmpty(groupSearch) ? 'There are no groups in your current management scope.' : 'Try another keyword or clear the search.'}"
+            >
+              There are no student groups in your current management scope.
+            </p>
+            <a
+              class="mt-4 text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline"
+              th:if="${!#strings.isEmpty(groupSearch)}"
+              th:href="@{/faculty/groups}"
+              >Clear search</a
+            >
+          </div>
 
-            <div class="divide-y divide-gray-100" th:if="${!#lists.isEmpty(groups)}">
-                <article class="grid gap-5 px-5 py-5 sm:px-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(14rem,1.25fr)_minmax(14rem,1.1fr)_minmax(7rem,auto)_minmax(14rem,1.25fr)_auto] lg:items-center lg:gap-5" th:each="group : ${groups}">
-                    <div class="min-w-0">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <h3 class="text-lg font-semibold text-gray-900" th:text="${group.name}">Group Phoenix</h3>
-                            <span class="text-xs text-gray-500" th:text="${'ID #' + group.id}">ID #1</span>
-                        </div>
-                    </div>
-                    <div class="min-w-0 text-sm text-gray-600">
-                        <span class="block text-xs font-semibold uppercase tracking-wide text-gray-400">Period</span>
-                        <span class="mt-1 block" th:text="${group.periodName + ' · ' + group.periodType}">Registration period · KLTN</span>
-                    </div>
-                    <div class="min-w-0 text-sm text-gray-600">
-                        <span class="block text-xs font-semibold uppercase tracking-wide text-gray-400">Leader</span>
-                        <span class="mt-1 block font-medium text-gray-900" th:text="${group.leaderName}">Student leader</span>
-                        <span class="mt-1 block text-xs" th:text="${group.leaderLogin}">student@student.hcmute.edu.vn</span>
-                    </div>
-                    <div>
-                        <span class="block text-xs font-semibold uppercase tracking-wide text-gray-400 lg:sr-only">Status</span>
-                        <span class="mt-1 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
-                              th:classappend="${group.statusCode == 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : group.statusCode == 'COMPLETED' ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-700'}"
-                              th:text="${group.statusLabel}">Active</span>
-                    </div>
-                    <div class="min-w-0 text-sm text-gray-600">
-                        <span class="block text-xs font-semibold uppercase tracking-wide text-gray-400">Created</span>
-                        <span class="mt-1 block" th:text="${'by ' + group.createdByName}">by student</span>
-                        <span class="mt-1 block text-xs" th:text="${#temporals.format(group.createdAt, 'dd/MM/yyyy HH:mm')}">01/09/2026 10:00</span>
-                    </div>
-                    <div class="flex justify-start lg:justify-end">
-                        <button type="button" sec:authorize="hasAuthority('GROUP_UPDATE')"
-                                class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 bg-white text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
-                                th:id="${'group-detail-trigger-' + group.id}"
-                                th:attr="data-modal-target=${'group-detail-modal-' + group.id},data-modal-toggle=${'group-detail-modal-' + group.id},aria-controls=${'group-detail-modal-' + group.id}"
-                                aria-haspopup="dialog" aria-label="Edit group" title="Edit group">
-                            <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m16.862 3.487 3.651 3.651M5 19l3.862-.966L19.513 7.383a2.586 2.586 0 0 0-3.656-3.656L5.206 14.378 5 19Z"/>
-                            </svg>
-                            <span class="sr-only">Edit group</span>
-                        </button>
-                    </div>
-                </article>
-            </div>
-
-            <div class="flex flex-col items-center justify-center border-t border-gray-100 px-6 py-14 text-center" th:if="${#lists.isEmpty(groups)}">
-                <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400">⌁</div>
-                <h3 class="text-base font-semibold text-gray-900" th:text="${#strings.isEmpty(groupSearch) ? 'No student groups found' : 'No matching groups'}">No student groups found</h3>
-                <p class="mt-1 max-w-sm text-sm leading-6 text-gray-500" th:text="${#strings.isEmpty(groupSearch) ? 'There are no groups in your current management scope.' : 'Try another keyword or clear the search.'}">There are no student groups in your current management scope.</p>
-                <a class="mt-4 text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline" th:if="${!#strings.isEmpty(groupSearch)}" th:href="@{/faculty/groups}">Clear search</a>
-            </div>
-
-            <div class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between" th:if="${groupPage.totalItems > 0}">
-                <p class="text-gray-500">Showing <span class="font-medium text-gray-900" th:text="${groupPage.page * groupPage.size + 1}">1</span>–<span class="font-medium text-gray-900" th:text="${groupPage.page * groupPage.size + #lists.size(groups)}">10</span> of <span class="font-medium text-gray-900" th:text="${groupPage.totalItems}">10</span></p>
-                <nav aria-label="Pagination" th:if="${groupPage.totalPages > 1}">
-                    <ul class="inline-flex -space-x-px">
-                        <li>
-                            <a class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
-                               th:classappend="${!groupPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
-                               th:href="@{/faculty/groups(page=${groupPage.page - 1},size=${groupPage.size},sort=${groupPage.sort},direction=${groupPage.direction},search=${groupSearch})}">Previous</a>
-                        </li>
-                        <li th:each="pageNumber : ${#numbers.sequence(0, groupPage.totalPages - 1)}">
-                            <a class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
-                               th:classappend="${pageNumber == groupPage.page ? 'bg-blue-50 text-blue-700' : ''}"
-                               th:href="@{/faculty/groups(page=${pageNumber},size=${groupPage.size},sort=${groupPage.sort},direction=${groupPage.direction},search=${groupSearch})}"
-                               th:text="${pageNumber + 1}">1</a>
-                        </li>
-                        <li>
-                            <a class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
-                               th:classappend="${!groupPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
-                               th:href="@{/faculty/groups(page=${groupPage.page + 1},size=${groupPage.size},sort=${groupPage.sort},direction=${groupPage.direction},search=${groupSearch})}">Next</a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
+          <div
+            class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between"
+            th:if="${groupPage.totalItems > 0}"
+          >
+            <p class="text-gray-500">
+              Showing
+              <span
+                class="font-medium text-gray-900"
+                th:text="${groupPage.page * groupPage.size + 1}"
+                >1</span
+              >–<span
+                class="font-medium text-gray-900"
+                th:text="${groupPage.page * groupPage.size + #lists.size(groups)}"
+                >10</span
+              >
+              of
+              <span
+                class="font-medium text-gray-900"
+                th:text="${groupPage.totalItems}"
+                >10</span
+              >
+            </p>
+            <nav aria-label="Pagination" th:if="${groupPage.totalPages > 1}">
+              <ul class="inline-flex -space-x-px">
+                <li>
+                  <a
+                    class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${!groupPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
+                    th:href="@{/faculty/groups(page=${groupPage.page - 1},size=${groupPage.size},sort=${groupPage.sort},direction=${groupPage.direction},search=${groupSearch})}"
+                    >Previous</a
+                  >
+                </li>
+                <li
+                  th:each="pageNumber : ${#numbers.sequence(0, groupPage.totalPages - 1)}"
+                >
+                  <a
+                    class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${pageNumber == groupPage.page ? 'bg-blue-50 text-blue-700' : ''}"
+                    th:href="@{/faculty/groups(page=${pageNumber},size=${groupPage.size},sort=${groupPage.sort},direction=${groupPage.direction},search=${groupSearch})}"
+                    th:text="${pageNumber + 1}"
+                    >1</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${!groupPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
+                    th:href="@{/faculty/groups(page=${groupPage.page + 1},size=${groupPage.size},sort=${groupPage.sort},direction=${groupPage.direction},search=${groupSearch})}"
+                    >Next</a
+                  >
+                </li>
+              </ul>
+            </nav>
+          </div>
         </section>
-    </section>
+      </section>
 
-    <th:block th:each="group : ${groups}">
-        <div th:replace="~{fragments/student-group-detail :: groupDetailModal(group=${group}, modalId=${'group-detail-modal-' + group.id})}"></div>
-    </th:block>
-</main>
-</body>
+      <th:block th:each="group : ${groups}">
+        <div
+          th:replace="~{fragments/student-group-detail :: groupDetailModal(group=${group}, modalId=${'group-detail-modal-' + group.id})}"
+        ></div>
+      </th:block>
+    </main>
+  </body>
 </html>

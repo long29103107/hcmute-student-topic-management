@@ -2,7 +2,9 @@ package com.hcmute.topicmanagement.service;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import com.hcmute.topicmanagement.model.enums.RegistrationPeriodStatus;
 import com.hcmute.topicmanagement.model.enums.TopicRegistrationStatus;
 import com.hcmute.topicmanagement.model.enums.TopicStatus;
 import com.hcmute.topicmanagement.repository.RegistrationPeriodRepository;
+import com.hcmute.topicmanagement.repository.ReportRepository;
 import com.hcmute.topicmanagement.repository.StudentGroupRepository;
 import com.hcmute.topicmanagement.repository.TopicRegistrationRepository;
 import com.hcmute.topicmanagement.repository.TopicRepository;
@@ -37,6 +40,7 @@ public class TopicRegistrationService {
     private final RegistrationPeriodRepository registrationPeriodRepository;
     private final UserRepository userRepository;
     private final RegistrationPeriodService registrationPeriodService;
+    private final ReportRepository reportRepository;
 
     public TopicRegistrationService(
             TopicRegistrationRepository topicRegistrationRepository,
@@ -44,13 +48,15 @@ public class TopicRegistrationService {
             TopicRepository topicRepository,
             RegistrationPeriodRepository registrationPeriodRepository,
             UserRepository userRepository,
-            RegistrationPeriodService registrationPeriodService) {
+            RegistrationPeriodService registrationPeriodService,
+            ReportRepository reportRepository) {
         this.topicRegistrationRepository = topicRegistrationRepository;
         this.studentGroupRepository = studentGroupRepository;
         this.topicRepository = topicRepository;
         this.registrationPeriodRepository = registrationPeriodRepository;
         this.userRepository = userRepository;
         this.registrationPeriodService = registrationPeriodService;
+        this.reportRepository = reportRepository;
     }
 
     @Transactional
@@ -84,6 +90,11 @@ public class TopicRegistrationService {
             throw new TopicRegistrationValidationException(
                     "The selected topic must belong to the group's registration period.");
         }
+        if (student.getDepartment() == null || topic.getDepartment() == null
+                || !student.getDepartment().getId().equals(topic.getDepartment().getId())) {
+            throw new TopicRegistrationValidationException(
+                    "The selected topic must belong to the student's department.");
+        }
         if (topicRegistrationRepository.existsByStudentGroup_IdAndRegistrationPeriod_IdAndStatusIn(
                 group.getId(), period.getId(), CURRENT_STATUSES)) {
             throw new TopicRegistrationValidationException(
@@ -98,9 +109,37 @@ public class TopicRegistrationService {
     public List<TopicRegistrationSummary> listForStudent(String studentEmail) {
         UserEntity student = findActiveStudent(studentEmail);
         return topicRegistrationRepository.findForStudentWithDetails(student.getId()).stream()
-                .map(TopicRegistrationService::toSummary)
+                .map(this::toSummary)
                 .toList();
     }
+
+        @PreAuthorize("hasRole('STUDENT') and hasAuthority('REGISTRATION_SUBMIT')")
+        public TopicRegistrationPage listForStudentPage(
+            String studentEmail, String search, String status,
+            int page, int size, String sort, String direction) {
+        UserEntity student = findActiveStudent(studentEmail);
+        String normalizedSearch = normalizeSearch(search);
+        String normalizedStatus = normalizeStatus(status);
+        String normalizedSort = normalizeSort(sort);
+        String normalizedDirection = normalizeDirection(direction);
+        int safeSize = Math.min(Math.max(size, 5), 100);
+        List<TopicRegistrationSummary> filtered = topicRegistrationRepository
+            .findForStudentWithDetails(student.getId()).stream()
+            .map(this::toSummary)
+            .filter(registration -> normalizedStatus.isBlank()
+                || normalizedStatus.equals(registration.getStatusCode()))
+            .filter(registration -> matchesSearch(registration, normalizedSearch))
+            .sorted(registrationComparator(normalizedSort, normalizedDirection))
+            .toList();
+        int totalItems = filtered.size();
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / safeSize));
+        int safePage = Math.min(Math.max(page, 0), totalPages - 1);
+        int from = Math.min(safePage * safeSize, totalItems);
+        int to = Math.min(from + safeSize, totalItems);
+        return new TopicRegistrationPage(
+            filtered.subList(from, to), safePage, safeSize, totalItems, totalPages,
+            normalizedSearch, normalizedStatus, normalizedSort, normalizedDirection);
+        }
 
     @PreAuthorize("hasRole('STUDENT') and hasAuthority('REGISTRATION_SUBMIT')")
     public TopicRegistrationForm registrationForm(String studentEmail, Long groupId) {
@@ -115,8 +154,10 @@ public class TopicRegistrationService {
         LocalDateTime now = LocalDateTime.now();
         RegistrationPeriodService.PeriodAccess periodAccess = registrationPeriodService.inspect(
                 period.getId(), now);
-        List<PublishedTopicOption> topics = topicRepository.findPublishedForStudent(
-                        TopicStatus.PUBLISHED, RegistrationPeriodStatus.OPEN, now).stream()
+        Long departmentId = student.getDepartment() == null ? null : student.getDepartment().getId();
+        List<PublishedTopicOption> topics = departmentId == null ? List.of()
+                : topicRepository.findPublishedForStudentByDepartment(
+                        TopicStatus.PUBLISHED, RegistrationPeriodStatus.OPEN, departmentId, now).stream()
                 .filter(topic -> period.getId().equals(topic.getRegistrationPeriod().getId()))
                 .map(TopicRegistrationService::toTopicOption)
                 .toList();
@@ -190,7 +231,7 @@ public class TopicRegistrationService {
         }
     }
 
-    private static TopicRegistrationSummary toSummary(TopicRegistrationEntity registration) {
+    private TopicRegistrationSummary toSummary(TopicRegistrationEntity registration) {
         return new TopicRegistrationSummary(
                 registration.getId(), registration.getStudentGroup().getId(),
                 registration.getStudentGroup().getName(), registration.getTopic().getId(),
@@ -198,7 +239,11 @@ public class TopicRegistrationService {
                 registration.getRegistrationPeriod().getName(), registration.getSubmittedBy().getId(),
                 registration.getSubmittedBy().getFullName(), registration.getSubmittedBy().getEmailOrCode(),
                 registration.getSubmittedAt(), registration.getStatus().name(),
-                statusLabel(registration.getStatus()), registration.getRejectionReason());
+                statusLabel(registration.getStatus()), registration.getRejectionReason(),
+                reportRepository.findByTopicRegistration_IdOrderBySubmittedAtDesc(registration.getId()).stream()
+                        .map(report -> new ReportFileSummary(
+                                report.getId(), report.getOriginalName(), report.getFileSize(), report.getSubmittedAt()))
+                        .toList());
     }
 
     private static PublishedTopicOption toTopicOption(TopicEntity topic) {
@@ -216,6 +261,69 @@ public class TopicRegistrationService {
         };
     }
 
+    private static boolean matchesSearch(TopicRegistrationSummary registration, String search) {
+        return search.isBlank()
+                || containsIgnoreCase(registration.getGroupName(), search)
+                || containsIgnoreCase(registration.getTopicTitle(), search)
+                || containsIgnoreCase(registration.getPeriodName(), search)
+                || containsIgnoreCase(registration.getSubmittedByName(), search)
+                || containsIgnoreCase(registration.getSubmittedByLogin(), search)
+                || containsIgnoreCase(registration.getStatusLabel(), search)
+                || containsIgnoreCase(registration.getRejectionReason(), search);
+    }
+
+    private static boolean containsIgnoreCase(String value, String search) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(search);
+    }
+
+    private static Comparator<TopicRegistrationSummary> registrationComparator(String sort, String direction) {
+        Comparator<TopicRegistrationSummary> comparator = switch (sort) {
+            case "group" -> Comparator.comparing(
+                    TopicRegistrationSummary::getGroupName, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(TopicRegistrationSummary::getTopicTitle, String.CASE_INSENSITIVE_ORDER);
+            case "period" -> Comparator.comparing(
+                    TopicRegistrationSummary::getPeriodName, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(TopicRegistrationSummary::getTopicTitle, String.CASE_INSENSITIVE_ORDER);
+            case "submitted" -> Comparator.comparing(
+                    TopicRegistrationSummary::getSubmittedAt,
+                    Comparator.nullsLast(Comparator.naturalOrder()))
+                    .thenComparing(TopicRegistrationSummary::getTopicTitle, String.CASE_INSENSITIVE_ORDER);
+            case "status" -> Comparator.comparing(
+                    TopicRegistrationSummary::getStatusLabel, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(TopicRegistrationSummary::getTopicTitle, String.CASE_INSENSITIVE_ORDER);
+            default -> Comparator.comparing(
+                    TopicRegistrationSummary::getTopicTitle, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(TopicRegistrationSummary::getGroupName, String.CASE_INSENSITIVE_ORDER);
+        };
+        return "desc".equals(direction) ? comparator.reversed() : comparator;
+    }
+
+    private static String normalizeSearch(String search) {
+        return search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static String normalizeStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return "";
+        }
+        try {
+            return TopicRegistrationStatus.valueOf(status.trim().toUpperCase(Locale.ROOT)).name();
+        } catch (IllegalArgumentException exception) {
+            return "";
+        }
+    }
+
+    private static String normalizeSort(String sort) {
+        return switch (sort == null ? "" : sort.trim().toLowerCase(Locale.ROOT)) {
+            case "group", "period", "submitted", "status" -> sort.trim().toLowerCase(Locale.ROOT);
+            default -> "topic";
+        };
+    }
+
+    private static String normalizeDirection(String direction) {
+        return "desc".equalsIgnoreCase(direction == null ? "" : direction.trim()) ? "desc" : "asc";
+    }
+
     public static final class TopicRegistrationSummary {
         private final Long id;
         private final Long groupId;
@@ -231,12 +339,13 @@ public class TopicRegistrationService {
         private final String statusCode;
         private final String statusLabel;
         private final String rejectionReason;
+        private final List<ReportFileSummary> reportFiles;
 
         public TopicRegistrationSummary(
                 Long id, Long groupId, String groupName, Long topicId, String topicTitle,
                 Long periodId, String periodName, Long submittedById, String submittedByName,
                 String submittedByLogin, LocalDateTime submittedAt, String statusCode,
-                String statusLabel, String rejectionReason) {
+                String statusLabel, String rejectionReason, List<ReportFileSummary> reportFiles) {
             this.id = id;
             this.groupId = groupId;
             this.groupName = groupName;
@@ -251,6 +360,7 @@ public class TopicRegistrationService {
             this.statusCode = statusCode;
             this.statusLabel = statusLabel;
             this.rejectionReason = rejectionReason;
+            this.reportFiles = List.copyOf(reportFiles);
         }
 
         public Long getId() { return id; }
@@ -267,6 +377,64 @@ public class TopicRegistrationService {
         public String getStatusCode() { return statusCode; }
         public String getStatusLabel() { return statusLabel; }
         public String getRejectionReason() { return rejectionReason; }
+        public List<ReportFileSummary> getReportFiles() { return reportFiles; }
+    }
+
+    public static final class ReportFileSummary {
+        private final Long id;
+        private final String originalName;
+        private final Long fileSize;
+        private final LocalDateTime submittedAt;
+
+        public ReportFileSummary(Long id, String originalName, Long fileSize, LocalDateTime submittedAt) {
+            this.id = id;
+            this.originalName = originalName;
+            this.fileSize = fileSize;
+            this.submittedAt = submittedAt;
+        }
+
+        public Long getId() { return id; }
+        public String getOriginalName() { return originalName; }
+        public Long getFileSize() { return fileSize; }
+        public LocalDateTime getSubmittedAt() { return submittedAt; }
+    }
+
+    public static final class TopicRegistrationPage {
+        private final List<TopicRegistrationSummary> registrations;
+        private final int page;
+        private final int size;
+        private final int totalItems;
+        private final int totalPages;
+        private final String search;
+        private final String status;
+        private final String sort;
+        private final String direction;
+
+        public TopicRegistrationPage(
+                List<TopicRegistrationSummary> registrations, int page, int size, int totalItems,
+                int totalPages, String search, String status, String sort, String direction) {
+            this.registrations = List.copyOf(registrations);
+            this.page = page;
+            this.size = size;
+            this.totalItems = totalItems;
+            this.totalPages = totalPages;
+            this.search = search;
+            this.status = status;
+            this.sort = sort;
+            this.direction = direction;
+        }
+
+        public List<TopicRegistrationSummary> getRegistrations() { return registrations; }
+        public int getPage() { return page; }
+        public int getSize() { return size; }
+        public int getTotalItems() { return totalItems; }
+        public int getTotalPages() { return totalPages; }
+        public String getSearch() { return search; }
+        public String getStatus() { return status; }
+        public String getSort() { return sort; }
+        public String getDirection() { return direction; }
+        public boolean isHasPrevious() { return page > 0; }
+        public boolean isHasNext() { return page + 1 < totalPages; }
     }
 
     public static final class TopicRegistrationForm {

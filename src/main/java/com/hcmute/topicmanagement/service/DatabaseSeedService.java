@@ -176,13 +176,15 @@ public class DatabaseSeedService {
             new DepartmentSeed("MOBILE", "Công nghệ di động"),
             new DepartmentSeed("HTN", "Hệ thống nhúng"),
             new DepartmentSeed("CDS", "Chuyển đổi số"),
-            new DepartmentSeed("QLCNTT", "Quản lý công nghệ thông tin"));
+            new DepartmentSeed("QLCNTT", "Quản lý công nghệ thông tin"),
+            new DepartmentSeed("KT", "Kế toán"));
 
     private static final List<UserSeed> FACULTY_HEADS = List.of(
             facultyHead("nguyen.van.khang", "PGS. TS. Nguyễn Văn Khang", "CNTT"),
             facultyHead("tran.thi.hong.gam", "TS. Trần Thị Hồng Gấm", "KHMT"),
             facultyHead("le.quang.huy", "TS. Lê Quang Huy", "CNPM"),
-            facultyHead("pham.minh.tuan", "PGS. TS. Phạm Minh Tuấn", "HTTT"));
+            facultyHead("pham.minh.tuan", "PGS. TS. Phạm Minh Tuấn", "HTTT"),
+            facultyHead("hoang.thai.xuan.khoa", "Hoàng Thái Xuân Khoa", "KT"));
 
     private static final List<UserSeed> LECTURERS = List.of(
             lecturer("nguyen.thanh.binh", "Nguyễn Thanh Bình", "CNTT"),
@@ -200,7 +202,11 @@ public class DatabaseSeedService {
             lecturer("hoang.duc.long", "Hoàng Đức Long", "HTTT"),
             lecturer("nguyen.thi.thu", "Nguyễn Thị Thu", "HTTT"),
             lecturer("ta.minh.quan", "Tạ Minh Quân", "HTTT"),
-            lecturer("cao.ngoc.han", "Cao Ngọc Hân", "HTTT"));
+            lecturer("cao.ngoc.han", "Cao Ngọc Hân", "HTTT"),
+            lecturer("nguyen.hoang.long", "Nguyễn Hoàng Long", "KT"),
+            lecturer("nguyen.anh.quan", "Nguyễn Anh Quân", "KT"),
+            lecturer("thai.gia.khang", "Thái Gia Khang", "KT"),
+            lecturer("nguyen.anh.minh", "Nguyễn Anh Minh", "KT"));
 
     private static final List<UserSeed> STUDENTS = List.of(
             student("24110000", "Nguyễn Minh Anh", "CNTT"),
@@ -252,7 +258,10 @@ public class DatabaseSeedService {
             student("24110046", "Huỳnh Quốc Trung", "HTTT"),
             student("24110047", "Trương Minh Tâm", "HTTT"),
             student("24110048", "Lý Ngọc Huyền", "HTTT"),
-            student("24110049", "Nguyễn Đức Toàn", "HTTT"));
+            student("24110049", "Nguyễn Đức Toàn", "HTTT"),
+            student("24910000", "Dương Gia Huy", "KT"),
+            student("24910001", "Vương Tâm", "KT"),
+            student("24910002", "Châu Thành Lợi", "KT"));
 
     private static final List<TopicSeed> TOPICS = List.of(
             new TopicSeed(
@@ -695,7 +704,7 @@ public class DatabaseSeedService {
                 .orElseThrow(() -> new IllegalStateException(
                         "Seed registration periods before topics."));
         Map<String, DepartmentEntity> departments = departmentsByCode();
-        List<TopicEntity> topics = TOPICS.stream()
+        List<TopicEntity> topics = allTopicSeeds().stream()
                 .map(seed -> {
                     DepartmentEntity department = departments.get(seed.departmentCode().toUpperCase(Locale.ROOT));
                     if (department == null) {
@@ -721,17 +730,75 @@ public class DatabaseSeedService {
         return topicRepository.saveAllAndFlush(topics);
     }
 
+    /**
+     * Adds deterministic topic fixtures so every status has enough rows for
+     * searching, sorting, filtering, and pagination in the topic directory.
+     */
+    private static List<TopicSeed> allTopicSeeds() {
+        List<TopicSeed> seeds = new ArrayList<>(TOPICS);
+        List<String> departmentCodes = List.of("CNTT", "KHMT", "CNPM", "HTTT");
+        List<String> proposerLogins = List.of(
+                "nguyen.thanh.binh", "nguyen.quoc.viet", "phan.tuan.anh", "hoang.duc.long");
+        List<String> supervisorLogins = List.of(
+                "nguyen.van.khang", "tran.thi.hong.gam", "le.quang.huy", "pham.minh.tuan");
+
+        for (TopicStatus status : TopicStatus.values()) {
+            int existingCount = (int) TOPICS.stream()
+                    .filter(topic -> topic.status() == status)
+                    .count();
+            int targetCount = status == TopicStatus.PUBLISHED ? 40 : 10;
+            int topicsToAdd = Math.max(0, targetCount - existingCount);
+            for (int index = 0; index < topicsToAdd; index++) {
+                int ownerIndex = index % departmentCodes.size();
+                String statusLabel = status.name().replace('_', ' ');
+                String number = String.format(Locale.ROOT, "%02d", index + 1);
+                seeds.add(new TopicSeed(
+                        "Đề tài mẫu " + statusLabel + " " + number,
+                        "Dữ liệu mẫu để kiểm thử danh sách đề tài, bộ lọc, sắp xếp và phân trang.",
+                        departmentCodes.get(ownerIndex),
+                        proposerLogins.get(ownerIndex),
+                        status,
+                        List.of(supervisorLogins.get(ownerIndex))));
+            }
+        }
+        return seeds;
+    }
+
     private List<TopicRegistrationEntity> seedTopicRegistrations() {
         RegistrationPeriodEntity period = registrationPeriodRepository.findByNameIgnoreCase(SEEDED_PERIOD_NAME)
                 .orElseThrow(() -> new IllegalStateException("Seed registration periods before registrations."));
-        return List.of(
+        List<TopicRegistrationEntity> registrations = new ArrayList<>(List.of(
                 upsertSeedRegistration(period, "Nhóm Phoenix", "Nền tảng quản lý đề tài và tiến độ khóa luận"),
                 upsertSeedRegistration(period, "Nhóm Nova", "Phát hiện bất thường trong kết quả học tập"),
-                upsertSeedRegistration(period, "Nhóm Atlas", "Ứng dụng quản lý quy trình thực tập doanh nghiệp"));
+                upsertSeedRegistration(period, "Nhóm Atlas", "Ứng dụng quản lý quy trình thực tập doanh nghiệp")));
+        List<String> groupNames = List.of("Nhóm Phoenix", "Nhóm Orion", "Nhóm Nova", "Nhóm Atlas");
+        for (int index = 1; index <= 15; index++) {
+            String number = String.format(Locale.ROOT, "%02d", index);
+            registrations.add(upsertSeedRegistration(
+                    period,
+                    groupNames.get((index - 1) % groupNames.size()),
+                    "Đề tài mẫu PUBLISHED " + number,
+                    TopicRegistrationStatus.PENDING));
+        }
+        for (int index = 16; index <= 23; index++) {
+            String number = String.format(Locale.ROOT, "%02d", index);
+            registrations.add(upsertSeedRegistration(
+                    period,
+                    groupNames.get((index - 1) % groupNames.size()),
+                    "Đề tài mẫu PUBLISHED " + number,
+                    TopicRegistrationStatus.APPROVED));
+        }
+        return registrations;
     }
 
     private TopicRegistrationEntity upsertSeedRegistration(
             RegistrationPeriodEntity period, String groupName, String topicTitle) {
+        return upsertSeedRegistration(period, groupName, topicTitle, TopicRegistrationStatus.APPROVED);
+    }
+
+    private TopicRegistrationEntity upsertSeedRegistration(
+            RegistrationPeriodEntity period, String groupName, String topicTitle,
+            TopicRegistrationStatus status) {
         StudentGroupEntity group = studentGroupRepository
                 .findByRegistrationPeriod_IdAndNameIgnoreCase(period.getId(), groupName)
                 .orElseThrow(() -> new IllegalStateException("Seed student group before registration: " + groupName));
@@ -745,7 +812,7 @@ public class DatabaseSeedService {
         registration.setTopic(topic);
         registration.setRegistrationPeriod(period);
         registration.setSubmittedBy(group.getLeader());
-        registration.setStatus(TopicRegistrationStatus.APPROVED);
+        registration.setStatus(status);
         registration.setRejectionReason(null);
         return topicRegistrationRepository.saveAndFlush(registration);
     }
@@ -833,7 +900,38 @@ public class DatabaseSeedService {
             }
             boards.add(board);
         }
+        seedStandaloneEvaluations(period);
         return boards;
+    }
+
+    private void seedStandaloneEvaluations(RegistrationPeriodEntity period) {
+        List<String> groupNames = List.of("Nhóm Phoenix", "Nhóm Orion", "Nhóm Nova", "Nhóm Atlas");
+        List<String> evaluatorLogins = List.of(
+                "phan.tuan.anh", "huynh.thi.my.linh", "le.quang.huy", "nguyen.thanh.binh");
+        for (int index = 16; index <= 23; index++) {
+            String number = String.format(Locale.ROOT, "%02d", index);
+            StudentGroupEntity group = studentGroupRepository
+                    .findByRegistrationPeriod_IdAndNameIgnoreCase(period.getId(),
+                            groupNames.get((index - 1) % groupNames.size()))
+                    .orElseThrow(() -> new IllegalStateException("Seed group before evaluation."));
+            TopicEntity topic = topicRepository.findFirstByTitleIgnoreCase("Đề tài mẫu PUBLISHED " + number)
+                    .orElseThrow(() -> new IllegalStateException("Seed topic before evaluation: " + number));
+            TopicRegistrationEntity registration = topicRegistrationRepository
+                    .findByStudentGroup_IdAndRegistrationPeriod_IdOrderBySubmittedAtDesc(group.getId(), period.getId())
+                    .stream().filter(existing -> existing.getTopic().getId().equals(topic.getId())).findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Seed registration before evaluation: " + number));
+            UserEntity evaluator = requireSeedUser(evaluatorLogins.get((index - 16) % evaluatorLogins.size()));
+            EvaluationEntity evaluation = evaluationRepository
+                    .findByTopicRegistration_IdAndLecturer_Id(registration.getId(), evaluator.getId())
+                    .orElseGet(() -> new EvaluationEntity(registration, evaluator));
+            evaluation.setBoard(null);
+            evaluation.setBoardMember(null);
+            evaluation.setScore(null);
+            evaluation.setComment(null);
+            evaluation.setStatus(EvaluationStatus.DRAFT);
+            evaluation.setSubmittedAt(null);
+            evaluationRepository.saveAndFlush(evaluation);
+        }
     }
     private List<AnnouncementEntity> seedAnnouncements() {
         Map<String, DepartmentEntity> departments = departmentsByCode();
