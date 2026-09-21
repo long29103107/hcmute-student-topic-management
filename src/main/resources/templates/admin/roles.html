@@ -1,118 +1,408 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main}">
-<head><title>Roles &amp; access controls</title></head>
-<body>
-<main layout:fragment="content" class="w-full px-4 py-6 sm:px-6 lg:px-8">
-    <section aria-labelledby="page-title">
-        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-                <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Identity &amp; access</p>
-                <h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Roles &amp; access controls</h1>
-                <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500">Review system roles and fine-tune the permissions assigned to each access bundle.</p>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800"><span class="me-1.5 h-2 w-2 rounded-full bg-green-500"></span>System roles</span>
-                <span class="text-sm text-gray-500" th:text="${#lists.size(roles) + ' roles'}">3 roles</span>
-            </div>
+<!doctype html>
+<html
+  lang="en"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/main}"
+>
+  <head>
+    <title>Roles &amp; access controls</title>
+  </head>
+  <body>
+    <main layout:fragment="content" class="w-full px-4 py-6 sm:px-6 lg:px-8">
+      <section aria-labelledby="page-title">
+        <div
+          class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"
+        >
+          <div>
+            <p
+              class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500"
+            >
+              Identity &amp; access
+            </p>
+            <h1
+              id="page-title"
+              class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
+            >
+              Roles &amp; access controls
+            </h1>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span
+              class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800"
+              ><span class="me-1.5 h-2 w-2 rounded-full bg-green-500"></span
+              >System roles</span
+            >
+            <span
+              class="text-sm text-gray-500"
+              th:text="${#lists.size(roles) + ' roles'}"
+              >3 roles</span
+            >
+          </div>
         </div>
 
-        <div class="grid items-start overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm lg:grid-cols-[18rem_minmax(0,1fr)]">
-            <aside class="border-b border-gray-200 p-4 lg:border-b-0 lg:border-e" aria-labelledby="roles-heading">
-                <div class="mb-4">
-                    <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Roles</p>
-                    <h2 id="roles-heading" class="text-xl font-semibold text-gray-900">Access bundles</h2>
+        <div
+          class="grid items-start overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm lg:grid-cols-[18rem_minmax(0,1fr)]"
+        >
+          <aside
+            class="border-b border-gray-200 p-4 lg:border-b-0 lg:border-e"
+            aria-labelledby="roles-heading"
+          >
+            <div class="mb-4">
+              <p
+                class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500"
+              >
+                Roles
+              </p>
+              <h2
+                id="roles-heading"
+                class="text-xl font-semibold text-gray-900"
+              >
+                Access bundles
+              </h2>
+            </div>
+            <label class="relative block" for="role-search">
+              <span class="sr-only">Search roles</span>
+              <svg
+                class="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                />
+              </svg>
+              <input
+                class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 ps-10 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                id="role-search"
+                type="search"
+                placeholder="Search roles"
+                autocomplete="off"
+                data-role-search
+              />
+            </label>
+            <nav class="mt-3 space-y-1" aria-label="System roles">
+              <a
+                class="flex items-center justify-between gap-2 rounded-lg border border-gray-200 px-2.5 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                th:each="role : ${roles}"
+                th:classappend="${selectedRole != null and selectedRole.id.equals(role.id) ? 'border-blue-300 bg-blue-50 text-blue-800' : ''}"
+                th:href="@{/admin/roles(roleId=${role.id})}"
+                th:aria-current="${selectedRole != null and selectedRole.id.equals(role.id) ? 'page' : null}"
+                data-role-item
+                th:attr="data-role-search-value=${role.name + ' ' + role.code}"
+              >
+                <span class="min-w-0">
+                  <strong
+                    class="block truncate text-sm font-semibold"
+                    th:text="${role.name}"
+                    >Faculty Head</strong
+                  >
+                  <span
+                    class="flex items-center gap-1.5 text-[11px] leading-4 text-gray-500"
+                    ><span class="h-1.5 w-1.5 rounded-full bg-green-500"></span
+                    >System</span
+                  >
+                </span>
+                <span
+                  class="shrink-0 text-xs text-gray-500"
+                  th:text="${role.permissionCount + ' enabled'}"
+                  >5 enabled</span
+                >
+              </a>
+            </nav>
+            <p
+              class="mt-3 text-sm text-gray-500"
+              th:if="${#lists.isEmpty(roles)}"
+            >
+              No non-administrator system roles are available.
+            </p>
+            <p class="mt-3 text-sm text-gray-500" data-role-filter-empty hidden>
+              No roles match your search.
+            </p>
+            <div
+              class="mt-5 flex items-start gap-2 border-t border-gray-100 pt-3 text-xs leading-5 text-gray-500"
+            >
+              <span
+                class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-gray-300 font-semibold"
+                >i</span
+              >
+              <p>
+                Role profiles are system-managed. Only permission assignments
+                can be changed here.
+              </p>
+            </div>
+          </aside>
+
+          <section
+            class="min-w-0 p-4 sm:p-5"
+            aria-labelledby="selected-role-heading"
+          >
+            <div
+              class="flex min-h-72 flex-col items-center justify-center gap-2 text-center"
+              th:if="${selectedRole == null}"
+            >
+              <span class="text-3xl text-blue-700">⚿</span>
+              <h2
+                id="selected-role-heading"
+                class="text-lg font-semibold text-gray-900"
+              >
+                No role selected
+              </h2>
+              <p class="max-w-sm text-sm text-gray-500">
+                Seed a system role or select one from the list to manage its
+                permissions.
+              </p>
+            </div>
+
+            <form
+              id="role-permission-form"
+              th:if="${selectedRole != null}"
+              th:action="@{/admin/roles/{id}/permissions(id=${selectedRole.id})}"
+              th:object="${form}"
+              method="post"
+            >
+              <input
+                type="hidden"
+                th:name="${_csrf.parameterName}"
+                th:value="${_csrf.token}"
+              />
+              <div
+                class="flex flex-col justify-between gap-3 border-b border-gray-200 pb-4 xl:flex-row xl:items-end"
+              >
+                <div class="min-w-0">
+                  <p
+                    class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500"
+                  >
+                    Selected role
+                  </p>
+                  <h2
+                    id="selected-role-heading"
+                    class="truncate text-xl font-semibold text-gray-900"
+                    th:text="${selectedRole.name}"
+                  >
+                    Faculty Head
+                  </h2>
+                  <p
+                    class="mt-1 truncate text-sm text-gray-500"
+                    th:text="${selectedRole.description ?: 'No description provided.'}"
+                  >
+                    Manage faculty workflows.
+                  </p>
                 </div>
-                <label class="relative block" for="role-search">
-                    <span class="sr-only">Search roles</span>
-                    <svg class="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/></svg>
-                    <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 ps-10 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" id="role-search" type="search" placeholder="Search roles" autocomplete="off" data-role-search>
-                </label>
-                <nav class="mt-3 space-y-1" aria-label="System roles">
-                    <a class="flex items-center justify-between gap-2 rounded-lg border border-gray-200 px-2.5 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-700" th:each="role : ${roles}" th:classappend="${selectedRole != null and selectedRole.id.equals(role.id) ? 'border-blue-300 bg-blue-50 text-blue-800' : ''}" th:href="@{/admin/roles(roleId=${role.id})}" th:aria-current="${selectedRole != null and selectedRole.id.equals(role.id) ? 'page' : null}" data-role-item th:attr="data-role-search-value=${role.name + ' ' + role.code}">
-                        <span class="min-w-0">
-                            <strong class="block truncate text-sm font-semibold" th:text="${role.name}">Faculty Head</strong>
-                            <span class="flex items-center gap-1.5 text-[11px] leading-4 text-gray-500"><span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>System</span>
-                        </span>
-                        <span class="shrink-0 text-xs text-gray-500" th:text="${role.permissionCount + ' enabled'}">5 enabled</span>
-                    </a>
-                </nav>
-                <p class="mt-3 text-sm text-gray-500" th:if="${#lists.isEmpty(roles)}">No non-administrator system roles are available.</p>
-                <p class="mt-3 text-sm text-gray-500" data-role-filter-empty hidden>No roles match your search.</p>
-                <div class="mt-5 flex items-start gap-2 border-t border-gray-100 pt-3 text-xs leading-5 text-gray-500">
-                    <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-gray-300 font-semibold">i</span>
-                    <p>Role profiles are system-managed. Only permission assignments can be changed here.</p>
+                <div class="flex flex-col gap-2 sm:flex-row">
+                  <label
+                    class="relative block w-full sm:w-64"
+                    for="permission-search"
+                  >
+                    <span class="sr-only">Search permissions</span>
+                    <svg
+                      class="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                      />
+                    </svg>
+                    <input
+                      class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 ps-10 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                      id="permission-search"
+                      type="search"
+                      placeholder="Search permissions"
+                      autocomplete="off"
+                      data-permission-search
+                    />
+                  </label>
                 </div>
-            </aside>
+              </div>
 
-            <section class="min-w-0 p-4 sm:p-5" aria-labelledby="selected-role-heading">
-                <div class="flex min-h-72 flex-col items-center justify-center gap-2 text-center" th:if="${selectedRole == null}">
-                    <span class="text-3xl text-blue-700">⚿</span>
-                    <h2 id="selected-role-heading" class="text-lg font-semibold text-gray-900">No role selected</h2>
-                    <p class="max-w-sm text-sm text-gray-500">Seed a system role or select one from the list to manage its permissions.</p>
+              <div
+                class="flex flex-wrap items-center gap-2 border-b border-gray-100 py-3"
+              >
+                <span
+                  class="rounded-full bg-blue-100 px-3 py-1 font-mono text-xs font-medium text-blue-800"
+                  th:text="${selectedRole.code}"
+                  >FACULTY_HEAD</span
+                >
+                <span
+                  class="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700"
+                  >System-managed</span
+                >
+                <span class="text-sm text-gray-500"
+                  ><span
+                    class="font-semibold text-gray-900"
+                    data-selected-count
+                    th:text="${#sets.size(form.permissionIds)}"
+                    >5</span
+                  >
+                  permissions enabled</span
+                >
+              </div>
+
+              <div
+                class="mt-5 flex items-start rounded-lg bg-red-50 p-4 text-sm text-red-800"
+                th:if="${#fields.hasGlobalErrors()}"
+                role="alert"
+              >
+                <svg
+                  class="me-3 mt-0.5 h-5 w-5 shrink-0"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9 5h2v6H9V5Zm0 8h2v2H9v-2Z"
+                  />
+                </svg>
+                <div>
+                  <p
+                    th:each="error : ${#fields.globalErrors()}"
+                    th:text="${error}"
+                  >
+                    Permissions could not be updated.
+                  </p>
                 </div>
+              </div>
 
-                <form id="role-permission-form" th:if="${selectedRole != null}" th:action="@{/admin/roles/{id}/permissions(id=${selectedRole.id})}" th:object="${form}" method="post">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                    <div class="flex flex-col justify-between gap-3 border-b border-gray-200 pb-4 xl:flex-row xl:items-end">
-                        <div class="min-w-0">
-                            <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Selected role</p>
-                            <h2 id="selected-role-heading" class="truncate text-xl font-semibold text-gray-900" th:text="${selectedRole.name}">Faculty Head</h2>
-                            <p class="mt-1 truncate text-sm text-gray-500" th:text="${selectedRole.description ?: 'No description provided.'}">Manage faculty workflows.</p>
-                        </div>
-                        <div class="flex flex-col gap-2 sm:flex-row">
-                            <label class="relative block w-full sm:w-64" for="permission-search">
-                                <span class="sr-only">Search permissions</span>
-                                <svg class="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/></svg>
-                                <input class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 ps-10 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500" id="permission-search" type="search" placeholder="Search permissions" autocomplete="off" data-permission-search>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-2 border-b border-gray-100 py-3">
-                        <span class="rounded-full bg-blue-100 px-3 py-1 font-mono text-xs font-medium text-blue-800" th:text="${selectedRole.code}">FACULTY_HEAD</span>
-                        <span class="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">System-managed</span>
-                        <span class="text-sm text-gray-500"><span class="font-semibold text-gray-900" data-selected-count th:text="${#sets.size(form.permissionIds)}">5</span> permissions enabled</span>
-                    </div>
-
-                    <div class="mt-5 flex items-start rounded-lg bg-red-50 p-4 text-sm text-red-800" th:if="${#fields.hasGlobalErrors()}" role="alert">
-                        <svg class="me-3 mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9 5h2v6H9V5Zm0 8h2v2H9v-2Z"/></svg>
-                        <div><p th:each="error : ${#fields.globalErrors()}" th:text="${error}">Permissions could not be updated.</p></div>
-                    </div>
-
-                    <div class="mt-3 space-y-1.5">
-                        <section class="overflow-hidden rounded-lg border border-gray-200" th:each="group, groupStat : ${permissionGroups}" data-permission-group>
-                            <div class="flex items-center justify-between gap-1.5 bg-gray-50 px-3 py-2">
-                                <button class="flex min-w-0 items-center gap-2 text-left" type="button" aria-expanded="true" th:attr="aria-controls=${'permission-group-body-' + groupStat.index}" data-group-trigger>
-                                    <svg class="h-4 w-4 shrink-0 text-gray-500 transition-transform duration-200" data-group-chevron aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6"/></svg>
-                                    <span class="min-w-0">
-                                        <strong class="block truncate text-sm font-semibold text-blue-700" th:text="${group.name}">Topics</strong>
-                                        <small class="block text-[11px] leading-4 text-gray-500"><span th:text="${#lists.size(group.permissions)}">5</span> permissions</small>
-                                    </span>
-                                </button>
-                                <label class="inline-flex shrink-0 cursor-pointer items-center">
-                                    <span class="sr-only" th:text="${'Toggle all permissions in ' + group.name}">Toggle all permissions</span>
-                                    <input class="peer sr-only" type="checkbox" data-group-toggle>
-                                    <span class="relative h-4.5 w-8 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-3.5 after:w-3.5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-200"></span>
-                                </label>
-                            </div>
-                            <div class="divide-y divide-gray-100" th:id="${'permission-group-body-' + groupStat.index}" data-group-body>
-                                <label class="flex cursor-pointer items-start gap-2.5 px-3 py-2 hover:bg-gray-50" th:each="permission : ${group.permissions}" data-permission-item th:attr="data-permission-search-value=${permission.name + ' ' + permission.code}">
-                                    <input class="permission-checkbox mt-0.5 h-4 w-4 rounded border-gray-300 bg-gray-100 text-blue-600 focus:ring-2 focus:ring-blue-500" type="checkbox" th:field="*{permissionIds}" th:value="${permission.id}" data-permission-input>
-                                    <span class="min-w-0">
-                                        <strong class="block text-sm font-medium leading-4 text-gray-900" th:text="${permission.name}">Review topics</strong>
-                                        <small class="mt-0.5 block text-xs leading-4 text-gray-500" th:text="${permission.description ?: 'No description provided.'}">Review, approve, reject, and publish topic proposals.</small>
-                                        <code class="mt-0.5 block font-mono text-[11px] leading-4 text-gray-500" th:text="${permission.code}">TOPIC_REVIEW</code>
-                                    </span>
-                                </label>
-                            </div>
-                        </section>
-                    </div>
-                    <p class="py-8 text-center text-sm text-gray-500" data-permission-filter-empty hidden>No permissions match your search.</p>
-                    <div class="mt-5 flex flex-col justify-between gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:items-center"><span class="text-xs text-gray-500"><span class="me-1 text-green-600">✓</span>Changes apply to this role only.</span><button class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300" type="submit">Save changes</button></div>
-                </form>
-            </section>
+              <div class="mt-3 space-y-1.5">
+                <section
+                  class="overflow-hidden rounded-lg border border-gray-200"
+                  th:each="group, groupStat : ${permissionGroups}"
+                  data-permission-group
+                >
+                  <div
+                    class="flex items-center justify-between gap-1.5 bg-gray-50 px-3 py-2"
+                  >
+                    <button
+                      class="flex min-w-0 items-center gap-2 text-left"
+                      type="button"
+                      aria-expanded="true"
+                      th:attr="aria-controls=${'permission-group-body-' + groupStat.index}"
+                      data-group-trigger
+                    >
+                      <svg
+                        class="h-4 w-4 shrink-0 text-gray-500 transition-transform duration-200"
+                        data-group-chevron
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="m6 9 6 6 6-6"
+                        />
+                      </svg>
+                      <span class="min-w-0">
+                        <strong
+                          class="block truncate text-sm font-semibold text-blue-700"
+                          th:text="${group.name}"
+                          >Topics</strong
+                        >
+                        <small class="block text-[11px] leading-4 text-gray-500"
+                          ><span th:text="${#lists.size(group.permissions)}"
+                            >5</span
+                          >
+                          permissions</small
+                        >
+                      </span>
+                    </button>
+                    <label
+                      class="inline-flex shrink-0 cursor-pointer items-center"
+                    >
+                      <span
+                        class="sr-only"
+                        th:text="${'Toggle all permissions in ' + group.name}"
+                        >Toggle all permissions</span
+                      >
+                      <input
+                        class="peer sr-only"
+                        type="checkbox"
+                        data-group-toggle
+                      />
+                      <span
+                        class="relative h-4.5 w-8 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-3.5 after:w-3.5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-200"
+                      ></span>
+                    </label>
+                  </div>
+                  <div
+                    class="divide-y divide-gray-100"
+                    th:id="${'permission-group-body-' + groupStat.index}"
+                    data-group-body
+                  >
+                    <label
+                      class="flex cursor-pointer items-start gap-2.5 px-3 py-2 hover:bg-gray-50"
+                      th:each="permission : ${group.permissions}"
+                      data-permission-item
+                      th:attr="data-permission-search-value=${permission.name + ' ' + permission.code}"
+                    >
+                      <input
+                        class="permission-checkbox mt-0.5 h-4 w-4 rounded border-gray-300 bg-gray-100 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                        type="checkbox"
+                        th:field="*{permissionIds}"
+                        th:value="${permission.id}"
+                        data-permission-input
+                      />
+                      <span class="min-w-0">
+                        <strong
+                          class="block text-sm font-medium leading-4 text-gray-900"
+                          th:text="${permission.name}"
+                          >Review topics</strong
+                        >
+                        <small
+                          class="mt-0.5 block text-xs leading-4 text-gray-500"
+                          th:text="${permission.description ?: 'No description provided.'}"
+                          >Review, approve, reject, and publish topic
+                          proposals.</small
+                        >
+                        <code
+                          class="mt-0.5 block font-mono text-[11px] leading-4 text-gray-500"
+                          th:text="${permission.code}"
+                          >TOPIC_REVIEW</code
+                        >
+                      </span>
+                    </label>
+                  </div>
+                </section>
+              </div>
+              <p
+                class="py-8 text-center text-sm text-gray-500"
+                data-permission-filter-empty
+                hidden
+              >
+                No permissions match your search.
+              </p>
+              <div
+                class="mt-5 flex flex-col justify-between gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:items-center"
+              >
+                <span class="text-xs text-gray-500"
+                  ><span class="me-1 text-green-600">✓</span>Changes apply to
+                  this role only.</span
+                ><button
+                  class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                  type="submit"
+                >
+                  Save changes
+                </button>
+              </div>
+            </form>
+          </section>
         </div>
-    </section>
-</main>
-</body>
+      </section>
+    </main>
+  </body>
 </html>

@@ -11,6 +11,110 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    document.querySelectorAll('[data-password-change-form]').forEach((form) => {
+        const password = form.querySelector('[name="password"]');
+        const confirmation = form.querySelector('[name="passwordConfirmation"]');
+        const passwordError = form.querySelector('[data-password-client-error="password"]');
+        const confirmationError = form.querySelector('[data-password-client-error="confirmation"]');
+
+        const setError = (element, message) => {
+            if (!element) {
+                return;
+            }
+            element.textContent = message;
+            element.classList.toggle('hidden', !message);
+        };
+
+        form.addEventListener('submit', (event) => {
+            const passwordValue = password?.value || '';
+            const confirmationValue = confirmation?.value || '';
+            let valid = true;
+
+            setError(passwordError, '');
+            setError(confirmationError, '');
+
+            if (!passwordValue.trim()) {
+                setError(passwordError, 'New password is required.');
+                valid = false;
+            } else if (passwordValue.length < 8 || passwordValue.length > 72) {
+                setError(passwordError, 'Password must be between 8 and 72 characters.');
+                valid = false;
+            }
+
+            if (!confirmationValue.trim()) {
+                setError(confirmationError, 'Password confirmation is required.');
+                valid = false;
+            } else if (passwordValue !== confirmationValue) {
+                setError(confirmationError, 'Passwords do not match.');
+                valid = false;
+            }
+
+            if (!valid || !form.reportValidity()) {
+                event.preventDefault();
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-department-form]').forEach((form) => {
+        const fields = {
+            code: form.querySelector('[data-department-field="code"]'),
+            name: form.querySelector('[data-department-field="name"]')
+        };
+
+        const messages = {
+            code: form.querySelector('[data-department-error="code"]'),
+            name: form.querySelector('[data-department-error="name"]')
+        };
+
+        const validateField = (fieldName) => {
+            const field = fields[fieldName];
+            const message = messages[fieldName];
+            if (!field || !message) {
+                return true;
+            }
+
+            const value = field.value.trim();
+            let error = '';
+
+            if (!value) {
+                error = fieldName === 'code' ? 'Code is required.' : 'Department name is required.';
+            } else if (fieldName === 'code' && !/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(value)) {
+                error = 'Code may contain letters, numbers, hyphens and underscores only.';
+            } else if (fieldName === 'name' && !/[\p{L}\p{N}]/u.test(value)) {
+                error = 'Department name must contain a letter or number.';
+            } else if (value.length > (fieldName === 'code' ? 30 : 150)) {
+                error = fieldName === 'code'
+                    ? 'Code must be at most 30 characters.'
+                    : 'Department name must be at most 150 characters.';
+            }
+
+            message.textContent = error;
+            message.hidden = !error;
+            field.setAttribute('aria-invalid', String(Boolean(error)));
+            field.classList.toggle('border-red-500', Boolean(error));
+            field.classList.toggle('focus:border-red-500', Boolean(error));
+            field.classList.toggle('focus:ring-red-500', Boolean(error));
+            field.classList.toggle('border-gray-300', !error);
+            field.setCustomValidity(error);
+            return !error;
+        };
+
+        Object.keys(fields).forEach((fieldName) => {
+            const field = fields[fieldName];
+            field?.addEventListener('blur', () => validateField(fieldName));
+            field?.addEventListener('input', () => validateField(fieldName));
+        });
+
+        form.addEventListener('submit', (event) => {
+            const valid = Object.keys(fields).every(validateField);
+            if (!valid) {
+                event.preventDefault();
+                const firstInvalid = Object.values(fields).find((field) => field?.getAttribute('aria-invalid') === 'true');
+                firstInvalid?.focus();
+            }
+        });
+    });
+
     const toastElements = [...document.querySelectorAll('[data-toast]')];
     const maxToasts = 3;
     toastElements.slice(0, Math.max(0, toastElements.length - maxToasts)).forEach((toast) => toast.remove());
@@ -318,10 +422,228 @@ document.addEventListener('DOMContentLoaded', () => {
         form.addEventListener('submit', syncPasswordConfirmation);
     });
 
+    document.querySelectorAll('[data-group-form]').forEach((form) => {
+        const fields = {};
+        const messages = {};
+        form.querySelectorAll('[data-group-field]').forEach((field) => {
+            const fieldName = field.dataset.groupField;
+            fields[fieldName] = field;
+            messages[fieldName] = form.querySelector(`[data-group-error="${fieldName}"]`);
+        });
+        const errorMessages = {
+            name: 'Group name is required.',
+            period: 'Registration period is required.',
+            groupId: 'Group ID is required.'
+        };
+
+        const validateField = (fieldName) => {
+            const field = fields[fieldName];
+            const message = messages[fieldName];
+            if (!field || !message) {
+                return true;
+            }
+
+            const value = field.value.trim();
+            const error = value ? '' : errorMessages[fieldName];
+            message.textContent = error;
+            message.hidden = !error;
+            field.setAttribute('aria-invalid', String(Boolean(error)));
+            field.classList.toggle('border-red-500', Boolean(error));
+            field.classList.toggle('focus:border-red-500', Boolean(error));
+            field.classList.toggle('focus:ring-red-500', Boolean(error));
+            field.classList.toggle('border-gray-300', !error);
+            field.setCustomValidity(error);
+            return !error;
+        };
+
+        Object.keys(fields).forEach((fieldName) => {
+            fields[fieldName]?.addEventListener('input', () => validateField(fieldName));
+            fields[fieldName]?.addEventListener('change', () => validateField(fieldName));
+            fields[fieldName]?.addEventListener('blur', () => validateField(fieldName));
+        });
+
+        form.addEventListener('submit', (event) => {
+            const valid = Object.keys(fields).every(validateField);
+            if (!valid) {
+                event.preventDefault();
+                const firstInvalid = Object.values(fields).find((field) =>
+                    field?.getAttribute('aria-invalid') === 'true');
+                firstInvalid?.focus();
+            }
+        });
+    });
+
     document.querySelectorAll('[data-confirm]').forEach((form) => {
         form.addEventListener('submit', (event) => {
             if (!window.confirm(form.dataset.confirm)) {
                 event.preventDefault();
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-review-board-form]').forEach((form) => {
+        const fields = {
+            registration: form.querySelector('[data-review-board-field="registration"]'),
+            scheduledAt: form.querySelector('[data-review-board-field="scheduledAt"]'),
+            status: form.querySelector('[data-review-board-field="status"]'),
+            chair: form.querySelector('[data-review-board-field="chair"]'),
+            secretary: form.querySelector('[data-review-board-field="secretary"]')
+        };
+        const errors = {
+            registration: form.querySelector('[data-review-board-error="registration"]'),
+            scheduledAt: form.querySelector('[data-review-board-error="scheduledAt"]'),
+            status: form.querySelector('[data-review-board-error="status"]'),
+            lecturers: form.querySelector('[data-review-board-error="lecturers"]'),
+            chair: form.querySelector('[data-review-board-error="chair"]'),
+            secretary: form.querySelector('[data-review-board-error="secretary"]')
+        };
+        const lecturerCheckboxes = [...form.querySelectorAll('input[name="lecturerIds"]')];
+
+        const setFieldError = (fieldName, error) => {
+            const field = fields[fieldName];
+            const message = errors[fieldName];
+            if (!field || !message) {
+                return !error;
+            }
+            message.textContent = error;
+            message.hidden = !error;
+            field.setAttribute('aria-invalid', String(Boolean(error)));
+            field.classList.toggle('border-red-500', Boolean(error));
+            field.classList.toggle('focus:border-red-500', Boolean(error));
+            field.classList.toggle('focus:ring-red-500', Boolean(error));
+            field.classList.toggle('border-gray-300', !error);
+            field.setCustomValidity(error);
+            return !error;
+        };
+
+        const validate = () => {
+            let valid = true;
+            Object.entries(fields).forEach(([fieldName, field]) => {
+                if (!field) {
+                    return;
+                }
+                const error = field.value.trim() ? '' : `${fieldName === 'scheduledAt' ? 'Scheduled time' : fieldName[0].toUpperCase() + fieldName.slice(1)} is required.`;
+                valid = setFieldError(fieldName, error) && valid;
+            });
+
+            const selectedIds = lecturerCheckboxes
+                .filter((checkbox) => checkbox.checked)
+                .map((checkbox) => checkbox.value);
+            let lecturerError = '';
+            if (selectedIds.length < 3 || selectedIds.length > 5) {
+                lecturerError = 'Select between 3 and 5 lecturers.';
+            }
+            if (errors.lecturers) {
+                errors.lecturers.textContent = lecturerError;
+                errors.lecturers.hidden = !lecturerError;
+            }
+            if (lecturerCheckboxes[0]) {
+                lecturerCheckboxes[0].setCustomValidity(lecturerError);
+            }
+            valid = !lecturerError && valid;
+
+            const chairId = fields.chair?.value || '';
+            const secretaryId = fields.secretary?.value || '';
+            const chairError = chairId && !selectedIds.includes(chairId)
+                ? 'Chair must be one of the selected board lecturers.'
+                : '';
+            const secretaryError = secretaryId && !selectedIds.includes(secretaryId)
+                ? 'Secretary must be one of the selected board lecturers.'
+                : '';
+            const differentError = chairId && secretaryId && chairId === secretaryId
+                ? 'Chair and Secretary must be different lecturers.'
+                : '';
+            valid = setFieldError('chair', chairError || differentError) && valid;
+            valid = setFieldError('secretary', secretaryError || differentError) && valid;
+            return valid;
+        };
+
+        [...Object.values(fields).filter(Boolean), ...lecturerCheckboxes].forEach((field) => {
+            field.addEventListener('input', validate);
+            field.addEventListener('change', validate);
+            field.addEventListener('blur', validate);
+        });
+        form.addEventListener('submit', (event) => {
+            if (!validate()) {
+                event.preventDefault();
+                const firstInvalid = Object.values(fields).find((field) =>
+                    field?.getAttribute('aria-invalid') === 'true');
+                firstInvalid?.focus();
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-evaluator-form]').forEach((form) => {
+        const field = form.querySelector('[data-evaluator-field]');
+        const message = form.querySelector('[data-evaluator-error]');
+        if (!field || !message) {
+            return;
+        }
+
+        const validate = () => {
+            const error = field.value.trim() ? '' : 'Evaluator is required.';
+            message.textContent = error;
+            message.hidden = !error;
+            field.setAttribute('aria-invalid', String(Boolean(error)));
+            field.classList.toggle('border-red-500', Boolean(error));
+            field.classList.toggle('focus:border-red-500', Boolean(error));
+            field.classList.toggle('focus:ring-red-500', Boolean(error));
+            field.classList.toggle('border-gray-300', !error);
+            field.setCustomValidity(error);
+            return !error;
+        };
+
+        field.addEventListener('change', validate);
+        field.addEventListener('blur', validate);
+        form.addEventListener('submit', (event) => {
+            if (!validate()) {
+                event.preventDefault();
+                field.focus();
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-scoring-form]').forEach((form) => {
+        const field = form.querySelector('[data-scoring-field="score"]');
+        const message = form.querySelector('[data-scoring-error="score"]');
+        if (!field || !message) {
+            return;
+        }
+
+        const validate = () => {
+            const value = field.value.trim();
+            let error = '';
+            if (!value) {
+                error = 'Score is required.';
+            } else {
+                const score = Number(value);
+                const minimum = Number(field.min);
+                const maximum = Number(field.max);
+                if (!Number.isFinite(score)) {
+                    error = 'Score must be a valid number.';
+                } else if (score < minimum || score > maximum) {
+                    error = `Score must be between ${minimum} and ${maximum}.`;
+                }
+            }
+
+            message.textContent = error;
+            message.hidden = !error;
+            field.setAttribute('aria-invalid', String(Boolean(error)));
+            field.classList.toggle('border-red-500', Boolean(error));
+            field.classList.toggle('focus:border-red-500', Boolean(error));
+            field.classList.toggle('focus:ring-red-500', Boolean(error));
+            field.classList.toggle('border-gray-300', !error);
+            field.setCustomValidity(error);
+            return !error;
+        };
+
+        field.addEventListener('input', validate);
+        field.addEventListener('change', validate);
+        field.addEventListener('blur', validate);
+        form.addEventListener('submit', (event) => {
+            if (!validate()) {
+                event.preventDefault();
+                field.focus();
             }
         });
     });
@@ -478,19 +800,86 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-announcement-scope-form]').forEach((form) => {
         const scope = form.querySelector('[data-announcement-scope]');
         const department = form.querySelector('[data-announcement-department]');
+        const departmentRequired = form.querySelector('[data-announcement-department-required]');
+        const fields = {
+            title: form.querySelector('[data-announcement-field="title"]'),
+            content: form.querySelector('[data-announcement-field="content"]'),
+            scope: form.querySelector('[data-announcement-field="scope"]'),
+            department: form.querySelector('[data-announcement-field="department"]')
+        };
         if (!scope || !department) {
             return;
         }
+
+        const messages = {
+            title: form.querySelector('[data-announcement-error="title"]'),
+            content: form.querySelector('[data-announcement-error="content"]'),
+            scope: form.querySelector('[data-announcement-error="scope"]'),
+            department: form.querySelector('[data-announcement-error="department"]')
+        };
+
         const syncDepartment = () => {
             const schoolWide = scope.value === 'SCHOOL';
             department.disabled = schoolWide;
             department.required = !schoolWide;
+            if (departmentRequired) {
+                departmentRequired.hidden = schoolWide;
+            }
             if (schoolWide) {
                 department.value = '';
             }
         };
+
+        const validateField = (fieldName) => {
+            const field = fields[fieldName];
+            const message = messages[fieldName];
+            if (!field || !message) {
+                return true;
+            }
+
+            const value = field.value.trim();
+            let error = '';
+            if (fieldName === 'title' && !value) {
+                error = 'Title is required.';
+            } else if (fieldName === 'content' && !value) {
+                error = 'Content is required.';
+            } else if (fieldName === 'scope' && !value) {
+                error = 'Audience is required.';
+            } else if (fieldName === 'department' && scope.value === 'DEPARTMENT' && !value) {
+                error = 'Department is required for department announcements.';
+            }
+
+            message.textContent = error;
+            message.hidden = !error;
+            field.setAttribute('aria-invalid', String(Boolean(error)));
+            field.classList.toggle('border-red-500', Boolean(error));
+            field.classList.toggle('focus:border-red-500', Boolean(error));
+            field.classList.toggle('focus:ring-red-500', Boolean(error));
+            field.classList.toggle('border-gray-300', !error);
+            field.setCustomValidity(error);
+            return !error;
+        };
+
+        Object.keys(fields).forEach((fieldName) => {
+            fields[fieldName]?.addEventListener('input', () => validateField(fieldName));
+            fields[fieldName]?.addEventListener('change', () => validateField(fieldName));
+            fields[fieldName]?.addEventListener('blur', () => validateField(fieldName));
+        });
+
         scope.addEventListener('change', syncDepartment);
+        scope.addEventListener('change', () => validateField('department'));
         syncDepartment();
+
+        form.addEventListener('submit', (event) => {
+            syncDepartment();
+            const valid = Object.keys(fields).every(validateField);
+            if (!valid) {
+                event.preventDefault();
+                const firstInvalid = Object.values(fields).find((field) =>
+                    field?.getAttribute('aria-invalid') === 'true');
+                firstInvalid?.focus();
+            }
+        });
     });
 
     const announcementModal = document.querySelector('[data-announcement-confirm-modal]');
@@ -643,6 +1032,188 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    document.querySelectorAll('[data-kick-form]').forEach((form) => {
+        const confirmModal = document.getElementById(form.dataset.kickConfirmModal);
+        const confirmButton = confirmModal?.querySelector('[data-kick-confirm-submit]');
+        const memberSelect = form.querySelector('[name="memberId"]');
+        if (!confirmModal || !confirmButton || !memberSelect) {
+            return;
+        }
+
+        form.addEventListener('submit', (event) => {
+            if (form.dataset.kickConfirmed === 'true') {
+                delete form.dataset.kickConfirmed;
+                return;
+            }
+            event.preventDefault();
+            if (!form.reportValidity()) {
+                return;
+            }
+            confirmModal.classList.remove('hidden');
+            confirmModal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('overflow-hidden');
+            window.setTimeout(() => confirmButton.focus(), 0);
+        });
+
+        confirmButton.addEventListener('click', () => {
+            form.dataset.kickConfirmed = 'true';
+            confirmModal.classList.add('hidden');
+            confirmModal.setAttribute('aria-hidden', 'true');
+            form.requestSubmit();
+        });
+    });
+
+    document.querySelectorAll('[data-report-upload-modal]').forEach((modal) => {
+        const openButton = document.querySelector(`[data-report-upload-open="${modal.id}"]`);
+        const closeButtons = modal.querySelectorAll('[data-report-upload-close]');
+        const form = modal.querySelector('[data-report-upload-form]');
+        const fileInput = modal.querySelector('[data-report-file-input]');
+        const fileCount = modal.querySelector('[data-report-file-count]');
+        const fileList = modal.querySelector('[data-report-selected-file-list]');
+        const existingFileList = modal.querySelector('[data-report-existing-file-list]');
+        const existingFileCount = modal.querySelector('[data-report-existing-count]');
+        const uploadError = modal.querySelector('[data-report-upload-error]');
+        const maxFiles = 10;
+        const maxFileSizeBytes = 10 * 1024 * 1024;
+        const pendingDeleteIds = new Set();
+        let lastFocusedElement;
+
+        const setUploadError = (message) => {
+            if (!uploadError) {
+                return;
+            }
+            uploadError.textContent = message;
+            uploadError.classList.toggle('hidden', !message);
+        };
+
+        const renderFiles = () => {
+            if (!fileInput || !fileCount || !fileList) {
+                return true;
+            }
+            const files = Array.from(fileInput.files || []);
+            setUploadError('');
+            fileList.replaceChildren();
+            if (files.length === 0) {
+                fileCount.textContent = 'No files selected';
+                fileList.classList.add('hidden');
+                return true;
+            }
+            if (files.length > maxFiles) {
+                fileInput.value = '';
+                fileCount.textContent = 'No files selected';
+                fileList.classList.add('hidden');
+                setUploadError(`You can select at most ${maxFiles} files.`);
+                return false;
+            }
+            const oversizedFile = files.find((file) => file.size > maxFileSizeBytes);
+            if (oversizedFile) {
+                fileInput.value = '';
+                fileCount.textContent = 'No files selected';
+                fileList.classList.add('hidden');
+                setUploadError(`${oversizedFile.name} exceeds the 10 MB limit.`);
+                return false;
+            }
+            fileCount.textContent = `${files.length} file(s) selected`;
+            files.forEach((file) => {
+                const item = document.createElement('li');
+                item.className = 'truncate';
+                item.textContent = file.name;
+                fileList.appendChild(item);
+            });
+            fileList.classList.remove('hidden');
+            return true;
+        };
+
+        const updateExistingFileCount = () => {
+            if (!existingFileCount || !existingFileList) {
+                return;
+            }
+            const visibleCount = existingFileList.querySelectorAll('[data-report-existing-item]:not(.hidden)').length;
+            existingFileCount.textContent = `${visibleCount} file(s) currently uploaded`;
+        };
+
+        const resetDraft = () => {
+            pendingDeleteIds.clear();
+            form?.querySelectorAll('input[name="removeReportIds"]').forEach((input) => input.remove());
+            existingFileList?.querySelectorAll('[data-report-existing-item]').forEach((item) => {
+                item.classList.remove('hidden');
+            });
+            if (fileInput) {
+                fileInput.value = '';
+            }
+            if (fileCount) {
+                fileCount.textContent = 'No files selected';
+            }
+            fileList?.replaceChildren();
+            fileList?.classList.add('hidden');
+            setUploadError('');
+            updateExistingFileCount();
+        };
+
+        existingFileList?.querySelectorAll('[data-report-remove-file]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const item = button.closest('[data-report-existing-item]');
+                const reportId = item?.dataset.reportId;
+                if (!item || !reportId) {
+                    return;
+                }
+                pendingDeleteIds.add(reportId);
+                item.classList.add('hidden');
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'removeReportIds';
+                input.value = reportId;
+                form?.appendChild(input);
+                updateExistingFileCount();
+            });
+        });
+
+        const closeModal = () => {
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('overflow-hidden');
+            lastFocusedElement?.focus();
+        };
+
+        openButton?.addEventListener('click', () => {
+            lastFocusedElement = openButton;
+            resetDraft();
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('overflow-hidden');
+            window.setTimeout(() => modal.querySelector('input[type="file"]')?.focus(), 0);
+        });
+        fileInput?.addEventListener('change', renderFiles);
+        const originalCloseModal = closeModal;
+        const closeAndReset = () => {
+            resetDraft();
+            originalCloseModal();
+        };
+        closeButtons.forEach((button) => button.addEventListener('click', closeAndReset));
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                closeAndReset();
+            }
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+                closeAndReset();
+            }
+        });
+        form?.addEventListener('submit', (event) => {
+            const hasSelectedFiles = fileInput && fileInput.files && fileInput.files.length > 0;
+            const hasPendingDeletes = pendingDeleteIds.size > 0;
+            if (!hasSelectedFiles && !hasPendingDeletes) {
+                setUploadError('Select at least one file or remove an uploaded file.');
+                event.preventDefault();
+                return;
+            }
+            if (!renderFiles() || !form.reportValidity()) {
+                event.preventDefault();
+            }
+        });
+    });
+
     const registrationRejectModal = document.querySelector('[data-registration-reject-modal]');
     if (registrationRejectModal) {
         const registrationIdInput = registrationRejectModal.querySelector('[data-registration-rejection-id]');
@@ -667,6 +1238,116 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
+    document.querySelectorAll('[data-period-form]').forEach((form) => {
+        const fields = {};
+        const messages = {};
+        form.querySelectorAll('[data-period-field]').forEach((field) => {
+            const fieldName = field.dataset.periodField;
+            fields[fieldName] = field;
+            messages[fieldName] = form.querySelector(`[data-period-error="${fieldName}"]`);
+        });
+        const errorMessages = {
+            name: 'Period name is required.',
+            type: 'Period type is required.',
+            status: 'Status is required.',
+            lecturerStart: 'Lecturer registration start is required.',
+            lecturerEnd: 'Lecturer registration end is required.',
+            studentStart: 'Student registration start is required.',
+            studentEnd: 'Student registration end is required.'
+        };
+
+        const validateField = (fieldName) => {
+            const field = fields[fieldName];
+            const message = messages[fieldName];
+            if (!field || !message) {
+                return true;
+            }
+
+            const error = field.value.trim() ? '' : errorMessages[fieldName];
+            message.textContent = error;
+            message.hidden = !error;
+            field.setAttribute('aria-invalid', String(Boolean(error)));
+            field.classList.toggle('border-red-500', Boolean(error));
+            field.classList.toggle('focus:border-red-500', Boolean(error));
+            field.classList.toggle('focus:ring-red-500', Boolean(error));
+            field.classList.toggle('border-gray-300', !error);
+            field.setCustomValidity(error);
+            return !error;
+        };
+
+        Object.keys(fields).forEach((fieldName) => {
+            fields[fieldName]?.addEventListener('input', () => validateField(fieldName));
+            fields[fieldName]?.addEventListener('change', () => validateField(fieldName));
+            fields[fieldName]?.addEventListener('blur', () => validateField(fieldName));
+        });
+
+        form.addEventListener('submit', (event) => {
+            const valid = Object.keys(fields).every(validateField);
+            if (!valid) {
+                event.preventDefault();
+                const firstInvalid = Object.values(fields).find((field) =>
+                    field?.getAttribute('aria-invalid') === 'true');
+                firstInvalid?.focus();
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-topic-proposal-form]').forEach((form) => {
+        const fields = {
+            title: form.querySelector('[data-topic-field="title"]'),
+            description: form.querySelector('[data-topic-field="description"]'),
+            department: form.querySelector('[data-topic-field="department"]'),
+            period: form.querySelector('[data-topic-field="period"]')
+        };
+        const messages = {
+            title: form.querySelector('[data-topic-error="title"]'),
+            description: form.querySelector('[data-topic-error="description"]'),
+            department: form.querySelector('[data-topic-error="department"]'),
+            period: form.querySelector('[data-topic-error="period"]')
+        };
+        const errorMessages = {
+            title: 'Title is required.',
+            description: 'Description is required.',
+            department: 'Department is required.',
+            period: 'Registration period is required.'
+        };
+
+        const validateField = (fieldName) => {
+            const field = fields[fieldName];
+            const message = messages[fieldName];
+            if (!field || !message) {
+                return true;
+            }
+
+            const error = field.value.trim() ? '' : errorMessages[fieldName];
+            message.textContent = error;
+            message.hidden = !error;
+            field.setAttribute('aria-invalid', String(Boolean(error)));
+            field.classList.toggle('border-red-500', Boolean(error));
+            field.classList.toggle('focus:border-red-500', Boolean(error));
+            field.classList.toggle('focus:ring-red-500', Boolean(error));
+            field.classList.toggle('border-gray-300', !error);
+            field.setCustomValidity(error);
+            return !error;
+        };
+
+        Object.keys(fields).forEach((fieldName) => {
+            fields[fieldName]?.addEventListener('input', () => validateField(fieldName));
+            fields[fieldName]?.addEventListener('change', () => validateField(fieldName));
+            fields[fieldName]?.addEventListener('blur', () => validateField(fieldName));
+        });
+
+        form.addEventListener('submit', (event) => {
+            const valid = Object.keys(fields).every(validateField);
+            if (!valid) {
+                event.preventDefault();
+                const firstInvalid = Object.values(fields).find((field) =>
+                    field?.getAttribute('aria-invalid') === 'true');
+                firstInvalid?.focus();
+            }
+        });
+    });
 
     document.querySelectorAll('[data-seed-page]').forEach((page) => {
         const csrfInput = page.querySelector('[data-seed-csrf]');

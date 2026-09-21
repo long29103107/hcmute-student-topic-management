@@ -27,14 +27,33 @@ public class ReviewBoardController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('REVIEW_BOARD_VIEW')")
-    public String list(Authentication authentication, Model model) {
-        ReviewBoardService.BoardPage page = reviewBoardService.page(authentication.getName());
+    public String list(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(defaultValue = "") String status,
+            @RequestParam(defaultValue = "scheduled") String sort,
+            @RequestParam(defaultValue = "asc") String direction,
+            Model model) {
+
+        ReviewBoardService.BoardPage boardPage = reviewBoardService.page(
+                authentication.getName(),
+                page,
+                size,
+                departmentId,
+                status,
+                sort,
+                direction);
+
         model.addAttribute("pageTitle", "Review boards");
-        model.addAttribute("boardPage", page);
-        model.addAttribute("boards", page.boards());
-        model.addAttribute("boardRegistrations", page.registrations());
-        model.addAttribute("boardLecturers", page.lecturerOptions());
-        model.addAttribute("boardScope", page.scopeLabel());
+        model.addAttribute("boardPage", boardPage);
+        model.addAttribute("boards", boardPage.getBoards());
+        model.addAttribute("boardRegistrations", boardPage.getRegistrations());
+        model.addAttribute("boardLecturers", boardPage.getLecturerOptions());
+        model.addAttribute("boardScope", boardPage.getScopeLabel());
+        model.addAttribute("boardDepartments", boardPage.getDepartments());
+
         return "faculty/boards";
     }
 
@@ -50,33 +69,67 @@ public class ReviewBoardController {
             @RequestParam(required = false) Long chairId,
             @RequestParam(required = false) Long secretaryId,
             RedirectAttributes redirectAttributes) {
+
         try {
-            reviewBoardService.save(authentication.getName(), boardId, registrationId, scheduledAt, status,
-                    lecturerIds, chairId, secretaryId);
-            redirectAttributes.addFlashAttribute("successMessage", boardId == null
-                    ? "Review board created successfully." : "Review board updated successfully.");
+            reviewBoardService.save(
+                    authentication.getName(),
+                    boardId,
+                    registrationId,
+                    scheduledAt,
+                    status,
+                    lecturerIds,
+                    chairId,
+                    secretaryId);
+
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    boardId == null
+                            ? "Review board created successfully."
+                            : "Review board updated successfully.");
+
         } catch (ReviewBoardService.ReviewBoardAccessException exception) {
             return "redirect:/forbidden";
+
         } catch (ReviewBoardService.ReviewBoardNotFoundException
                 | ReviewBoardService.ReviewBoardValidationException exception) {
-            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    exception.getMessage());
         }
+
         return "redirect:/faculty/boards";
     }
 
     @PostMapping("/{id}/status")
     @PreAuthorize("hasAuthority('REVIEW_BOARD_MANAGE')")
-    public String changeStatus(Authentication authentication, @PathVariable Long id,
-                               @RequestParam String status, RedirectAttributes redirectAttributes) {
+    public String changeStatus(
+            Authentication authentication,
+            @PathVariable Long id,
+            @RequestParam String status,
+            RedirectAttributes redirectAttributes) {
+
         try {
-            reviewBoardService.changeStatus(authentication.getName(), id, status);
-            redirectAttributes.addFlashAttribute("successMessage", "Review board status updated.");
+            reviewBoardService.changeStatus(
+                    authentication.getName(),
+                    id,
+                    status);
+
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "Review board status updated.");
+
         } catch (ReviewBoardService.ReviewBoardAccessException exception) {
             return "redirect:/forbidden";
+
         } catch (ReviewBoardService.ReviewBoardNotFoundException
                 | ReviewBoardService.ReviewBoardValidationException exception) {
-            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    exception.getMessage());
         }
+
         return "redirect:/faculty/boards";
     }
 }

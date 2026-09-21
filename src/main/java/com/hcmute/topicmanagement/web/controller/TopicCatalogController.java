@@ -3,6 +3,7 @@ package com.hcmute.topicmanagement.web.controller;
 import java.time.LocalDateTime;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,10 +30,12 @@ public class TopicCatalogController {
             @RequestParam(required = false) Long periodId,
             @RequestParam(defaultValue = "topic") String sort,
             @RequestParam(defaultValue = "asc") String direction,
+            Authentication authentication,
             Model model) {
         LocalDateTime now = LocalDateTime.now();
         TopicPublicationService.PublishedTopicPage topicPage = topicPublicationService.listPublishedPage(
-                search, departmentId, periodId, page, size, sort, direction, now);
+                authentication.getName(), search, departmentId, periodId,
+                page, size, sort, direction, now);
         model.addAttribute("pageTitle", "Published topics");
         model.addAttribute("topicPage", topicPage);
         model.addAttribute("topics", topicPage.getTopics());

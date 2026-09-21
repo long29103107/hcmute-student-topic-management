@@ -88,7 +88,7 @@ below as an implemented extension.
 | POST | `/student/groups`, `/student/groups/join`, `/student/groups/{id}/join`, `/student/groups/{id}/leave`, `/student/groups/{id}/leader` | `StudentGroupController` → create, join by shared group ID, join/leave an active group and transfer leadership to another member; server enforces Student role, one active group per period, max three members and leader membership |
 | GET/POST | `/student/groups/register-topic` | `TopicRegistrationController` → leader registration form and submit |
 | GET | `/student/registrations` | `TopicRegistrationController` → own group registration history/status |
-| GET | `/student/results` | `ResultController` → published results for the student's own groups only |
+| GET | `/student/results` | `ResultController` → published results for the student's own groups only, with search (`search`), department/period filters (`departmentId`, `periodId`), pagination (`page`, `size`) and column sort (`sort=group|topic|department|period|score|published`, `direction=asc|desc`) |
 
 ## RESTful API in the same monolith
 

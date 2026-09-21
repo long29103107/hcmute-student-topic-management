@@ -6,7 +6,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -111,10 +110,29 @@ class AnnouncementControllerTest {
                 .andExpect(view().name("announcements/manage"))
                 .andExpect(content().string(containsString("data-announcement-confirm-modal")))
                 .andExpect(content().string(containsString("data-modal-target=\"create-announcement-modal\"")))
+                .andExpect(content().string(containsString("data-modal-target=\"edit-announcement-modal-")))
+                .andExpect(content().string(containsString("data-dropdown-toggle=\"announcement-actions-menu-")))
+                .andExpect(content().string(containsString("Edit announcement")))
+                .andExpect(content().string(containsString("Save changes")))
                 .andExpect(content().string(containsString("Search announcements")))
                 .andExpect(content().string(containsString("Publish")))
                 .andExpect(content().string(containsString("value=\"SCHOOL\"")))
                 .andExpect(content().string(containsString("School-wide")));
+
+        mockMvc.perform(post("/announcements/manage/update")
+                        .with(user(principal(admin, "ADMIN", true)))
+                        .with(csrf())
+                        .param("announcementId", created.getId().toString())
+                        .param("title", "Updated notice")
+                        .param("content", "Updated content")
+                        .param("scope", "DEPARTMENT")
+                        .param("departmentId", cntt.getId().toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/announcements/manage"));
+        AnnouncementEntity updated = announcementRepository.findById(created.getId()).orElseThrow();
+        org.assertj.core.api.Assertions.assertThat(updated.getTitle()).isEqualTo("Updated notice");
+        org.assertj.core.api.Assertions.assertThat(updated.getContent()).isEqualTo("Updated content");
+        org.assertj.core.api.Assertions.assertThat(updated.getStatus()).isEqualTo(AnnouncementStatus.DRAFT);
 
         mockMvc.perform(post("/announcements/manage/publish")
                         .with(user(principal(admin, "ADMIN", true)))
@@ -135,6 +153,46 @@ class AnnouncementControllerTest {
         org.assertj.core.api.Assertions.assertThat(
                 announcementRepository.findById(created.getId()).orElseThrow().getStatus())
                 .isEqualTo(AnnouncementStatus.HIDDEN);
+    }
+
+    @Test
+    void managerSsrPaginatesAnnouncementsAndPreservesListState() throws Exception {
+        UserEntity admin = saveUser("ADMIN", null);
+        for (int index = 0; index < 12; index++) {
+            saveAnnouncement(
+                    admin,
+                    String.format("Pagination notice %02d", index),
+                    AnnouncementScope.SCHOOL,
+                    null,
+                    AnnouncementStatus.DRAFT);
+        }
+
+        mockMvc.perform(get("/announcements/manage")
+                        .with(user(principal(admin, "ADMIN", true)))
+                        .param("page", "1")
+                        .param("size", "5")
+                        .param("search", "Pagination")
+                        .param("sort", "title")
+                        .param("direction", "asc")
+                        .accept(MediaType.TEXT_HTML))
+                .andExpect(status().isOk())
+                .andExpect(view().name("announcements/manage"))
+                .andExpect(content().string(containsString("Pagination notice 05")))
+                .andExpect(content().string(containsString("Pagination notice 09")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("Pagination notice 00"))))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("10 / page"))))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("20 / page"))))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("Descending"))))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("Ascending"))))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("name=\"announcement-sort\""))))
+                .andExpect(content().string(containsString("id=\"announcement-search\"")))
+                .andExpect(content().string(containsString("Showing")))
+                .andExpect(content().string(containsString("aria-label=\"Pagination\"")))
+                .andExpect(content().string(containsString("aria-current=\"page\"")))
+                .andExpect(content().string(containsString(
+                        "page=0&amp;size=5&amp;search=Pagination&amp;sort=title&amp;direction=asc")))
+                .andExpect(content().string(containsString(
+                        "page=2&amp;size=5&amp;search=Pagination&amp;sort=title&amp;direction=asc")));
     }
 
     @Test

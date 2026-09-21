@@ -12,6 +12,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.hcmute.topicmanagement.service.TopicRegistrationService;
 import com.hcmute.topicmanagement.service.TopicRegistrationService.TopicRegistrationForm;
+import com.hcmute.topicmanagement.service.TopicRegistrationService.TopicRegistrationPage;
 import com.hcmute.topicmanagement.service.TopicRegistrationService.TopicRegistrationSummary;
 
 @Controller
@@ -70,9 +71,20 @@ public class TopicRegistrationController {
 
     @GetMapping("/registrations")
     @PreAuthorize("hasRole('STUDENT') and hasAuthority('REGISTRATION_SUBMIT')")
-    public String list(Authentication authentication, Model model) {
+    public String list(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "") String status,
+            @RequestParam(defaultValue = "topic") String sort,
+            @RequestParam(defaultValue = "asc") String direction,
+            Model model) {
+        TopicRegistrationPage registrationPage = topicRegistrationService.listForStudentPage(
+                authentication.getName(), search, status, page, size, sort, direction);
         model.addAttribute("pageTitle", "My registrations");
-        model.addAttribute("registrations", topicRegistrationService.listForStudent(authentication.getName()));
+        model.addAttribute("registrationPage", registrationPage);
+        model.addAttribute("registrations", registrationPage.getRegistrations());
         return "student/registrations";
     }
 }

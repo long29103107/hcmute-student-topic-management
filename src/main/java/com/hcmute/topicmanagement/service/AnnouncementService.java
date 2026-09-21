@@ -50,21 +50,27 @@ public class AnnouncementService {
                 .toList();
     }
 
-    /** Returns a searchable, sortable and paginated management queue. */
+    /** Returns a searchable, sortable, filterable and paginated management queue. */
     @PreAuthorize("hasAuthority('ANNOUNCEMENT_MANAGE')")
     public AnnouncementManagementPage listForManagementPage(
-            String managerEmail, String search, int page, int size, String sort, String direction) {
+            String managerEmail, String search, String status, Long departmentId,
+            int page, int size, String sort, String direction) {
         UserEntity manager = findActiveManager(managerEmail);
         String normalizedSearch = normalizeSearch(search);
         String normalizedSort = normalizeSort(sort);
         String normalizedDirection = normalizeDirection(direction);
+        String normalizedStatus = (status == null || status.isBlank()) ? "" : status.trim().toUpperCase();
         List<AnnouncementSummary> filtered = managementAnnouncements(manager).stream()
                 .filter(announcement -> isInManagementScope(manager, announcement))
                 .map(AnnouncementService::toSummary)
                 .filter(announcement -> matchesSearch(announcement, normalizedSearch))
+                .filter(announcement -> normalizedStatus.isBlank()
+                        || normalizedStatus.equalsIgnoreCase(announcement.getStatusCode()))
+                .filter(announcement -> departmentId == null
+                        || departmentId.equals(announcement.getDepartmentId()))
                 .sorted(announcementComparator(normalizedSort, normalizedDirection))
                 .toList();
-        int safeSize = Math.min(Math.max(size, 5), 50);
+        int safeSize = Math.min(Math.max(size, 5), 100);
         int totalItems = filtered.size();
         int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / safeSize));
         int safePage = Math.min(Math.max(page, 0), totalPages - 1);
@@ -72,7 +78,8 @@ public class AnnouncementService {
         int to = Math.min(from + safeSize, totalItems);
         return new AnnouncementManagementPage(
                 filtered.subList(from, to), safePage, safeSize, totalItems, totalPages,
-                search == null ? "" : search.trim(), normalizedSort, normalizedDirection);
+                search == null ? "" : search.trim(), normalizedSort, normalizedDirection,
+                normalizedStatus, departmentId);
     }
 
     private List<AnnouncementEntity> managementAnnouncements(UserEntity manager) {
@@ -422,10 +429,13 @@ public class AnnouncementService {
         private final String search;
         private final String sort;
         private final String direction;
+        private final String status;
+        private final Long departmentId;
 
         public AnnouncementManagementPage(
                 List<AnnouncementSummary> announcements, int page, int size, int totalItems,
-                int totalPages, String search, String sort, String direction) {
+                int totalPages, String search, String sort, String direction,
+                String status, Long departmentId) {
             this.announcements = List.copyOf(announcements);
             this.page = page;
             this.size = size;
@@ -434,6 +444,8 @@ public class AnnouncementService {
             this.search = search;
             this.sort = sort;
             this.direction = direction;
+            this.status = status == null ? "" : status;
+            this.departmentId = departmentId;
         }
 
         public List<AnnouncementSummary> getAnnouncements() { return announcements; }
@@ -444,6 +456,8 @@ public class AnnouncementService {
         public String getSearch() { return search; }
         public String getSort() { return sort; }
         public String getDirection() { return direction; }
+        public String getStatus() { return status; }
+        public Long getDepartmentId() { return departmentId; }
         public boolean isHasPrevious() { return page > 0; }
         public boolean isHasNext() { return page + 1 < totalPages; }
     }
