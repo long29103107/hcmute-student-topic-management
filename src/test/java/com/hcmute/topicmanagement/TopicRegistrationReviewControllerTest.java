@@ -111,6 +111,20 @@ class TopicRegistrationReviewControllerTest {
                 .andExpect(content().string(not(containsString(otherPending.getTopic().getTitle()))))
                 .andExpect(content().string(not(containsString("Already approved " + suffix))));
 
+        mockMvc.perform(get("/faculty/registrations/review")
+                        .param("departmentId", otherDepartment.getId().toString())
+                        .with(user(facultyHeadPrincipal(facultyHead.getEmailOrCode()))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString(otherPending.getTopic().getTitle()))))
+                .andExpect(content().string(containsString("Filter by department")));
+
+        mockMvc.perform(get("/faculty/registrations/review")
+                        .param("departmentId", ownDepartment.getId().toString())
+                        .with(user(facultyHeadPrincipal(facultyHead.getEmailOrCode()))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(ownPending.getTopic().getTitle())))
+                .andExpect(content().string(containsString("departmentId=" + ownDepartment.getId())));
+
         mockMvc.perform(get("/api/faculty/registrations/review")
                         .with(user(facultyHeadPrincipal(facultyHead.getEmailOrCode()))))
                 .andExpect(status().isOk())

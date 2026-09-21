@@ -53,7 +53,9 @@ public class UserManagementController {
         model.addAttribute("activeUserCount", users.stream().filter(UserSummary::isActive).count());
         model.addAttribute("lockedUserCount", users.stream().filter(user -> !user.isActive()).count());
         List<UserManagementService.RoleOption> roles = userManagementService.listAssignableRoles();
-        List<UserManagementService.RoleOption> createRoles = userManagementService.listAccountCreationRoles();
+        List<UserManagementService.RoleOption> createRoles = "LECTURER".equals(normalizedRoleCode)
+                ? userManagementService.listLecturerRoles()
+                : userManagementService.listAccountCreationRoles();
         UserForm createForm = new UserForm();
         createForm.setAccountType("LECTURER".equals(normalizedRoleCode) ? "LECTURER" : "STUDENT");
         createRoles.stream()
@@ -69,6 +71,7 @@ public class UserManagementController {
         model.addAttribute("statusBasePath", "/admin/users");
         model.addAttribute("editBasePath", "/admin/users");
         model.addAttribute("roles", roles);
+        model.addAttribute("lecturerRoles", userManagementService.listLecturerRoles());
         model.addAttribute("createRoles", createRoles);
         model.addAttribute("departments", departmentService.listDepartmentsForAssignment());
         return "admin/users";
@@ -107,7 +110,8 @@ public class UserManagementController {
                 userManagementService.createLecturer(
                         form.getFullName(),
                         form.getEmailOrCode(),
-                        form.getDepartmentId());
+                        form.getDepartmentId(),
+                        form.getRoleIds());
             } else {
                 userManagementService.createUser(
                         form.getLoginIdentifier(),

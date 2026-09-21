@@ -1,139 +1,351 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layouts/main}">
-<head><title>My evaluations</title></head>
-<body>
-<main layout:fragment="content" class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
-    <section aria-labelledby="page-title">
-        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-                <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Lecturer workspace / Evaluations</p>
-                <h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">My evaluations</h1>
-                <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500">Enter or update scores and comments for topic registrations assigned to you.</p>
-            </div>
-            <span class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800"
-                  th:text="${#lists.size(evaluations) + ' assigned evaluations'}">0 assigned evaluations</span>
+<!doctype html>
+<html
+  lang="en"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/main}"
+>
+  <head>
+    <title>My evaluations</title>
+  </head>
+  <body>
+    <main
+      layout:fragment="content"
+      class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8"
+    >
+      <section aria-labelledby="page-title">
+        <div
+          class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"
+        >
+          <div>
+            <p
+              class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500"
+            >
+              Lecturer workspace / Evaluations
+            </p>
+            <h1
+              id="page-title"
+              class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
+            >
+              My evaluations
+            </h1>
+          </div>
+          <span
+            class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800"
+            th:text="${#lists.size(evaluations) + ' assigned evaluations'}"
+            >0 assigned evaluations</span
+          >
         </div>
 
-        <div class="mb-6 flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-5 text-blue-900" role="status">
-            <svg class="mt-0.5 h-5 w-5 shrink-0 text-blue-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 1a9 9 0 1 0 9 9 9.01 9.01 0 0 0-9-9Zm0 4a1 1 0 1 1 1 1 1 1 0 0 1-1-1Zm1 10H9v-6h2v6Z"/>
-            </svg>
-            <span>Scores must be between <strong th:text="${minimumScore.stripTrailingZeros().toPlainString()}">0</strong> and <strong th:text="${maximumScore.stripTrailingZeros().toPlainString()}">10</strong>. The server enforces the reviewer deadline and locks published results.</span>
+        <div
+          class="mb-6 flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-5 text-blue-900"
+          role="status"
+        >
+          <svg
+            class="mt-0.5 h-5 w-5 shrink-0 text-blue-600"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              d="M10 1a9 9 0 1 0 9 9 9.01 9.01 0 0 0-9-9Zm0 4a1 1 0 1 1 1 1 1 1 0 0 1-1-1Zm1 10H9v-6h2v6Z"
+            />
+          </svg>
+          <span
+            >Scores must be between
+            <strong
+              th:text="${minimumScore.stripTrailingZeros().toPlainString()}"
+              >0</strong
+            >
+            and
+            <strong
+              th:text="${maximumScore.stripTrailingZeros().toPlainString()}"
+              >10</strong
+            >. The server enforces the reviewer deadline and locks published
+            results.</span
+          >
         </div>
 
-        <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm" aria-labelledby="evaluations-heading">
-            <div class="border-b border-gray-200 p-5 sm:p-6">
-                <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Evaluation queue</p>
-                <h2 id="evaluations-heading" class="text-xl font-semibold text-gray-900">Assigned topic registrations</h2>
+        <section
+          class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+          aria-labelledby="evaluations-heading"
+        >
+          <div class="overflow-x-auto" th:if="${!#lists.isEmpty(evaluations)}">
+            <table class="w-full text-left text-sm text-gray-600">
+              <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                <tr>
+                  <th scope="col" class="px-6 py-3">Group / topic</th>
+                  <th scope="col" class="px-6 py-3">Registration period</th>
+                  <th scope="col" class="px-6 py-3">My score</th>
+                  <th scope="col" class="px-6 py-3">Average</th>
+                  <th scope="col" class="px-6 py-3">Status / deadline</th>
+                  <th scope="col" class="px-6 py-3">
+                    <span class="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  class="border-b border-gray-100 align-top hover:bg-gray-50"
+                  th:each="evaluation : ${evaluations}"
+                >
+                  <td class="max-w-sm px-6 py-4">
+                    <strong
+                      class="block font-semibold text-gray-900"
+                      th:text="${evaluation.groupName}"
+                      >Group Phoenix</strong
+                    >
+                    <span
+                      class="mt-1 block font-medium text-gray-900"
+                      th:text="${evaluation.topicTitle}"
+                      >Smart campus platform</span
+                    >
+                    <span
+                      class="mt-1 block text-xs text-gray-500"
+                      th:text="${evaluation.departmentCode + ' · Topic #' + evaluation.topicId}"
+                      >CNTT · Topic #1</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="block font-medium text-gray-900"
+                      th:text="${evaluation.periodName}"
+                      >Semester 1</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="font-semibold text-gray-900"
+                      th:if="${evaluation.score != null}"
+                      th:text="${evaluation.score.stripTrailingZeros().toPlainString()}"
+                      >8.5</span
+                    >
+                    <span
+                      class="text-gray-400"
+                      th:if="${evaluation.score == null}"
+                      >Not scored</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="font-semibold text-gray-900"
+                      th:if="${evaluation.averageScore != null}"
+                      th:text="${evaluation.averageScore.stripTrailingZeros().toPlainString()}"
+                      >8.25</span
+                    >
+                    <span
+                      class="text-gray-400"
+                      th:if="${evaluation.averageScore == null}"
+                      >—</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
+                      th:classappend="${evaluation.status == 'SUBMITTED' ? 'bg-green-100 text-green-800' : evaluation.status == 'PUBLISHED' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700'}"
+                      th:text="${evaluation.status}"
+                      >DRAFT</span
+                    >
+                    <span
+                      class="mt-2 block text-xs text-gray-500"
+                      th:if="${evaluation.deadline != null}"
+                      th:text="${'Deadline: ' + #temporals.format(evaluation.deadline, 'dd/MM/yyyy HH:mm')}"
+                      >Deadline: 05/09/2026 16:00</span
+                    >
+                    <span
+                      class="mt-2 block text-xs text-gray-500"
+                      th:if="${evaluation.deadline == null}"
+                      >No deadline</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <button
+                      type="button"
+                      th:if="${evaluation.editable}"
+                      class="inline-flex items-center rounded-lg border border-blue-600 bg-white px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50"
+                      th:attr="data-modal-target=${'score-modal-' + evaluation.id},data-modal-toggle=${'score-modal-' + evaluation.id}"
+                    >
+                      <span
+                        th:text="${evaluation.score == null ? 'Enter score' : 'Edit score'}"
+                        >Enter score</span
+                      >
+                    </button>
+                    <span
+                      class="text-xs text-gray-500"
+                      th:if="${!evaluation.editable}"
+                      >Locked</span
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div
+            class="flex flex-col items-center justify-center border-t border-gray-100 px-6 py-14 text-center"
+            th:if="${#lists.isEmpty(evaluations)}"
+          >
+            <div
+              class="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400"
+            >
+              <svg
+                class="h-7 w-7"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                  d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5m0-15v15M8 7h8m-8 4h8m-8 4h5"
+                />
+              </svg>
             </div>
-            <div class="overflow-x-auto" th:if="${!#lists.isEmpty(evaluations)}">
-                <table class="w-full text-left text-sm text-gray-600">
-                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
-                    <tr>
-                        <th scope="col" class="px-6 py-3">Group / topic</th>
-                        <th scope="col" class="px-6 py-3">Registration period</th>
-                        <th scope="col" class="px-6 py-3">My score</th>
-                        <th scope="col" class="px-6 py-3">Average</th>
-                        <th scope="col" class="px-6 py-3">Status / deadline</th>
-                        <th scope="col" class="px-6 py-3"><span class="sr-only">Actions</span></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr class="border-b border-gray-100 align-top hover:bg-gray-50" th:each="evaluation : ${evaluations}">
-                        <td class="max-w-sm px-6 py-4">
-                            <strong class="block font-semibold text-gray-900" th:text="${evaluation.groupName}">Group Phoenix</strong>
-                            <span class="mt-1 block font-medium text-gray-900" th:text="${evaluation.topicTitle}">Smart campus platform</span>
-                            <span class="mt-1 block text-xs text-gray-500" th:text="${evaluation.departmentCode + ' · Topic #' + evaluation.topicId}">CNTT · Topic #1</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="block font-medium text-gray-900" th:text="${evaluation.periodName}">Semester 1</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="font-semibold text-gray-900" th:if="${evaluation.score != null}"
-                                  th:text="${evaluation.score.stripTrailingZeros().toPlainString()}">8.5</span>
-                            <span class="text-gray-400" th:if="${evaluation.score == null}">Not scored</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="font-semibold text-gray-900" th:if="${evaluation.averageScore != null}"
-                                  th:text="${evaluation.averageScore.stripTrailingZeros().toPlainString()}">8.25</span>
-                            <span class="text-gray-400" th:if="${evaluation.averageScore == null}">—</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
-                                  th:classappend="${evaluation.status == 'SUBMITTED' ? 'bg-green-100 text-green-800' : evaluation.status == 'PUBLISHED' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700'}"
-                                  th:text="${evaluation.status}">DRAFT</span>
-                            <span class="mt-2 block text-xs text-gray-500" th:if="${evaluation.deadline != null}"
-                                  th:text="${'Deadline: ' + #temporals.format(evaluation.deadline, 'dd/MM/yyyy HH:mm')}">Deadline: 05/09/2026 16:00</span>
-                            <span class="mt-2 block text-xs text-gray-500" th:if="${evaluation.deadline == null}">No deadline</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <button type="button" th:if="${evaluation.editable}"
-                                    class="inline-flex items-center rounded-lg border border-blue-600 bg-white px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50"
-                                    th:attr="data-modal-target=${'score-modal-' + evaluation.id},data-modal-toggle=${'score-modal-' + evaluation.id}">
-                                <span th:text="${evaluation.score == null ? 'Enter score' : 'Edit score'}">Enter score</span>
-                            </button>
-                            <span class="text-xs text-gray-500" th:if="${!evaluation.editable}">Locked</span>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="flex flex-col items-center justify-center border-t border-gray-100 px-6 py-14 text-center" th:if="${#lists.isEmpty(evaluations)}">
-                <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400">
-                    <svg class="h-7 w-7" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5m0-15v15M8 7h8m-8 4h8m-8 4h5"/></svg>
-                </div>
-                <h3 class="text-base font-semibold text-gray-900">No assigned evaluations</h3>
-                <p class="mt-1 max-w-sm text-sm leading-6 text-gray-500">Approved registrations assigned to you will appear here.</p>
-            </div>
+            <h3 class="text-base font-semibold text-gray-900">
+              No assigned evaluations
+            </h3>
+            <p class="mt-1 max-w-sm text-sm leading-6 text-gray-500">
+              Approved registrations assigned to you will appear here.
+            </p>
+          </div>
         </section>
-    </section>
+      </section>
 
-    <div th:each="evaluation : ${evaluations}"
-         th:id="${'score-modal-' + evaluation.id}"
-         tabindex="-1" aria-hidden="true" role="dialog" aria-modal="true"
-         class="fixed inset-0 z-50 hidden h-full w-full overflow-y-auto overflow-x-hidden bg-gray-900/50 p-4 md:inset-0">
+      <div
+        th:each="evaluation : ${evaluations}"
+        th:id="${'score-modal-' + evaluation.id}"
+        tabindex="-1"
+        aria-hidden="true"
+        role="dialog"
+        aria-modal="true"
+        class="fixed inset-0 z-50 hidden h-full w-full overflow-y-auto overflow-x-hidden bg-gray-900/50 p-4 md:inset-0"
+      >
         <div class="relative mx-auto my-8 w-full max-w-2xl">
-            <button type="button" class="absolute end-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-900"
-                    th:attr="data-modal-hide=${'score-modal-' + evaluation.id}" aria-label="Close modal">
-                <svg class="h-3 w-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 12 12M13 1 1 13"/></svg>
-            </button>
-            <div class="relative rounded-lg border border-gray-200 bg-white shadow-xl">
-                <div class="border-b border-gray-200 px-6 py-5 pe-16 sm:px-8">
-                    <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Evaluation workflow</p>
-                    <h2 class="text-xl font-semibold text-gray-900" th:text="${evaluation.score == null ? 'Enter evaluation' : 'Edit evaluation'}">Enter evaluation</h2>
-                    <p class="mt-2 text-sm leading-5 text-gray-500" th:text="${evaluation.topicTitle + ' · ' + evaluation.groupName}">Smart campus platform · Group Phoenix</p>
-                </div>
-                <form class="space-y-5 p-6 sm:p-8" method="post" th:attr="action=${'/lecturer/scoring/' + evaluation.id}">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                    <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${'score-' + evaluation.id}">Score</label>
-                        <input required type="number" name="score" step="0.01"
-                               th:min="${minimumScore}" th:max="${maximumScore}"
-                               th:value="${evaluation.score}"
-                               th:id="${'score-' + evaluation.id}"
-                               class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-900" th:for="${'comment-' + evaluation.id}">Comment <span class="font-normal text-gray-500">(optional)</span></label>
-                        <textarea name="comment" rows="5" maxlength="10000"
-                                  th:id="${'comment-' + evaluation.id}"
-                                  th:text="${evaluation.comment}"
-                                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-                                  placeholder="Add feedback for this registration"></textarea>
-                    </div>
-                    <div class="flex flex-wrap justify-end gap-3 border-t border-gray-200 pt-6">
-                        <button type="button" class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
-                                th:attr="data-modal-hide=${'score-modal-' + evaluation.id}">Cancel</button>
-                        <button class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
-                                type="submit">Save evaluation</button>
-                    </div>
-                </form>
+          <button
+            type="button"
+            class="absolute end-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-900"
+            th:attr="data-modal-hide=${'score-modal-' + evaluation.id}"
+            aria-label="Close modal"
+          >
+            <svg
+              class="h-3 w-3"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 14 14"
+            >
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="m1 1 12 12M13 1 1 13"
+              />
+            </svg>
+          </button>
+          <div
+            class="relative rounded-lg border border-gray-200 bg-white shadow-xl"
+          >
+            <div class="border-b border-gray-200 px-6 py-5 pe-16 sm:px-8">
+              <p
+                class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500"
+              >
+                Evaluation workflow
+              </p>
+              <h2
+                class="text-xl font-semibold text-gray-900"
+                th:text="${evaluation.score == null ? 'Enter evaluation' : 'Edit evaluation'}"
+              >
+                Enter evaluation
+              </h2>
+              <p
+                class="mt-2 text-sm leading-5 text-gray-500"
+                th:text="${evaluation.topicTitle + ' · ' + evaluation.groupName}"
+              >
+                Smart campus platform · Group Phoenix
+              </p>
             </div>
+            <form
+              class="space-y-5 p-6 sm:p-8"
+              method="post"
+              novalidate
+              data-scoring-form
+              th:attr="action=${'/lecturer/scoring/' + evaluation.id}"
+            >
+              <input
+                type="hidden"
+                th:name="${_csrf.parameterName}"
+                th:value="${_csrf.token}"
+              />
+              <div>
+                <label
+                  class="mb-2 block text-sm font-medium text-gray-900"
+                  th:for="${'score-' + evaluation.id}"
+                  >Score <span class="text-red-600" aria-hidden="true">*</span></label
+                >
+                <input
+                  required
+                  type="number"
+                  name="score"
+                  step="0.01"
+                  th:min="${minimumScore}"
+                  th:max="${maximumScore}"
+                  th:value="${evaluation.score}"
+                  th:id="${'score-' + evaluation.id}"
+                  data-scoring-field="score"
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                />
+                <p
+                  class="mt-1 text-xs font-medium text-red-600"
+                  data-scoring-error="score"
+                  role="alert"
+                  hidden
+                ></p>
+              </div>
+              <div>
+                <label
+                  class="mb-2 block text-sm font-medium text-gray-900"
+                  th:for="${'comment-' + evaluation.id}"
+                  >Comment
+                  <span class="font-normal text-gray-500"
+                    >(optional)</span
+                  ></label
+                >
+                <textarea
+                  name="comment"
+                  rows="5"
+                  maxlength="10000"
+                  th:id="${'comment-' + evaluation.id}"
+                  th:text="${evaluation.comment}"
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                  placeholder="Add feedback for this registration"
+                ></textarea>
+              </div>
+              <div
+                class="flex flex-wrap justify-end gap-3 border-t border-gray-200 pt-6"
+              >
+                <button
+                  type="button"
+                  class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                  th:attr="data-modal-hide=${'score-modal-' + evaluation.id}"
+                >
+                  Cancel
+                </button>
+                <button
+                  class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                  type="submit"
+                >
+                  Save evaluation
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-    </div>
-</main>
-</body>
+      </div>
+    </main>
+  </body>
 </html>

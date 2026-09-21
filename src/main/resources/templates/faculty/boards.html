@@ -9,7 +9,6 @@
   <head>
     <title>Review boards</title>
   </head>
-
   <body>
     <main
       layout:fragment="content"
@@ -26,7 +25,6 @@
             >
               Faculty workflow / Review boards
             </p>
-
             <h1
               id="page-title"
               class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
@@ -101,7 +99,10 @@
                   >
                     Create review board
                   </h2>
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
                   <p
                     id="create-board-modal-description"
                     class="mt-1 text-sm text-gray-500"
@@ -110,7 +111,6 @@
                     Secretary.
                   </p>
                 </div>
-
                 <button
                   type="button"
                   data-modal-hide="create-board-modal"
@@ -150,7 +150,6 @@
                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
                   >
                     <option value="">Select an approved registration</option>
-
                     <option
                       th:each="registration : ${boardRegistrations}"
                       th:value="${registration.id}"
@@ -203,7 +202,6 @@
                           th:value="${lecturer.id}"
                           class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
-
                         <span class="min-w-0">
                           <span
                             class="block text-sm font-medium text-gray-900"
@@ -304,7 +302,6 @@
                   >
                     Cancel
                   </button>
-
                   <button
                     type="submit"
                     class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800"
@@ -822,7 +819,6 @@
               <h2 class="text-xl font-semibold text-gray-900">
                 Edit review board
               </h2>
-
               <p
                 class="mt-1 text-sm text-gray-500"
                 th:text="${board.topicTitle}"
@@ -830,7 +826,6 @@
                 Topic
               </p>
             </div>
-
             <form
               method="post"
               th:action="@{/faculty/boards/save}"
@@ -911,7 +906,6 @@
                         th:checked="${#lists.contains(board.members.![lecturerId], lecturer.id)}"
                         class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
-
                       <span class="min-w-0">
                         <span
                           class="block text-sm font-medium text-gray-900"
@@ -1002,7 +996,6 @@
                     Save changes
                   </button>
                 </div>
-              </div>
             </form>
           </div>
         </div>

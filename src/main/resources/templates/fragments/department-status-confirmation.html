@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <div
+      th:fragment="departmentStatusModal(modalId, formAction, departmentName, departmentCode, active)"
+      th:id="${modalId}"
+      tabindex="-1"
+      aria-hidden="true"
+      role="dialog"
+      aria-modal="true"
+      class="fixed inset-0 z-50 hidden h-full w-full overflow-y-auto overflow-x-hidden bg-gray-900/50 p-4 md:inset-0"
+    >
+      <div class="relative mx-auto my-8 w-full max-w-md">
+        <div class="relative rounded-lg border border-gray-200 bg-white shadow-sm">
+          <button
+            type="button"
+            class="absolute end-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-900"
+            th:attr="data-modal-hide=${modalId}"
+            aria-label="Close"
+          >
+            <span aria-hidden="true" class="text-xl leading-none">×</span>
+          </button>
+          <div class="border-b border-gray-200 px-6 py-5 pe-16">
+            <h2
+              class="text-xl font-semibold text-gray-900"
+              th:text="${active ? 'Deactivate department?' : 'Activate department?'}"
+            >
+              Deactivate department?
+            </h2>
+            <p class="mt-2 text-sm text-gray-500">
+              <span
+                th:text="${active ? 'You are about to deactivate ' : 'You are about to activate '}"
+                >You are about to deactivate</span
+              >
+              <span
+                class="font-medium text-gray-700"
+                th:text="${departmentCode + ' · ' + departmentName}"
+                >CNTT · Information Technology</span
+              >.
+            </p>
+          </div>
+          <div
+            class="mx-6 mt-5 rounded-lg p-4 text-sm leading-5"
+            th:classappend="${active ? 'bg-yellow-50 text-yellow-800' : 'bg-blue-50 text-blue-800'}"
+            th:text="${active ? 'Existing topics keep their department, but it will no longer be available for new topic forms.' : 'This department will be available for future topic forms again.'}"
+          >
+            Existing topics keep their department, but it will no longer be available for new topic forms.
+          </div>
+          <form class="p-6" th:action="${formAction}" method="post">
+            <input
+              type="hidden"
+              th:name="${_csrf.parameterName}"
+              th:value="${_csrf.token}"
+            />
+            <div class="flex justify-end gap-3 border-t border-gray-200 pt-5">
+              <button
+                type="button"
+                class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                th:attr="data-modal-hide=${modalId}"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="rounded-lg px-5 py-2.5 text-sm font-medium text-white"
+                th:classappend="${active ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-blue-600 hover:bg-blue-700'}"
+                th:text="${active ? 'Deactivate department' : 'Activate department'}"
+              >
+                Deactivate department
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

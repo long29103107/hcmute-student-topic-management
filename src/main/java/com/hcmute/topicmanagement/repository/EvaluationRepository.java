@@ -3,7 +3,10 @@ package com.hcmute.topicmanagement.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.hcmute.topicmanagement.model.EvaluationEntity;
 import com.hcmute.topicmanagement.model.enums.EvaluationStatus;
@@ -13,6 +16,16 @@ public interface EvaluationRepository extends JpaRepository<EvaluationEntity, Lo
     List<EvaluationEntity> findByTopicRegistration_IdOrderByCreatedAtAsc(Long registrationId);
 
     Optional<EvaluationEntity> findFirstByTopicRegistration_IdOrderByCreatedAtAsc(Long registrationId);
+
+    Optional<EvaluationEntity> findFirstByTopicRegistration_IdAndBoard_IdOrderByCreatedAtAsc(
+            Long registrationId, Long boardId);
+
+    Optional<EvaluationEntity> findFirstByTopicRegistration_IdAndBoard_IdOrderByUpdatedAtDesc(
+            Long registrationId, Long boardId);
+
+    @Modifying
+    @Query("update EvaluationEntity e set e.updatedAt = CURRENT_TIMESTAMP where e.id = :evaluationId")
+    int touchUpdatedAt(@Param("evaluationId") Long evaluationId);
 
     List<EvaluationEntity> findByLecturer_IdOrderByUpdatedAtDesc(Long lecturerId);
 

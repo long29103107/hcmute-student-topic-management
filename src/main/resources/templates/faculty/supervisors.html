@@ -1,176 +1,351 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layouts/main}">
-<head><title>Supervisor assignments</title></head>
-<body>
-<main layout:fragment="content" class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
-    <section aria-labelledby="page-title">
-        <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-                <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500">Faculty workflow / Topics</p>
-                <h1 id="page-title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Supervisor assignments</h1>
-                <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500">Assign one or two lecturer-capability supervisors to each topic.</p>
-            </div>
-            <span class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800"
-                  th:text="${supervisorScope}">Faculty Head · CNTT · Công nghệ thông tin</span>
+<!doctype html>
+<html
+  lang="en"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/main}"
+>
+  <head>
+    <title>Supervisor assignments</title>
+  </head>
+  <body>
+    <main
+      layout:fragment="content"
+      class="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8"
+    >
+      <section aria-labelledby="page-title">
+        <div
+          class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"
+        >
+          <div>
+            <p
+              class="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-500"
+            >
+              Faculty workflow / Topics
+            </p>
+            <h1
+              id="page-title"
+              class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
+            >
+              Supervisor assignments
+            </h1>
+          </div>
+          <span
+            class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800"
+            th:text="${supervisorScope}"
+            >Faculty Head · CNTT · Công nghệ thông tin</span
+          >
         </div>
 
-        <div class="mb-6 flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-5 text-blue-900" role="status">
-            <svg class="mt-0.5 h-5 w-5 shrink-0 text-blue-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 1a9 9 0 1 0 9 9 9.01 9.01 0 0 0-9-9Zm0 4a1 1 0 1 1 1 1 1 1 0 0 1-1-1Zm1 10H9v-6h2v6Z"/>
-            </svg>
-                <span>Only active Lecturer and Faculty Head accounts from the topic's department are available. A topic must have between one and two supervisors.</span>
-        </div>
-
-        <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm" aria-labelledby="topics-heading">
-            <div class="flex flex-col justify-between gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:p-6">
-                <div>
-                    <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Directory</p>
-                    <h2 id="topics-heading" class="text-xl font-semibold text-gray-900">Topics</h2>
-                </div>
-                <form class="flex w-full gap-2 sm:w-auto" th:action="@{/faculty/topics/supervisors}" method="get">
-                    <input type="hidden" name="size" th:value="${topicPage.size}">
-                    <input type="hidden" name="sort" th:value="${topicSort}">
-                    <input type="hidden" name="direction" th:value="${topicDirection}">
-                    <label class="relative block min-w-0 flex-1 sm:w-80" for="topic-search">
-                        <span class="sr-only">Search topics</span>
-                        <input id="topic-search" name="search" type="search"
-                               class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-                               placeholder="Search topics" autocomplete="off" th:value="${topicSearch}">
-                    </label>
-                    <button type="submit"
-                            class="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300">
-                        Search
-                    </button>
-                </form>
-                <span class="whitespace-nowrap text-sm text-gray-500" th:text="${topicPage.totalItems + ' topics'}">0 topics</span>
-            </div>
-            <div class="overflow-x-auto" th:if="${!#lists.isEmpty(topics)}">
-                <table class="w-full min-w-[1100px] text-left text-sm text-gray-500">
-                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
-                    <tr>
-                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
-                                th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},sort='topic',direction=${topicSort == 'topic' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
-                            Topic <span th:text="${topicSort == 'topic' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
-                        </a></th>
-                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
-                                th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},sort='department',direction=${topicSort == 'department' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
-                            Department <span th:text="${topicSort == 'department' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
-                        </a></th>
-                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
-                                th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},sort='period',direction=${topicSort == 'period' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
-                            Period <span th:text="${topicSort == 'period' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
-                        </a></th>
-                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
-                                th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},sort='status',direction=${topicSort == 'status' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
-                            Status <span th:text="${topicSort == 'status' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
-                        </a></th>
-                        <th scope="col" class="px-6 py-3"><a class="inline-flex items-center gap-1 hover:text-blue-700"
-                                th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},sort='supervisors',direction=${topicSort == 'supervisors' and topicDirection == 'asc' ? 'desc' : 'asc'})}">
-                            Supervisors <span th:text="${topicSort == 'supervisors' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
-                        </a></th>
-                        <th scope="col" class="px-6 py-3"><span class="sr-only">Actions</span></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr class="border-b border-gray-100 align-top hover:bg-gray-50" th:each="topic : ${topics}">
-                        <td class="max-w-sm px-6 py-4">
-                            <strong class="block font-semibold text-gray-900" th:text="${topic.title}">Smart campus platform</strong>
-                            <span class="mt-1 block text-xs text-gray-500" th:text="${'Proposed by ' + topic.proposedByName}">Proposed by Nguyễn Thanh Bình</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="block font-medium text-gray-900" th:text="${topic.departmentCode}">CNTT</span>
-                            <span class="block text-xs text-gray-500" th:text="${topic.departmentName}">Công nghệ thông tin</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="block font-medium text-gray-900" th:text="${topic.periodName}">Semester 1</span>
-                            <span class="block text-xs text-gray-500" th:text="${topic.periodType}">COURSE</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
-                                  th:classappend="${topic.status == 'DRAFT' ? 'bg-blue-100 text-blue-800' : topic.status == 'REJECTED' ? 'bg-red-100 text-red-800' : topic.status == 'PENDING_APPROVAL' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}"
-                                  th:text="${topic.status}">DRAFT</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="space-y-1" th:if="${!#lists.isEmpty(topic.supervisors)}">
-                                <span class="block font-medium text-gray-900" th:each="supervisor : ${topic.supervisors}"
-                                      th:text="${supervisor.fullName}">Nguyễn Thanh Bình</span>
-                            </div>
-                            <span class="text-xs text-amber-700" th:if="${#lists.isEmpty(topic.supervisors)}">Not assigned</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex justify-end">
-                                <button type="button"
-                                        class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
-                                        th:id="${'supervisor-actions-' + topic.id}"
-                                        th:attr="data-dropdown-toggle=${'supervisor-actions-menu-' + topic.id},aria-controls=${'supervisor-actions-menu-' + topic.id},aria-haspopup='true'">
-                                    Actions
-                                    <svg class="ms-2 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
-                                    </svg>
-                                </button>
-                                <div class="z-10 hidden w-48 divide-y divide-gray-100 rounded-lg bg-white shadow"
-                                     th:id="${'supervisor-actions-menu-' + topic.id}">
-                                    <ul class="py-2 text-sm text-gray-700" th:attr="aria-labelledby=${'supervisor-actions-' + topic.id}">
-                                        <li>
-                                            <button type="button" class="block w-full px-4 py-2 text-left hover:bg-gray-100"
-                                                    th:attr="data-modal-target=${'assign-supervisors-modal-' + topic.id},data-modal-toggle=${'assign-supervisors-modal-' + topic.id}">
-                                                Assign supervisors
-                                            </button>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between"
-                 th:if="${topicPage.totalItems > 0}">
-                <p class="text-gray-500">
-                    Showing <span class="font-medium text-gray-900" th:text="${topicPage.page * topicPage.size + 1}">1</span>–<span
-                        class="font-medium text-gray-900" th:text="${topicPage.page * topicPage.size + #lists.size(topics)}">10</span>
-                    of <span class="font-medium text-gray-900" th:text="${topicPage.totalItems}">0</span>
-                </p>
-                <nav aria-label="Topic pagination">
-                    <ul class="inline-flex -space-x-px">
-                        <li>
-                            <a class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
-                               th:classappend="${!topicPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
-                               th:attr="aria-disabled=${!topicPage.hasPrevious}"
-                               th:href="@{/faculty/topics/supervisors(page=${topicPage.page - 1},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch})}">Previous</a>
-                        </li>
-                        <li th:each="pageNumber : ${#numbers.sequence(0, topicPage.totalPages - 1)}">
-                            <a class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
-                               th:classappend="${pageNumber == topicPage.page ? 'bg-blue-50 text-blue-700' : ''}"
-                               th:attr="aria-current=${pageNumber == topicPage.page ? 'page' : null}"
-                               th:href="@{/faculty/topics/supervisors(page=${pageNumber},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch})}"
-                               th:text="${pageNumber + 1}">1</a>
-                        </li>
-                        <li>
-                            <a class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
-                               th:classappend="${!topicPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
-                               th:attr="aria-disabled=${!topicPage.hasNext}"
-                               th:href="@{/faculty/topics/supervisors(page=${topicPage.page + 1},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch})}">Next</a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-            <p class="px-6 py-12 text-center text-sm text-gray-500" th:if="${#lists.isEmpty(topics) and #strings.isEmpty(topicSearch)}">
-                No topics are available in your management scope.
+        <section
+          class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm flex-1"
+          aria-labelledby="topics-heading"
+        >
+          <div
+            class="flex flex-col justify-end gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:justify-end sm:p-6"
+            style="align-items: flex-end"
+          >
+            <form
+              class="flex w-fit max-w-full gap-2"
+              th:action="@{/faculty/topics/supervisors}"
+              method="get"
+            >
+              <input type="hidden" name="size" th:value="${topicPage.size}" />
+              <input type="hidden" name="sort" th:value="${topicSort}" />
+              <input
+                type="hidden"
+                name="direction"
+                th:value="${topicDirection}"
+              />
+              <label
+                class="relative block w-80 max-w-full flex-none"
+                for="topic-search"
+              >
+                <span class="sr-only">Search topics</span>
+                <input
+                  id="topic-search"
+                  name="search"
+                  type="search"
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                  placeholder="Search topics"
+                  autocomplete="off"
+                  th:value="${topicSearch}"
+                />
+              </label>
+              <button
+                type="submit"
+                class="shrink-0 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
+              >
+                Search
+              </button>
+            </form>
+          </div>
+          <div class="overflow-x-auto" th:if="${!#lists.isEmpty(topics)}">
+            <table
+              class="w-full min-w-[1100px] text-left text-sm text-gray-500"
+            >
+              <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                <tr>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},sort='topic',direction=${topicSort == 'topic' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
+                    >
+                      Topic
+                      <span
+                        th:text="${topicSort == 'topic' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      >
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},sort='department',direction=${topicSort == 'department' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
+                    >
+                      Department
+                      <span
+                        th:text="${topicSort == 'department' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      >
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},sort='period',direction=${topicSort == 'period' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
+                    >
+                      Period
+                      <span
+                        th:text="${topicSort == 'period' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      >
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},sort='status',direction=${topicSort == 'status' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
+                    >
+                      Status
+                      <span
+                        th:text="${topicSort == 'status' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      >
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/faculty/topics/supervisors(page=0,size=${topicPage.size},search=${topicSearch},sort='supervisors',direction=${topicSort == 'supervisors' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
+                    >
+                      Supervisors
+                      <span
+                        th:text="${topicSort == 'supervisors' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      >
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <span class="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  class="border-b border-gray-100 align-top hover:bg-gray-50"
+                  th:each="topic : ${topics}"
+                >
+                  <td class="max-w-sm px-6 py-4">
+                    <strong
+                      class="block font-semibold text-gray-900"
+                      th:text="${topic.title}"
+                      >Smart campus platform</strong
+                    >
+                    <span
+                      class="mt-1 block text-xs text-gray-500"
+                      th:text="${'Proposed by ' + topic.proposedByName}"
+                      >Proposed by Nguyễn Thanh Bình</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="block font-medium text-gray-900"
+                      th:text="${topic.departmentCode}"
+                      >CNTT</span
+                    >
+                    <span
+                      class="block text-xs text-gray-500"
+                      th:text="${topic.departmentName}"
+                      >Công nghệ thông tin</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="block font-medium text-gray-900"
+                      th:text="${topic.periodName}"
+                      >Semester 1</span
+                    >
+                    <span
+                      class="block text-xs text-gray-500"
+                      th:text="${topic.periodType}"
+                      >COURSE</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
+                      th:classappend="${topic.status == 'DRAFT' ? 'bg-blue-100 text-blue-800' : topic.status == 'REJECTED' ? 'bg-red-100 text-red-800' : topic.status == 'PENDING_APPROVAL' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}"
+                      th:text="${topic.status}"
+                      >DRAFT</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <div
+                      class="space-y-1"
+                      th:if="${!#lists.isEmpty(topic.supervisors)}"
+                    >
+                      <span
+                        class="block font-medium text-gray-900"
+                        th:each="supervisor : ${topic.supervisors}"
+                        th:text="${supervisor.fullName}"
+                        >Nguyễn Thanh Bình</span
+                      >
+                    </div>
+                    <span
+                      class="text-xs text-amber-700"
+                      th:if="${#lists.isEmpty(topic.supervisors)}"
+                      >Not assigned</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex justify-end">
+                      <button
+                        type="button"
+                        class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                        th:id="${'supervisor-actions-' + topic.id}"
+                        th:attr="data-dropdown-toggle=${'supervisor-actions-menu-' + topic.id},aria-controls=${'supervisor-actions-menu-' + topic.id},aria-haspopup='true'"
+                      >
+                        Actions
+                        <svg
+                          class="ms-2 h-4 w-4"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="m19 9-7 7-7-7"
+                          />
+                        </svg>
+                      </button>
+                      <div
+                        class="z-10 hidden w-48 divide-y divide-gray-100 rounded-lg bg-white shadow"
+                        th:id="${'supervisor-actions-menu-' + topic.id}"
+                      >
+                        <ul
+                          class="py-2 text-sm text-gray-700"
+                          th:attr="aria-labelledby=${'supervisor-actions-' + topic.id}"
+                        >
+                          <li>
+                            <button
+                              type="button"
+                              class="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                              th:attr="data-modal-target=${'assign-supervisors-modal-' + topic.id},data-modal-toggle=${'assign-supervisors-modal-' + topic.id}"
+                            >
+                              Assign supervisors
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div
+            class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between"
+            th:if="${topicPage.totalItems > 0}"
+          >
+            <p class="text-gray-500">
+              Showing
+              <span
+                class="font-medium text-gray-900"
+                th:text="${topicPage.page * topicPage.size + 1}"
+                >1</span
+              >–<span
+                class="font-medium text-gray-900"
+                th:text="${topicPage.page * topicPage.size + #lists.size(topics)}"
+                >10</span
+              >
+              of
+              <span
+                class="font-medium text-gray-900"
+                th:text="${topicPage.totalItems}"
+                >0</span
+              >
             </p>
-            <p class="px-6 py-12 text-center text-sm text-gray-500" th:if="${#lists.isEmpty(topics) and !#strings.isEmpty(topicSearch)}">
-                No topics match your search.
-            </p>
+            <nav aria-label="Topic pagination">
+              <ul class="inline-flex -space-x-px">
+                <li>
+                  <a
+                    class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${!topicPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
+                    th:attr="aria-disabled=${!topicPage.hasPrevious}"
+                    th:href="@{/faculty/topics/supervisors(page=${topicPage.page - 1},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch})}"
+                    >Previous</a
+                  >
+                </li>
+                <li
+                  th:each="pageNumber : ${#numbers.sequence(0, topicPage.totalPages - 1)}"
+                >
+                  <a
+                    class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${pageNumber == topicPage.page ? 'bg-blue-50 text-blue-700' : ''}"
+                    th:attr="aria-current=${pageNumber == topicPage.page ? 'page' : null}"
+                    th:href="@{/faculty/topics/supervisors(page=${pageNumber},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch})}"
+                    th:text="${pageNumber + 1}"
+                    >1</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${!topicPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
+                    th:attr="aria-disabled=${!topicPage.hasNext}"
+                    th:href="@{/faculty/topics/supervisors(page=${topicPage.page + 1},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch})}"
+                    >Next</a
+                  >
+                </li>
+              </ul>
+            </nav>
+          </div>
+          <p
+            class="px-6 py-12 text-center text-sm text-gray-500"
+            th:if="${#lists.isEmpty(topics) and #strings.isEmpty(topicSearch)}"
+          >
+            No topics are available in your management scope.
+          </p>
+          <p
+            class="px-6 py-12 text-center text-sm text-gray-500"
+            th:if="${#lists.isEmpty(topics) and !#strings.isEmpty(topicSearch)}"
+          >
+            No topics match your search.
+          </p>
         </section>
-    </section>
+      </section>
 
-    <th:block th:each="topic : ${topics}">
-        <div th:replace="~{fragments/topic-supervisor-form :: supervisorModal(modalId=${'assign-supervisors-modal-' + topic.id}, formObjectName=${'supervisorForm' + topic.id}, formAction=${'/faculty/topics/' + topic.id + '/supervisors'}, topic=${topic}, supervisorOptions=${topic.supervisorOptions})}"></div>
-    </th:block>
-</main>
-</body>
+      <th:block th:each="topic : ${topics}">
+        <div
+          th:replace="~{fragments/topic-supervisor-form :: supervisorModal(modalId=${'assign-supervisors-modal-' + topic.id}, formObjectName=${'supervisorForm' + topic.id}, formAction=${'/faculty/topics/' + topic.id + '/supervisors'}, topic=${topic}, supervisorOptions=${topic.supervisorOptions})}"
+        ></div>
+      </th:block>
+    </main>
+  </body>
 </html>
