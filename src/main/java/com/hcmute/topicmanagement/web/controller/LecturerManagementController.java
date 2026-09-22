@@ -44,15 +44,20 @@ public class LecturerManagementController {
             @RequestParam(defaultValue = "asc") String direction,
             @RequestParam(defaultValue = "") String search,
             @RequestParam(required = false) Long departmentId,
+            @RequestParam(required = false) String role,
             @RequestParam(defaultValue = "") String status, Model model) {
+        // Truyền role cụ thể (nếu có) hoặc mặc định là "LECTURER" để lấy chung nhóm giảng viên/faculty head
+        String targetRole = StringUtils.hasText(role) ? role : "LECTURER";
         UserManagementService.UserDirectoryPage directory = service.listUsersPage(
-                "LECTURER", search, departmentId, status, page, size, sort, direction);
-        populateDirectory(model, directory, search);
+                targetRole, search, departmentId, status, page, size, sort, direction);
+        
+        populateDirectory(model, directory, search, departmentId, role, status);
+        
         LecturerForm lecturerForm = new LecturerForm();
         service.listLecturerRoles().stream()
-                .filter(role -> "LECTURER".equalsIgnoreCase(role.getCode()))
+                .filter(r -> "LECTURER".equalsIgnoreCase(r.getCode()))
                 .findFirst()
-                .ifPresent(role -> lecturerForm.setRoleIds(java.util.Set.of(role.getId())));
+                .ifPresent(r -> lecturerForm.setRoleIds(java.util.Set.of(r.getId())));
         model.addAttribute("lecturerForm", lecturerForm);
         model.addAttribute("createForm", model.getAttribute("lecturerForm"));
         model.addAttribute("createFormName", "lecturerForm");
@@ -71,7 +76,7 @@ public class LecturerManagementController {
             bindingResult.rejectValue("emailOrCode", "email.required", "Email is required for a lecturer.");
         }
         if (bindingResult.hasErrors()) {
-            populateDirectory(model, service.listUsersPage("LECTURER", "", 0, 20, "account", "asc"), "");
+            populateDirectory(model, service.listUsersPage("LECTURER", "", null, "", 0, 20, "account", "asc"), "", null, "", "");
             model.addAttribute("lecturerForm", form);
             model.addAttribute("createForm", form);
             model.addAttribute("createFormName", "lecturerForm");
@@ -151,15 +156,16 @@ public class LecturerManagementController {
         return "redirect:/admin/lecturers";
     }
 
-    private void populateDirectory(Model model, UserManagementService.UserDirectoryPage directory, String search) {
+    private void populateDirectory(Model model, UserManagementService.UserDirectoryPage directory, 
+            String search, Long departmentId, String role, String status) {
         List<UserSummary> users = directory.getContent();
         users.forEach(user -> {
             LecturerForm editForm = toForm(service.getUser(user.getId()));
             if (editForm.getRoleIds().isEmpty()) {
                 service.listLecturerRoles().stream()
-                        .filter(role -> "LECTURER".equalsIgnoreCase(role.getCode()))
+                        .filter(r -> "LECTURER".equalsIgnoreCase(r.getCode()))
                         .findFirst()
-                        .ifPresent(role -> editForm.setRoleIds(java.util.Set.of(role.getId())));
+                        .ifPresent(r -> editForm.setRoleIds(java.util.Set.of(r.getId())));
             }
             model.addAttribute("editForm" + user.getId(), editForm);
         });
@@ -172,6 +178,12 @@ public class LecturerManagementController {
         model.addAttribute("lockedUserCount", directory.getLockedCount());
         model.addAttribute("directoryPage", directory);
         model.addAttribute("directorySearch", search == null ? "" : search);
+        
+        // Đưa các thông tin filter ra model để giữ trạng thái trên View (Thymeleaf)
+        model.addAttribute("selectedDepartmentId", departmentId);
+        model.addAttribute("selectedRole", role == null ? "" : role);
+        model.addAttribute("selectedStatus", status == null ? "" : status);
+
         model.addAttribute("roles", service.listAssignableRoles());
         model.addAttribute("lecturerRoles", service.listLecturerRoles());
         model.addAttribute("createRoles", service.listLecturerRoles());

@@ -76,12 +76,15 @@ public class UserManagementService {
     public UserDirectoryPage listUsersPage(String roleCode, String search, Long departmentId,
             String status, int page, int size, String sort, String direction) {
         String normalizedStatus = normalizeStatus(status);
+        
+        // Lọc trực tiếp dựa trên các tiêu chí mở rộng (Department, Role, Status, Search)
         List<UserSummary> filtered = listUsers(roleCode).stream()
                 .filter(user -> matchesSearch(user, search))
                 .filter(user -> departmentId == null || departmentId.equals(user.getDepartmentId()))
                 .filter(user -> matchesStatus(user, normalizedStatus))
                 .sorted(userComparator(sort, direction))
                 .toList();
+                
         int safeSize = Math.min(Math.max(size, 5), 100);
         int totalItems = filtered.size();
         int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / safeSize));
@@ -90,6 +93,7 @@ public class UserManagementService {
         int to = Math.min(from + safeSize, totalItems);
         List<UserSummary> content = filtered.subList(from, to);
         long activeCount = filtered.stream().filter(UserSummary::isActive).count();
+        
         return new UserDirectoryPage(content, safePage, safeSize, totalItems, totalPages,
                 activeCount, totalItems - activeCount, normalizeSort(sort), normalizeDirection(direction),
                 departmentId, normalizedStatus);

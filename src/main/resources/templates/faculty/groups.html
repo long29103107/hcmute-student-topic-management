@@ -58,6 +58,24 @@
                 name="direction"
                 th:value="${groupPage.direction}"
               />
+              
+              <!-- Dropdown lọc Period -->
+              <select name="periodId" class="block rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 w-44">
+                  <option value="">All periods</option>
+                  <option th:each="period : ${periods}" 
+                          th:value="${period.id}" 
+                          th:text="${period.name}" 
+                          th:selected="${period.id == periodId}"></option>
+              </select>
+
+              <!-- Dropdown lọc Status -->
+              <select name="status" class="block rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 w-36">
+                  <option value="">All statuses</option>
+                  <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Active</option>
+                  <option value="COMPLETED" th:selected="${status == 'COMPLETED'}">Completed</option>
+                  <option value="INACTIVE" th:selected="${status == 'INACTIVE'}">Inactive</option>
+              </select>
+
               <label
                 class="relative block w-80 max-w-full flex-none"
                 for="group-search"
@@ -88,7 +106,7 @@
           >
             <a
               class="inline-flex items-center gap-1 hover:text-blue-700"
-              th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='group',direction=${groupPage.sort == 'group' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch})}"
+              th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='group',direction=${groupPage.sort == 'group' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch},periodId=${periodId},status=${status})}"
             >
               Group
               <span
@@ -98,7 +116,7 @@
             </a>
             <a
               class="inline-flex items-center gap-1 hover:text-blue-700"
-              th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='period',direction=${groupPage.sort == 'period' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch})}"
+              th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='period',direction=${groupPage.sort == 'period' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch},periodId=${periodId},status=${status})}"
             >
               Period
               <span
@@ -108,7 +126,7 @@
             </a>
             <a
               class="inline-flex items-center gap-1 hover:text-blue-700"
-              th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='leader',direction=${groupPage.sort == 'leader' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch})}"
+              th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='leader',direction=${groupPage.sort == 'leader' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch},periodId=${periodId},status=${status})}"
             >
               Leader
               <span
@@ -118,7 +136,7 @@
             </a>
             <a
               class="inline-flex items-center gap-1 hover:text-blue-700"
-              th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='status',direction=${groupPage.sort == 'status' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch})}"
+              th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='status',direction=${groupPage.sort == 'status' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch},periodId=${periodId},status=${status})}"
             >
               Status
               <span
@@ -128,7 +146,7 @@
             </a>
             <a
               class="inline-flex items-center gap-1 hover:text-blue-700"
-              th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='created',direction=${groupPage.sort == 'created' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch})}"
+              th:href="@{/faculty/groups(page=0,size=${groupPage.size},sort='created',direction=${groupPage.sort == 'created' and groupPage.direction == 'asc' ? 'desc' : 'asc'},search=${groupSearch},periodId=${periodId},status=${status})}"
             >
               Created
               <span
@@ -258,21 +276,21 @@
             </div>
             <h3
               class="text-base font-semibold text-gray-900"
-              th:text="${#strings.isEmpty(groupSearch) ? 'No student groups found' : 'No matching groups'}"
+              th:text="${#strings.isEmpty(groupSearch) and periodId == null and #strings.isEmpty(status) ? 'No student groups found' : 'No matching groups'}"
             >
               No student groups found
             </h3>
             <p
               class="mt-1 max-w-sm text-sm leading-6 text-gray-500"
-              th:text="${#strings.isEmpty(groupSearch) ? 'There are no groups in your current management scope.' : 'Try another keyword or clear the search.'}"
+              th:text="${#strings.isEmpty(groupSearch) and periodId == null and #strings.isEmpty(status) ? 'There are no groups in your current management scope.' : 'Try another keyword or clear the search and filters.'}"
             >
               There are no student groups in your current management scope.
             </p>
             <a
               class="mt-4 text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline"
-              th:if="${!#strings.isEmpty(groupSearch)}"
+              th:if="${!#strings.isEmpty(groupSearch) or periodId != null or !#strings.isEmpty(status)}"
               th:href="@{/faculty/groups}"
-              >Clear search</a
+              >Clear search and filters</a
             >
           </div>
 
@@ -304,7 +322,7 @@
                   <a
                     class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${!groupPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
-                    th:href="@{/faculty/groups(page=${groupPage.page - 1},size=${groupPage.size},sort=${groupPage.sort},direction=${groupPage.direction},search=${groupSearch})}"
+                    th:href="@{/faculty/groups(page=${groupPage.page - 1},size=${groupPage.size},sort=${groupPage.sort},direction=${groupPage.direction},search=${groupSearch},periodId=${periodId},status=${status})}"
                     >Previous</a
                   >
                 </li>
@@ -314,7 +332,7 @@
                   <a
                     class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${pageNumber == groupPage.page ? 'bg-blue-50 text-blue-700' : ''}"
-                    th:href="@{/faculty/groups(page=${pageNumber},size=${groupPage.size},sort=${groupPage.sort},direction=${groupPage.direction},search=${groupSearch})}"
+                    th:href="@{/faculty/groups(page=${pageNumber},size=${groupPage.size},sort=${groupPage.sort},direction=${groupPage.direction},search=${groupSearch},periodId=${periodId},status=${status})}"
                     th:text="${pageNumber + 1}"
                     >1</a
                   >
@@ -323,7 +341,7 @@
                   <a
                     class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${!groupPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
-                    th:href="@{/faculty/groups(page=${groupPage.page + 1},size=${groupPage.size},sort=${groupPage.sort},direction=${groupPage.direction},search=${groupSearch})}"
+                    th:href="@{/faculty/groups(page=${groupPage.page + 1},size=${groupPage.size},sort=${groupPage.sort},direction=${groupPage.direction},search=${groupSearch},periodId=${periodId},status=${status})}"
                     >Next</a
                   >
                 </li>
