@@ -46,7 +46,7 @@
             style="align-items: flex-end"
           >
             <form
-              class="flex w-fit max-w-full gap-2"
+              class="flex w-full max-w-full flex-wrap justify-end gap-2"
               th:action="@{/faculty/groups}"
               method="get"
             >
@@ -60,7 +60,7 @@
               />
               
               <!-- Dropdown lọc Period -->
-              <select name="periodId" class="block rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 w-44">
+              <select name="periodId" class="block w-full flex-none rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 sm:w-64">
                   <option value="">All periods</option>
                   <option th:each="period : ${periods}" 
                           th:value="${period.id}" 
@@ -69,11 +69,12 @@
               </select>
 
               <!-- Dropdown lọc Status -->
-              <select name="status" class="block rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 w-36">
+              <select name="status" class="block w-full flex-none rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 sm:w-64">
                   <option value="">All statuses</option>
-                  <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Active</option>
-                  <option value="COMPLETED" th:selected="${status == 'COMPLETED'}">Completed</option>
-                  <option value="INACTIVE" th:selected="${status == 'INACTIVE'}">Inactive</option>
+                  <option th:each="statusOption : ${statusOptions}"
+                          th:value="${statusOption.name()}"
+                          th:text="${statusOption.name().substring(0, 1) + statusOption.name().substring(1).toLowerCase()}"
+                          th:selected="${statusOption.name() == status}">Active</option>
               </select>
 
               <label

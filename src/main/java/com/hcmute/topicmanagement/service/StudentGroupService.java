@@ -71,9 +71,17 @@ public class StudentGroupService {
     @PreAuthorize("hasAuthority('GROUP_READ')")
     public GroupDirectoryPage listFacultyPage(
             String actorEmail, String search, int page, int size, String sort, String direction) {
+        return listFacultyPage(actorEmail, search, null, "", page, size, sort, direction);
+    }
+
+    @PreAuthorize("hasAuthority('GROUP_READ')")
+    public GroupDirectoryPage listFacultyPage(
+            String actorEmail, String search, Long periodId, String status,
+            int page, int size, String sort, String direction) {
         UserEntity actor = findActiveActor(actorEmail);
         GroupDirectoryScope scope = groupDirectoryScope(actor);
         String normalizedSearch = normalizeSearch(search);
+        String normalizedStatus = normalizeFilterStatus(status);
         String normalizedSort = normalizeSort(sort);
         String normalizedDirection = normalizeDirection(direction);
         int safeSize = Math.min(Math.max(size, 5), 100);
@@ -85,6 +93,8 @@ public class StudentGroupService {
                         : List.<StudentGroupEntity>of()).stream()
                 .map(group -> toSummary(group, null))
                 .filter(group -> matchesSearch(group, normalizedSearch))
+                .filter(group -> periodId == null || periodId.equals(group.getPeriodId()))
+                .filter(group -> normalizedStatus.isBlank() || normalizedStatus.equals(group.getStatusCode()))
                 .sorted(groupComparator(normalizedSort, normalizedDirection))
                 .toList();
 
@@ -95,7 +105,15 @@ public class StudentGroupService {
         int to = Math.min(from + safeSize, totalItems);
         return new GroupDirectoryPage(
                 filtered.subList(from, to), safePage, safeSize, totalItems, totalPages,
-                normalizedSearch, normalizedSort, normalizedDirection, scope.label());
+                normalizedSearch, normalizedSort, normalizedDirection, scope.label(), periodId, normalizedStatus);
+    }
+
+    @PreAuthorize("hasAuthority('GROUP_READ')")
+    public List<PeriodOption> listFacultyPeriodOptions(String actorEmail) {
+        groupDirectoryScope(findActiveActor(actorEmail));
+        return registrationPeriodRepository.findAllByOrderByLecturerRegistrationStartDesc().stream()
+                .map(period -> new PeriodOption(period.getId(), period.getName(), period.getType().name()))
+                .toList();
     }
 
     @PreAuthorize("hasAuthority('GROUP_READ')")
@@ -414,6 +432,14 @@ public class StudentGroupService {
         return search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
     }
 
+    private static String normalizeFilterStatus(String status) {
+        String normalized = status == null ? "" : status.trim().toUpperCase(Locale.ROOT);
+        return switch (normalized) {
+            case "ACTIVE", "COMPLETED", "INACTIVE" -> normalized;
+            default -> "";
+        };
+    }
+
     private static boolean matchesSearch(StudentGroupSummary group, String search) {
         if (search.isBlank()) {
             return true;
@@ -526,10 +552,12 @@ public class StudentGroupService {
         private final String sort;
         private final String direction;
         private final String scopeLabel;
+        private final Long periodId;
+        private final String status;
 
         public GroupDirectoryPage(
                 List<StudentGroupSummary> groups, int page, int size, int totalItems, int totalPages,
-                String search, String sort, String direction, String scopeLabel) {
+                String search, String sort, String direction, String scopeLabel, Long periodId, String status) {
             this.groups = List.copyOf(groups);
             this.page = page;
             this.size = size;
@@ -539,6 +567,8 @@ public class StudentGroupService {
             this.sort = sort;
             this.direction = direction;
             this.scopeLabel = scopeLabel;
+            this.periodId = periodId;
+            this.status = status;
         }
 
         public List<StudentGroupSummary> getGroups() { return groups; }
@@ -550,6 +580,8 @@ public class StudentGroupService {
         public String getSort() { return sort; }
         public String getDirection() { return direction; }
         public String getScopeLabel() { return scopeLabel; }
+        public Long getPeriodId() { return periodId; }
+        public String getStatus() { return status; }
         public boolean isHasPrevious() { return page > 0; }
         public boolean isHasNext() { return page + 1 < totalPages; }
     }

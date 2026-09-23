@@ -101,3 +101,10 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/26
 - The lecturer directory uses a distinct broad capability scope for its
   default view (`LECTURER_DIRECTORY` = `LECTURER` or `FACULTY_HEAD`); explicit
   `LECTURER` and `FACULTY_HEAD` filters are exact-role filters.
+- `/faculty/groups` now supplies period/status filter options from the server,
+  applies both filters within the authorized Admin/Faculty Head scope, keeps
+  them across sorting, pagination and group edits, and defaults the faculty
+  directory to five rows per page so pagination is visible for larger lists.
+- The repeatable database seed now creates 20 student groups total, using
+  existing student fixtures with a mix of ACTIVE, COMPLETED and INACTIVE
+  statuses for directory pagination and status-filter verification.

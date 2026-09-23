@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.hcmute.topicmanagement.model.enums.GroupStatus;
 import com.hcmute.topicmanagement.service.StudentGroupService;
 
 @Controller
@@ -50,6 +51,7 @@ public class FacultyStudentGroupController {
             @RequestParam(defaultValue = "group") String sort,
             @RequestParam(defaultValue = "asc") String direction,
             @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Long periodId,
             RedirectAttributes redirectAttributes) {
         try {
             StudentGroupService.StudentGroupSummary group = studentGroupService.updateFacultyGroup(
@@ -67,6 +69,8 @@ public class FacultyStudentGroupController {
         redirectAttributes.addAttribute("sort", sort);
         redirectAttributes.addAttribute("direction", direction);
         redirectAttributes.addAttribute("search", search);
+        redirectAttributes.addAttribute("periodId", periodId);
+        redirectAttributes.addAttribute("status", status);
         return "redirect:/faculty/groups";
     }
 
@@ -75,13 +79,15 @@ public class FacultyStudentGroupController {
     public String list(
             Authentication authentication,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "") String search,
             @RequestParam(defaultValue = "group") String sort,
             @RequestParam(defaultValue = "asc") String direction,
+            @RequestParam(required = false) Long periodId,
+            @RequestParam(defaultValue = "") String status,
             Model model) {
         StudentGroupService.GroupDirectoryPage groupPage = studentGroupService.listFacultyPage(
-                authentication.getName(), search, page, size, sort, direction);
+                authentication.getName(), search, periodId, status, page, size, sort, direction);
         model.addAttribute("pageTitle", "Student groups");
         model.addAttribute("groupPage", groupPage);
         model.addAttribute("groups", groupPage.getGroups());
@@ -89,6 +95,10 @@ public class FacultyStudentGroupController {
         model.addAttribute("groupSort", groupPage.getSort());
         model.addAttribute("groupDirection", groupPage.getDirection());
         model.addAttribute("groupScope", groupPage.getScopeLabel());
+        model.addAttribute("periods", studentGroupService.listFacultyPeriodOptions(authentication.getName()));
+        model.addAttribute("statusOptions", GroupStatus.values());
+        model.addAttribute("periodId", groupPage.getPeriodId());
+        model.addAttribute("status", groupPage.getStatus());
         return "faculty/groups";
     }
 }

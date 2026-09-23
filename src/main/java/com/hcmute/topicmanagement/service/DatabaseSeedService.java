@@ -345,10 +345,26 @@ public class DatabaseSeedService {
                     AnnouncementStatus.DRAFT));
 
     private static final List<StudentGroupSeed> STUDENT_GROUPS = List.of(
-            new StudentGroupSeed("Nhóm Phoenix", "24110000", List.of("24110001", "24110002")),
-            new StudentGroupSeed("Nhóm Orion", "24110003", List.of("24110004", "24110005")),
-            new StudentGroupSeed("Nhóm Nova", "24110013", List.of("24110014", "24110015")),
-            new StudentGroupSeed("Nhóm Atlas", "24110026", List.of("24110027", "24110028")));
+            new StudentGroupSeed("Nhóm Phoenix", "24110000", List.of("24110001", "24110002"), GroupStatus.ACTIVE),
+            new StudentGroupSeed("Nhóm Orion", "24110003", List.of("24110004", "24110005"), GroupStatus.ACTIVE),
+            new StudentGroupSeed("Nhóm Nova", "24110013", List.of("24110014", "24110015"), GroupStatus.ACTIVE),
+            new StudentGroupSeed("Nhóm Atlas", "24110026", List.of("24110027", "24110028"), GroupStatus.ACTIVE),
+            new StudentGroupSeed("Nhóm Nebula", "24110006", List.of("24110007", "24110008"), GroupStatus.ACTIVE),
+            new StudentGroupSeed("Nhóm Cosmos", "24110009", List.of("24110010", "24110011"), GroupStatus.ACTIVE),
+            new StudentGroupSeed("Nhóm Pixel", "24110012", List.of("24110016", "24110017"), GroupStatus.ACTIVE),
+            new StudentGroupSeed("Nhóm Vertex", "24110018", List.of("24110019", "24110020"), GroupStatus.ACTIVE),
+            new StudentGroupSeed("Nhóm Quantum", "24110021", List.of("24110022", "24110023"), GroupStatus.ACTIVE),
+            new StudentGroupSeed("Nhóm Matrix", "24110024", List.of("24110025", "24110029"), GroupStatus.ACTIVE),
+            new StudentGroupSeed("Nhóm CodeLab", "24110030", List.of("24110031", "24110032"), GroupStatus.COMPLETED),
+            new StudentGroupSeed("Nhóm DevHub", "24110033", List.of("24110034", "24110035"), GroupStatus.COMPLETED),
+            new StudentGroupSeed("Nhóm Cloud", "24110036", List.of("24110037", "24110038"), GroupStatus.INACTIVE),
+            new StudentGroupSeed("Nhóm Data", "24110039", List.of("24110040", "24110041"), GroupStatus.INACTIVE),
+            new StudentGroupSeed("Nhóm SmartLab", "24110042", List.of("24110043", "24110044"), GroupStatus.ACTIVE),
+            new StudentGroupSeed("Nhóm WebCore", "24110045", List.of("24110046", "24110047"), GroupStatus.ACTIVE),
+            new StudentGroupSeed("Nhóm InfoSec", "24110048", List.of("24110049", "24910000"), GroupStatus.COMPLETED),
+            new StudentGroupSeed("Nhóm SysNet", "24910001", List.of("24910002"), GroupStatus.INACTIVE),
+            new StudentGroupSeed("Nhóm AI Lab", "24910000", List.of("24910002"), GroupStatus.ACTIVE),
+            new StudentGroupSeed("Nhóm IoT Lab", "24110021", List.of("24110023"), GroupStatus.COMPLETED));
 
     private static final List<UserSeed> USERS = buildUsers();
 
@@ -992,7 +1008,7 @@ public class DatabaseSeedService {
                     group.setRegistrationPeriod(period);
                     group.setCreatedBy(leader);
                     group.setLeader(leader);
-                    group.setStatus(GroupStatus.ACTIVE);
+                    group.setStatus(seed.status());
                     group.getMembers().clear();
                     group.getMembers().add(leader);
                     seed.memberLogins().stream()
@@ -1152,7 +1168,8 @@ public class DatabaseSeedService {
             List<String> supervisorLogins) {
     }
 
-    private record StudentGroupSeed(String name, String leaderLogin, List<String> memberLogins) {
+    private record StudentGroupSeed(
+            String name, String leaderLogin, List<String> memberLogins, GroupStatus status) {
     }
 
     private record ReviewBoardSeed(
