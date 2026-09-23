@@ -88,7 +88,10 @@ class TopicPublicationControllerTest {
                         .with(user(facultyHeadPrincipal(facultyHead.getEmailOrCode()))))
                 .andExpect(status().isOk())
                 .andExpect(view().name("faculty/publish"))
-                .andExpect(content().string(containsString(topic.getTitle())));
+                .andExpect(content().string(containsString(topic.getTitle())))
+                .andExpect(content().string(containsString("sort=topic")))
+                .andExpect(content().string(containsString("sort=period")))
+                .andExpect(content().string(containsString("sort=proposer")));
 
         mockMvc.perform(post("/api/faculty/topics/{id}/publish", topic.getId())
                         .with(user(facultyHeadPrincipal(facultyHead.getEmailOrCode())))

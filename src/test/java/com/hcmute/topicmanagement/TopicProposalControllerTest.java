@@ -97,6 +97,14 @@ class TopicProposalControllerTest {
                 .andExpect(content().string(containsString("Submit for review")))
                 .andExpect(content().string(containsString("my-8 w-full max-w-2xl")))
                 .andExpect(content().string(not(containsString(otherTopic.getTitle()))));
+
+        mockMvc.perform(get("/lecturer/topics")
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))
+                        .param("search", "Smart campus"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Smart campus platform " + suffix)))
+                .andExpect(content().string(not(containsString(otherTopic.getTitle()))))
+                .andExpect(content().string(containsString("value=\"smart campus\"")));
     }
 
     @Test
@@ -119,6 +127,30 @@ class TopicProposalControllerTest {
                         "errorMessage", "The selected registration period is not open for lecturer proposals."));
 
         assertTrue(topicRepository.findByProposedBy_IdOrderByCreatedAtDesc(lecturer.getId()).isEmpty());
+    }
+
+    @Test
+    void lecturerCanSortOwnTopicProposals() throws Exception {
+        String suffix = suffix();
+        UserEntity lecturer = lecturer("sort-" + suffix);
+        DepartmentEntity department = department("sort-" + suffix);
+        RegistrationPeriodEntity period = openPeriod("sort-" + suffix);
+        topicRepository.saveAndFlush(new TopicEntity(
+                period, department, lecturer, "Zulu topic " + suffix, "Zulu description"));
+        topicRepository.saveAndFlush(new TopicEntity(
+                period, department, lecturer, "Alpha topic " + suffix, "Alpha description"));
+
+        String html = mockMvc.perform(get("/lecturer/topics")
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))
+                        .param("sort", "topic")
+                        .param("direction", "asc"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("sort=topic")))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertTrue(html.indexOf("Alpha topic " + suffix) < html.indexOf("Zulu topic " + suffix));
     }
 
     @Test

@@ -37,8 +37,11 @@ public class TopicProposalController {
             Authentication authentication,
             Model model,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
-        populatePage(authentication.getName(), model, page, size);
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "updated") String sort,
+            @RequestParam(defaultValue = "desc") String direction) {
+        populatePage(authentication.getName(), model, page, size, search, sort, direction);
         return "lecturer/topics";
     }
 
@@ -51,7 +54,7 @@ public class TopicProposalController {
             Model model,
             RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            populatePage(authentication.getName(), model, 0, 5);
+            populatePage(authentication.getName(), model, 0, 5, "", "updated", "desc");
             model.addAttribute("createForm", form);
             return "lecturer/topics";
         }
@@ -107,9 +110,10 @@ public class TopicProposalController {
         return "redirect:/lecturer/topics";
     }
 
-    private void populatePage(String lecturerEmail, Model model, int page, int size) {
+    private void populatePage(
+            String lecturerEmail, Model model, int page, int size, String search, String sort, String direction) {
         TopicProposalService.TopicProposalPage topicPage =
-                topicProposalService.listOwnProposalsPage(lecturerEmail, page, size);
+                topicProposalService.listOwnProposalsPage(lecturerEmail, page, size, search, sort, direction);
         List<TopicSummary> topics = topicPage.getTopics();
         TopicProposalService.ProposalFormOptions options = topicProposalService.getProposalFormOptions();
         model.addAttribute("pageTitle", "My topic proposals");

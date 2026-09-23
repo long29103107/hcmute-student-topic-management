@@ -56,42 +56,90 @@
           </button>
         </div>
 
-        <div
-          class="mb-6 flex items-start rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-5 text-blue-900"
-          role="status"
-        >
-          <svg
-            class="me-3 mt-0.5 h-5 w-5 shrink-0 text-blue-600"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              d="M10 1a9 9 0 1 0 9 9 9.01 9.01 0 0 0-9-9Zm0 4a1 1 0 1 1 0 2 1 1 0 0 1 0-2Zm1 10H9v-6h2v6Z"
-            />
-          </svg>
-          <span
-            >Only active departments and registration periods currently open for
-            lecturers can be selected.</span
-          >
-        </div>
-
         <section
           class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
           aria-labelledby="topics-heading"
         >
+          <div
+            class="flex justify-end border-b border-gray-200 p-5 sm:p-6"
+          >
+            <form
+              class="flex w-full max-w-xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-end"
+              th:action="@{/lecturer/topics}"
+              method="get"
+            >
+              <input type="hidden" name="sort" th:value="${topicPage.sort}" />
+              <input type="hidden" name="direction" th:value="${topicPage.direction}" />
+              <label class="sr-only" for="topic-proposal-search"
+                >Search topic proposals</label
+              >
+              <input
+                id="topic-proposal-search"
+                name="search"
+                type="search"
+                th:value="${topicPage.search}"
+                placeholder="Search topics"
+                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 sm:w-80"
+              />
+              <button
+                type="submit"
+                class="shrink-0 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
+              >
+                Search
+              </button>
+            </form>
+          </div>
           <div class="overflow-x-auto" th:if="${!#lists.isEmpty(topics)}">
             <table
               class="w-full min-w-[1050px] text-left text-sm text-gray-500"
             >
               <thead class="bg-gray-50 text-xs uppercase text-gray-700">
                 <tr>
-                  <th scope="col" class="px-6 py-3">Topic</th>
-                  <th scope="col" class="px-6 py-3">Department</th>
-                  <th scope="col" class="px-6 py-3">Registration period</th>
-                  <th scope="col" class="px-6 py-3">Status</th>
-                  <th scope="col" class="px-6 py-3">Last updated</th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/lecturer/topics(page=0,size=${topicPage.size},search=${topicPage.search},sort='topic',direction=${topicPage.sort == 'topic' and topicPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                    >
+                      Topic
+                      <span th:text="${topicPage.sort == 'topic' ? (topicPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/lecturer/topics(page=0,size=${topicPage.size},search=${topicPage.search},sort='department',direction=${topicPage.sort == 'department' and topicPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                    >
+                      Department
+                      <span th:text="${topicPage.sort == 'department' ? (topicPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/lecturer/topics(page=0,size=${topicPage.size},search=${topicPage.search},sort='period',direction=${topicPage.sort == 'period' and topicPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                    >
+                      Registration period
+                      <span th:text="${topicPage.sort == 'period' ? (topicPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/lecturer/topics(page=0,size=${topicPage.size},search=${topicPage.search},sort='status',direction=${topicPage.sort == 'status' and topicPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                    >
+                      Status
+                      <span th:text="${topicPage.sort == 'status' ? (topicPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/lecturer/topics(page=0,size=${topicPage.size},search=${topicPage.search},sort='updated',direction=${topicPage.sort == 'updated' and topicPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                    >
+                      Last updated
+                      <span th:text="${topicPage.sort == 'updated' ? (topicPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
                   <th scope="col" class="px-6 py-3">
                     <span class="sr-only">Actions</span>
                   </th>
@@ -252,14 +300,16 @@
                 >5</span
               >
             </p>
-            <nav aria-label="Topic proposal pagination" th:if="${topicPage.totalPages > 1}">
+            <nav
+              aria-label="Topic proposal pagination"
+            >
               <ul class="inline-flex -space-x-px">
                 <li>
                   <a
                     class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${!topicPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
                     th:attr="aria-disabled=${!topicPage.hasPrevious}"
-                    th:href="@{/lecturer/topics(page=${topicPage.page - 1},size=${topicPage.size})}"
+                    th:href="@{/lecturer/topics(page=${topicPage.page - 1},size=${topicPage.size},search=${topicPage.search},sort=${topicPage.sort},direction=${topicPage.direction})}"
                     >Previous</a
                   >
                 </li>
@@ -270,7 +320,7 @@
                     class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${pageNumber == topicPage.page ? 'bg-blue-50 text-blue-700' : ''}"
                     th:attr="aria-current=${pageNumber == topicPage.page ? 'page' : null}"
-                    th:href="@{/lecturer/topics(page=${pageNumber},size=${topicPage.size})}"
+                    th:href="@{/lecturer/topics(page=${pageNumber},size=${topicPage.size},search=${topicPage.search},sort=${topicPage.sort},direction=${topicPage.direction})}"
                     th:text="${pageNumber + 1}"
                     >1</a
                   >
@@ -280,7 +330,7 @@
                     class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${!topicPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
                     th:attr="aria-disabled=${!topicPage.hasNext}"
-                    th:href="@{/lecturer/topics(page=${topicPage.page + 1},size=${topicPage.size})}"
+                    th:href="@{/lecturer/topics(page=${topicPage.page + 1},size=${topicPage.size},search=${topicPage.search},sort=${topicPage.sort},direction=${topicPage.direction})}"
                     >Next</a
                   >
                 </li>

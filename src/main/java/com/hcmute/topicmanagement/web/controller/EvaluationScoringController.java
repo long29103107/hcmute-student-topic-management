@@ -27,14 +27,25 @@ public class EvaluationScoringController {
 
     @GetMapping("/scoring")
     @PreAuthorize("hasAuthority('EVALUATION_SUBMIT')")
-    public String list(Authentication authentication, Model model) {
+    public String list(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "group") String sort,
+            @RequestParam(defaultValue = "asc") String direction,
+            Model model) {
         EvaluationScoringService.ScoringPage scoringPage =
-                evaluationScoringService.listAssigned(authentication.getName());
+                evaluationScoringService.listAssignedPage(
+                        authentication.getName(), search, page, size, sort, direction);
         model.addAttribute("pageTitle", "My evaluations");
         model.addAttribute("scoringPage", scoringPage);
         model.addAttribute("evaluations", scoringPage.evaluations());
         model.addAttribute("minimumScore", scoringPage.minimumScore());
         model.addAttribute("maximumScore", scoringPage.maximumScore());
+        model.addAttribute("scoringSearch", scoringPage.search());
+        model.addAttribute("scoringSort", scoringPage.sort());
+        model.addAttribute("scoringDirection", scoringPage.direction());
         return "lecturer/scoring";
     }
 

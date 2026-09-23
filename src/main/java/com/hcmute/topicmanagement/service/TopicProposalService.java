@@ -1,8 +1,10 @@
 package com.hcmute.topicmanagement.service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -54,8 +56,23 @@ public class TopicProposalService {
     }
 
     @PreAuthorize("hasAuthority('TOPIC_PROPOSE')")
-    public TopicProposalPage listOwnProposalsPage(String lecturerEmail, int page, int size) {
+    public TopicProposalPage listOwnProposalsPage(
+            String lecturerEmail, int page, int size, String search, String sort, String direction) {
         List<TopicSummary> topics = listOwnProposals(lecturerEmail);
+        String normalizedSearch = normalizeSearch(search);
+        if (!normalizedSearch.isBlank()) {
+            topics = topics.stream()
+                    .filter(topic -> matchesSearch(topic, normalizedSearch))
+                    .toList();
+        }
+        String normalizedSort = normalizeSort(sort);
+        String normalizedDirection = normalizeDirection(direction);
+        Comparator<TopicSummary> comparator = comparatorFor(normalizedSort)
+                .thenComparing(TopicSummary::getId, Comparator.nullsLast(Comparator.naturalOrder()));
+        if ("desc".equals(normalizedDirection)) {
+            comparator = comparator.reversed();
+        }
+        topics = topics.stream().sorted(comparator).toList();
         int safeSize = Math.min(Math.max(size, 5), 100);
         int totalItems = topics.size();
         int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / safeSize));
@@ -63,7 +80,51 @@ public class TopicProposalService {
         int from = Math.min(safePage * safeSize, totalItems);
         int to = Math.min(from + safeSize, totalItems);
         return new TopicProposalPage(
-                topics.subList(from, to), safePage, safeSize, totalItems, totalPages);
+                topics.subList(from, to), safePage, safeSize, totalItems, totalPages,
+                normalizedSearch, normalizedSort, normalizedDirection);
+    }
+
+    private static String normalizeSort(String sort) {
+        return switch (sort == null ? "" : sort.trim().toLowerCase(Locale.ROOT)) {
+            case "topic", "department", "period", "status", "updated" -> sort.trim().toLowerCase(Locale.ROOT);
+            default -> "updated";
+        };
+    }
+
+    private static String normalizeDirection(String direction) {
+        return "asc".equalsIgnoreCase(direction) ? "asc" : "desc";
+    }
+
+    private static Comparator<TopicSummary> comparatorFor(String sort) {
+        return switch (sort) {
+            case "topic" -> Comparator.comparing(
+                    TopicSummary::getTitle, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+            case "department" -> Comparator.comparing(
+                    TopicSummary::getDepartmentCode, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+            case "period" -> Comparator.comparing(
+                    TopicSummary::getPeriodName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+            case "status" -> Comparator.comparing(
+                    TopicSummary::getStatusLabel, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+            default -> Comparator.comparing(
+                    TopicSummary::getUpdatedAt, Comparator.nullsLast(Comparator.naturalOrder()));
+        };
+    }
+
+    private static String normalizeSearch(String search) {
+        return search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static boolean matchesSearch(TopicSummary topic, String search) {
+        return containsSearchValue(topic.getTitle(), search)
+                || containsSearchValue(topic.getDescription(), search)
+                || containsSearchValue(topic.getDepartmentCode(), search)
+                || containsSearchValue(topic.getDepartmentName(), search)
+                || containsSearchValue(topic.getPeriodName(), search)
+                || containsSearchValue(topic.getStatusLabel(), search);
+    }
+
+    private static boolean containsSearchValue(String value, String search) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(search);
     }
 
     @PreAuthorize("hasAuthority('TOPIC_PROPOSE')")
@@ -297,14 +358,21 @@ public class TopicProposalService {
         private final int size;
         private final int totalItems;
         private final int totalPages;
+        private final String search;
+        private final String sort;
+        private final String direction;
 
         public TopicProposalPage(
-                List<TopicSummary> topics, int page, int size, int totalItems, int totalPages) {
+                List<TopicSummary> topics, int page, int size, int totalItems, int totalPages,
+                String search, String sort, String direction) {
             this.topics = List.copyOf(topics);
             this.page = page;
             this.size = size;
             this.totalItems = totalItems;
             this.totalPages = totalPages;
+            this.search = search;
+            this.sort = sort;
+            this.direction = direction;
         }
 
         public List<TopicSummary> getTopics() { return topics; }
@@ -312,6 +380,9 @@ public class TopicProposalService {
         public int getSize() { return size; }
         public int getTotalItems() { return totalItems; }
         public int getTotalPages() { return totalPages; }
+        public String getSearch() { return search; }
+        public String getSort() { return sort; }
+        public String getDirection() { return direction; }
         public boolean isHasPrevious() { return page > 0; }
         public boolean isHasNext() { return page + 1 < totalPages; }
     }

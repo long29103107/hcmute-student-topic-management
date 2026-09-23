@@ -244,6 +244,46 @@ class EvaluationScoringControllerTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void scoringQueueSupportsSearchSortAndPagination() throws Exception {
+        String suffix = suffix();
+        DepartmentEntity department = department("SCORE-FILTER-" + suffix);
+        UserEntity evaluator = account("score-filter-evaluator-" + suffix,
+                "Filter Evaluator " + suffix, "LECTURER", department);
+        for (int index = 1; index <= 6; index++) {
+            TopicRegistrationEntity registration = registration(
+                    openPeriod(suffix + "-" + index), department,
+                    "Sorted evaluation " + String.format(Locale.ROOT, "%02d", index),
+                    TopicRegistrationStatus.APPROVED);
+            evaluation(registration, evaluator);
+        }
+
+        String pageHtml = mockMvc.perform(get("/lecturer/scoring")
+                        .with(user(evaluatorPrincipal(evaluator.getEmailOrCode())))
+                        .param("page", "1")
+                        .param("size", "5")
+                        .param("sort", "topic")
+                        .param("direction", "asc"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Search evaluations")))
+                .andExpect(content().string(containsString("Sorted evaluation 06")))
+                .andExpect(content().string(not(containsString("Sorted evaluation 01"))))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        Assertions.assertThat(pageHtml).contains("Showing");
+
+        mockMvc.perform(get("/lecturer/scoring")
+                        .with(user(evaluatorPrincipal(evaluator.getEmailOrCode())))
+                        .param("search", "Sorted evaluation 06")
+                        .param("sort", "topic")
+                        .param("direction", "asc"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Sorted evaluation 06")))
+                .andExpect(content().string(not(containsString("Sorted evaluation 01"))))
+                .andExpect(content().string(containsString("value=\"sorted evaluation 06\"")));
+    }
+
     private EvaluationEntity evaluation(TopicRegistrationEntity registration, UserEntity evaluator) {
         return evaluationRepository.saveAndFlush(new EvaluationEntity(registration, evaluator));
     }

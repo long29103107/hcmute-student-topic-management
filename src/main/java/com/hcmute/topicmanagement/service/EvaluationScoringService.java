@@ -2,7 +2,9 @@ package com.hcmute.topicmanagement.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,16 +50,92 @@ public class EvaluationScoringService {
 
     @PreAuthorize("hasAuthority('EVALUATION_SUBMIT')")
     public ScoringPage listAssigned(String evaluatorEmail) {
+        return new ScoringPage(
+                loadAssigned(evaluatorEmail), scoringProperties.getMinimumScore(), scoringProperties.getMaximumScore());
+    }
+
+    @PreAuthorize("hasAuthority('EVALUATION_SUBMIT')")
+    public ScoringPage listAssignedPage(
+            String evaluatorEmail, String search, int page, int size, String sort, String direction) {
+        List<EvaluationSummary> summaries = loadAssigned(evaluatorEmail);
+        String normalizedSearch = normalizeSearch(search);
+        String normalizedSort = normalizeSort(sort);
+        String normalizedDirection = normalizeDirection(direction);
+        List<EvaluationSummary> filtered = summaries.stream()
+                .filter(evaluation -> matchesSearch(evaluation, normalizedSearch))
+                .sorted(evaluationComparator(normalizedSort, normalizedDirection))
+                .toList();
+        int safeSize = Math.min(Math.max(size, 5), 100);
+        int totalItems = filtered.size();
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / safeSize));
+        int safePage = Math.min(Math.max(page, 0), totalPages - 1);
+        int from = Math.min(safePage * safeSize, totalItems);
+        int to = Math.min(from + safeSize, totalItems);
+        return new ScoringPage(
+                filtered.subList(from, to), scoringProperties.getMinimumScore(), scoringProperties.getMaximumScore(),
+                safePage, safeSize, totalItems, totalPages, normalizedSearch, normalizedSort, normalizedDirection);
+    }
+
+    private List<EvaluationSummary> loadAssigned(String evaluatorEmail) {
         UserEntity evaluator = findActiveEvaluator(evaluatorEmail);
-        List<EvaluationSummary> summaries = evaluationRepository
+        return evaluationRepository
                 .findByLecturer_IdOrderByUpdatedAtDesc(evaluator.getId()).stream()
                 .filter(evaluation -> evaluation.getTopicRegistration() != null
                         && evaluation.getTopicRegistration().getStatus() == TopicRegistrationStatus.APPROVED)
                 .filter(this::isVisibleAssignment)
                 .map(this::toSummary)
                 .toList();
-        return new ScoringPage(
-                summaries, scoringProperties.getMinimumScore(), scoringProperties.getMaximumScore());
+    }
+
+    private static boolean matchesSearch(EvaluationSummary evaluation, String search) {
+        return search.isBlank()
+                || contains(evaluation.groupName(), search)
+                || contains(evaluation.topicTitle(), search)
+                || contains(evaluation.departmentCode(), search)
+                || contains(evaluation.departmentName(), search)
+                || contains(evaluation.periodName(), search)
+                || contains(evaluation.status(), search);
+    }
+
+    private static boolean contains(String value, String search) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(search);
+    }
+
+    private static Comparator<EvaluationSummary> evaluationComparator(String sort, String direction) {
+        Comparator<EvaluationSummary> comparator = switch (sort) {
+            case "topic" -> Comparator.comparing(
+                    EvaluationSummary::topicTitle, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+            case "period" -> Comparator.comparing(
+                    EvaluationSummary::periodName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+            case "score" -> Comparator.comparing(
+                    EvaluationSummary::score, Comparator.nullsLast(Comparator.naturalOrder()));
+            case "average" -> Comparator.comparing(
+                    EvaluationSummary::averageScore, Comparator.nullsLast(Comparator.naturalOrder()));
+            case "status" -> Comparator.comparing(
+                    EvaluationSummary::status, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+            case "submitted" -> Comparator.comparing(
+                    EvaluationSummary::submittedAt, Comparator.nullsLast(Comparator.naturalOrder()));
+            default -> Comparator.comparing(
+                    EvaluationSummary::groupName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                    .thenComparing(EvaluationSummary::topicTitle,
+                            Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+        };
+        return "desc".equals(direction) ? comparator.reversed() : comparator;
+    }
+
+    private static String normalizeSearch(String search) {
+        return search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static String normalizeSort(String sort) {
+        return switch (sort == null ? "" : sort.trim().toLowerCase(Locale.ROOT)) {
+            case "topic", "period", "score", "average", "status", "submitted" -> sort.trim().toLowerCase(Locale.ROOT);
+            default -> "group";
+        };
+    }
+
+    private static String normalizeDirection(String direction) {
+        return "desc".equalsIgnoreCase(direction == null ? "" : direction.trim()) ? "desc" : "asc";
     }
 
     @Transactional
@@ -202,10 +280,20 @@ public class EvaluationScoringService {
     }
 
     public record ScoringPage(
-            List<EvaluationSummary> evaluations, BigDecimal minimumScore, BigDecimal maximumScore) {
+            List<EvaluationSummary> evaluations, BigDecimal minimumScore, BigDecimal maximumScore,
+            int page, int size, int totalItems, int totalPages, String search, String sort, String direction) {
+        public ScoringPage(
+                List<EvaluationSummary> evaluations, BigDecimal minimumScore, BigDecimal maximumScore) {
+            this(evaluations, minimumScore, maximumScore, 0, Math.max(5, evaluations.size()), evaluations.size(), 1,
+                    "", "submitted", "desc");
+        }
+
         public ScoringPage {
             evaluations = List.copyOf(evaluations);
         }
+
+        public boolean hasPrevious() { return page > 0; }
+        public boolean hasNext() { return page + 1 < totalPages; }
     }
 
     public record EvaluationSummary(

@@ -157,7 +157,7 @@
 
             <div class="flex flex-col items-center justify-between gap-3 border-t border-gray-200 px-6 py-4 text-sm text-gray-500 sm:flex-row" th:if="${groupPage.totalItems > 0}">
                 <span th:text="${'Showing ' + (groupPage.page * groupPage.size + 1) + '-' + (groupPage.page * groupPage.size + #lists.size(groups)) + ' of ' + groupPage.totalItems}">Showing 1-1 of 1</span>
-                <nav aria-label="Group pagination" th:if="${groupPage.totalPages > 1}">
+                <nav aria-label="Group pagination">
                     <ul class="inline-flex -space-x-px text-sm">
                         <li><a class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100" th:classappend="${!groupPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}" th:href="@{/student/groups(page=${groupPage.page - 1},size=${groupPage.size},search=${groupSearch},sort=${groupPage.sort},direction=${groupPage.direction})}">Previous</a></li>
                         <li th:each="pageNumber : ${#numbers.sequence(0, groupPage.totalPages - 1)}"><a class="border border-gray-300 px-3 py-2 leading-tight hover:bg-gray-100" th:classappend="${pageNumber == groupPage.page ? 'bg-blue-50 text-blue-700' : 'bg-white text-gray-500'}" th:href="@{/student/groups(page=${pageNumber},size=${groupPage.size},search=${groupSearch},sort=${groupPage.sort},direction=${groupPage.direction})}" th:text="${pageNumber + 1}">1</a></li>

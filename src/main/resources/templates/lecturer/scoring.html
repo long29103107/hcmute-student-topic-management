@@ -31,56 +31,109 @@
               My evaluations
             </h1>
           </div>
-          <span
-            class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800"
-            th:text="${#lists.size(evaluations) + ' assigned evaluations'}"
-            >0 assigned evaluations</span
-          >
-        </div>
-
-        <div
-          class="mb-6 flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-5 text-blue-900"
-          role="status"
-        >
-          <svg
-            class="mt-0.5 h-5 w-5 shrink-0 text-blue-600"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              d="M10 1a9 9 0 1 0 9 9 9.01 9.01 0 0 0-9-9Zm0 4a1 1 0 1 1 1 1 1 1 0 0 1-1-1Zm1 10H9v-6h2v6Z"
-            />
-          </svg>
-          <span
-            >Scores must be between
-            <strong
-              th:text="${minimumScore.stripTrailingZeros().toPlainString()}"
-              >0</strong
-            >
-            and
-            <strong
-              th:text="${maximumScore.stripTrailingZeros().toPlainString()}"
-              >10</strong
-            >. The server enforces the reviewer deadline and locks published
-            results.</span
-          >
         </div>
 
         <section
           class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
           aria-labelledby="evaluations-heading"
         >
+          <div
+            class="flex justify-end border-b border-gray-200 p-5 sm:p-6"
+          >
+            <form
+              class="flex w-full max-w-xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-end"
+              th:action="@{/lecturer/scoring}"
+              method="get"
+            >
+              <label class="sr-only" for="scoring-search"
+                >Search evaluations</label
+              >
+              <input
+                id="scoring-search"
+                name="search"
+                type="search"
+                th:value="${scoringSearch}"
+                placeholder="Search evaluations"
+                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 sm:w-80"
+              />
+              <input type="hidden" name="sort" th:value="${scoringSort}" />
+              <input
+                type="hidden"
+                name="direction"
+                th:value="${scoringDirection}"
+              />
+              <button
+                type="submit"
+                class="shrink-0 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
+              >
+                Search
+              </button>
+            </form>
+          </div>
           <div class="overflow-x-auto" th:if="${!#lists.isEmpty(evaluations)}">
             <table class="w-full text-left text-sm text-gray-600">
               <thead class="bg-gray-50 text-xs uppercase text-gray-700">
                 <tr>
-                  <th scope="col" class="px-6 py-3">Group / topic</th>
-                  <th scope="col" class="px-6 py-3">Registration period</th>
-                  <th scope="col" class="px-6 py-3">My score</th>
-                  <th scope="col" class="px-6 py-3">Average</th>
-                  <th scope="col" class="px-6 py-3">Status / deadline</th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/lecturer/scoring(page=0,size=${scoringPage.size},search=${scoringSearch},sort='group',direction=${scoringSort == 'group' and scoringDirection == 'asc' ? 'desc' : 'asc'})}"
+                    >
+                      Group / topic
+                      <span
+                        th:text="${scoringSort == 'group' ? (scoringDirection == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      >
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/lecturer/scoring(page=0,size=${scoringPage.size},search=${scoringSearch},sort='period',direction=${scoringSort == 'period' and scoringDirection == 'asc' ? 'desc' : 'asc'})}"
+                    >
+                      Registration period
+                      <span
+                        th:text="${scoringSort == 'period' ? (scoringDirection == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      >
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/lecturer/scoring(page=0,size=${scoringPage.size},search=${scoringSearch},sort='score',direction=${scoringSort == 'score' and scoringDirection == 'asc' ? 'desc' : 'asc'})}"
+                    >
+                      My score
+                      <span
+                        th:text="${scoringSort == 'score' ? (scoringDirection == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      >
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/lecturer/scoring(page=0,size=${scoringPage.size},search=${scoringSearch},sort='average',direction=${scoringSort == 'average' and scoringDirection == 'asc' ? 'desc' : 'asc'})}"
+                    >
+                      Average
+                      <span
+                        th:text="${scoringSort == 'average' ? (scoringDirection == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      >
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/lecturer/scoring(page=0,size=${scoringPage.size},search=${scoringSearch},sort='status',direction=${scoringSort == 'status' and scoringDirection == 'asc' ? 'desc' : 'asc'})}"
+                    >
+                      Status / deadline
+                      <span
+                        th:text="${scoringSort == 'status' ? (scoringDirection == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      >
+                    </a>
+                  </th>
                   <th scope="col" class="px-6 py-3">
                     <span class="sr-only">Actions</span>
                   </th>
@@ -183,6 +236,63 @@
             </table>
           </div>
           <div
+            class="flex flex-col gap-3 border-t border-gray-200 px-6 py-4 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between"
+            th:if="${scoringPage.totalItems > 0}"
+          >
+            <p>
+              Showing
+              <span
+                class="font-medium text-gray-900"
+                th:text="${scoringPage.page * scoringPage.size + 1}"
+                >1</span
+              >–<span
+                class="font-medium text-gray-900"
+                th:text="${scoringPage.page * scoringPage.size + #lists.size(evaluations)}"
+                >10</span
+              >
+              of
+              <span
+                class="font-medium text-gray-900"
+                th:text="${scoringPage.totalItems}"
+                >0</span
+              >
+            </p>
+            <nav aria-label="Evaluation pagination">
+              <ul class="inline-flex -space-x-px">
+                <li>
+                  <a
+                    class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${!scoringPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
+                    th:attr="aria-disabled=${!scoringPage.hasPrevious}"
+                    th:href="@{/lecturer/scoring(page=${scoringPage.page - 1},size=${scoringPage.size},search=${scoringSearch},sort=${scoringSort},direction=${scoringDirection})}"
+                    >Previous</a
+                  >
+                </li>
+                <li
+                  th:each="pageNumber : ${#numbers.sequence(0, scoringPage.totalPages - 1)}"
+                >
+                  <a
+                    class="border border-gray-300 px-3 py-2 leading-tight hover:bg-gray-100"
+                    th:classappend="${pageNumber == scoringPage.page ? 'bg-blue-50 text-blue-700' : 'bg-white text-gray-500'}"
+                    th:attr="aria-current=${pageNumber == scoringPage.page ? 'page' : null}"
+                    th:href="@{/lecturer/scoring(page=${pageNumber},size=${scoringPage.size},search=${scoringSearch},sort=${scoringSort},direction=${scoringDirection})}"
+                    th:text="${pageNumber + 1}"
+                    >1</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${!scoringPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
+                    th:attr="aria-disabled=${!scoringPage.hasNext}"
+                    th:href="@{/lecturer/scoring(page=${scoringPage.page + 1},size=${scoringPage.size},search=${scoringSearch},sort=${scoringSort},direction=${scoringDirection})}"
+                    >Next</a
+                  >
+                </li>
+              </ul>
+            </nav>
+          </div>
+          <div
             class="flex flex-col items-center justify-center border-t border-gray-100 px-6 py-14 text-center"
             th:if="${#lists.isEmpty(evaluations)}"
           >
@@ -205,11 +315,15 @@
                 />
               </svg>
             </div>
-            <h3 class="text-base font-semibold text-gray-900">
-              No assigned evaluations
-            </h3>
+            <h3
+              class="text-base font-semibold text-gray-900"
+              th:text="${#strings.isEmpty(scoringSearch) ? 'No assigned evaluations' : 'No evaluations match your search'}"
+            >No assigned evaluations</h3>
             <p class="mt-1 max-w-sm text-sm leading-6 text-gray-500">
-              Approved registrations assigned to you will appear here.
+              <span
+                th:text="${#strings.isEmpty(scoringSearch) ? 'Approved registrations assigned to you will appear here.' : 'Try a different keyword or clear the search.'}"
+                >Approved registrations assigned to you will appear here.</span
+              >
             </p>
           </div>
         </section>
@@ -285,7 +399,8 @@
                 <label
                   class="mb-2 block text-sm font-medium text-gray-900"
                   th:for="${'score-' + evaluation.id}"
-                  >Score <span class="text-red-600" aria-hidden="true">*</span></label
+                  >Score
+                  <span class="text-red-600" aria-hidden="true">*</span></label
                 >
                 <input
                   required

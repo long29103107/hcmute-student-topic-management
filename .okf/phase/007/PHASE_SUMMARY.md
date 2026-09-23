@@ -210,6 +210,24 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/26
 - Verification: browser smoke opened the Edit announcement popup and confirmed
   the prefilled fields and responsive form layout; Maven compile and
   `git diff --check` passed.
+- `/topics` now always renders its pagination controls when topics exist,
+  including disabled Previous/Next controls on a single page, while retaining
+  the existing page slicing and sort/filter query parameters.
+- Verification: browser smoke confirmed the filtered `/topics` page shows
+  pagination and `page=1&size=5` renders `Showing 6-10 of 10` with filters and
+  sorting preserved; `TopicPublicationControllerTest` passed 5/5, Maven
+  compile passed, and `git diff --check` passed.
+- `/student/groups` now always renders its pagination controls when groups
+  exist, including disabled Previous/Next controls on a single page, while
+  preserving search and sort parameters across page links.
+- Verification: Maven compile passed, `StudentGroupControllerTest` passed
+  11/11, and `git diff --check` passed. Browser smoke was blocked by the
+  currently signed-in account lacking access to Student workspace (`403`).
+- `/lecturer/topics` now always renders its topic proposal pagination controls
+  when proposals exist, including disabled Previous/Next controls on a single
+  page; page links retain the requested page size.
+- Verification: Maven compile passed, `TopicProposalControllerTest` passed
+  7/7, and `git diff --check` passed.
 - The `/student/groups` Create group modal now visibly marks Group name and
   Registration period as required fields while retaining the existing HTML
   `required` validation.
@@ -219,3 +237,33 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/26
   required field while retaining the existing HTML `required` validation.
 - Verification: the Join group form markup was checked; Maven compile and
   `git diff --check` passed.
+- `/lecturer/topics` now includes a right-aligned Search form that filters the
+  lecturer's own proposals by topic, description, department, period or status;
+  the normalized keyword is preserved across pagination links.
+- Verification: Maven compile passed, `TopicProposalControllerTest` passed
+  7/7 including the search case, and `git diff --check` passed. Browser smoke
+  could not confirm the authenticated page because the current browser session
+  redirected to the app's internal-server-error page; an anonymous HTTP check
+  correctly redirected to `/login`.
+- `/lecturer/topics` now supports server-side sorting by topic, department,
+  registration period, status and last updated; sort direction, search keyword
+  and page size are preserved across table headers and pagination links.
+- Verification: Maven compile passed, `TopicProposalControllerTest` passed
+  8/8 including the sort case, and `git diff --check` passed.
+- `/faculty/registrations/evaluators` now exposes sort links for Topic,
+  Department, Registration period and Evaluator; the existing server-side sort
+  contract is now reachable from every main table column and preserves search
+  and pagination parameters.
+- Verification: `EvaluatorAssignmentControllerTest` passed 5/5 and
+  `git diff --check` passed.
+- `/faculty/topics/publish` now shows sort indicators and toggle links for
+  Topic, Registration period and Proposed by, exposing the existing server-side
+  sort behavior while preserving search, page size and pagination state.
+- Verification: `TopicPublicationControllerTest` passed 5/5 and
+  `git diff --check` passed.
+- `/lecturer/scoring` now supports server-side search, sorting by group/topic,
+  period, score, average and status, plus pagination with state preserved in
+  sort/search links; the REST list contract remains available through the
+  existing unpaged service method.
+- Verification: `EvaluationScoringControllerTest` passed 5/5, including the
+  search/sort/pagination scenario, and `git diff --check` passed.

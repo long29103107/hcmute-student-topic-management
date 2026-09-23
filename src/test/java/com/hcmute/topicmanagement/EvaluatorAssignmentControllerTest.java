@@ -254,7 +254,11 @@ class EvaluatorAssignmentControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("faculty/evaluator-assignments"))
                 .andExpect(content().string(containsString("Evaluator assignments")))
-                .andExpect(content().string(containsString("Visible approved " + suffix)));
+                .andExpect(content().string(containsString("Visible approved " + suffix)))
+                .andExpect(content().string(containsString("sort=topic")))
+                .andExpect(content().string(containsString("sort=department")))
+                .andExpect(content().string(containsString("sort=period")))
+                .andExpect(content().string(containsString("sort=evaluator")));
 
         mockMvc.perform(get("/api/faculty/registrations/evaluators")
                         .with(user(studentPrincipal(student.getEmailOrCode()))))

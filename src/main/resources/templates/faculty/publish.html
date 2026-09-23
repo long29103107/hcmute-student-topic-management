@@ -85,19 +85,37 @@
                 <tr>
                   <th scope="col" class="px-6 py-3">
                     <a
-                      class="hover:text-blue-700"
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
                       th:href="@{/faculty/topics/publish(page=0,size=${topicPage.size},search=${topicSearch},sort='topic',direction=${topicSort == 'topic' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
-                      >Topic</a
+                      >Topic
+                      <span
+                        th:text="${topicSort == 'topic' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      ></a
                     >
                   </th>
                   <th scope="col" class="px-6 py-3">
                     <a
-                      class="hover:text-blue-700"
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
                       th:href="@{/faculty/topics/publish(page=0,size=${topicPage.size},search=${topicSearch},sort='period',direction=${topicSort == 'period' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
-                      >Registration period</a
+                      >Registration period
+                      <span
+                        th:text="${topicSort == 'period' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      ></a
                     >
                   </th>
-                  <th scope="col" class="px-6 py-3">Proposed by</th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/faculty/topics/publish(page=0,size=${topicPage.size},search=${topicSearch},sort='proposer',direction=${topicSort == 'proposer' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
+                      >Proposed by
+                      <span
+                        th:text="${topicSort == 'proposer' ? (topicDirection == 'asc' ? '↑' : '↓') : '↕'}"
+                        >↕</span
+                      ></a
+                    >
+                  </th>
                   <th scope="col" class="px-6 py-3">Status</th>
                   <th scope="col" class="px-6 py-3">
                     <span class="sr-only">Actions</span>
