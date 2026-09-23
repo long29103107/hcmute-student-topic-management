@@ -175,3 +175,14 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/26
   at the same breakpoint as the form grid.
 - Verification: browser smoke confirmed the divider spans the full modal and
   the actions match the Create form; Maven compile and `git diff --check` passed.
+- `/faculty/topics/supervisors` now renders the shared `No data` fragment only
+  when the filtered topic list is empty; populated results render the table and
+  pagination without the empty-state message.
+- Verification: the focused `TopicSupervisorControllerTest` data and empty
+  state cases passed 2/2; the full class still has one pre-existing assertion
+  expecting the removed `6 topics` header, unrelated to this empty-state fix.
+- The Supervisor assignments filter form now uses fixed-width flex controls so
+  department, period, status, search and Search stay on one right-aligned row
+  on desktop, while still wrapping on narrow screens.
+- Verification: browser smoke confirmed the five controls render on one row;
+  Maven compile and `git diff --check` passed.

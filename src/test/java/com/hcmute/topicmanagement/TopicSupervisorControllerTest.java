@@ -86,7 +86,8 @@ class TopicSupervisorControllerTest {
                 .andExpect(view().name("faculty/supervisors"))
                 .andExpect(content().string(containsString(topic.getTitle())))
                 .andExpect(content().string(containsString(first.getFullName())))
-                .andExpect(content().string(containsString("Admin · all departments")));
+                .andExpect(content().string(containsString("Admin · all departments")))
+                .andExpect(content().string(not(containsString("No data"))));
 
         mockMvc.perform(post("/faculty/topics/{id}/supervisors", topic.getId())
                         .with(user(adminPrincipal(admin.getEmailOrCode())))
@@ -380,7 +381,8 @@ class TopicSupervisorControllerTest {
                         .param("status", "PUBLISHED"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("No data")))
-                .andExpect(content().string(not(containsString("Assign supervisors"))));
+                .andExpect(content().string(not(containsString("Assign supervisors"))))
+                .andExpect(content().string(not(containsString("<table"))));
     }
 
     private void assertBadAssignment(UserEntity admin, TopicEntity topic, String message, Long... ids)
