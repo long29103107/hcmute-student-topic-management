@@ -191,6 +191,25 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/26
   button together.
 - Verification: browser smoke confirmed the form sits at the right edge;
   Maven compile and `git diff --check` passed.
+- `/announcements/manage` now renders announcements as a flat sortable table
+  with Announcement, Department, Author, Updated, Status, and Actions columns.
+  The filter bar keeps only status, department, search, and Search; pagination
+  preserves all active filters and sort parameters and remains visible with
+  disabled controls on a single page.
+- Verification: browser smoke confirmed the flat table, sortable headers, four
+  filter controls, and pagination; `AnnouncementServiceTest` passed 6/6,
+  Maven compile passed, and `git diff --check` passed.
+- The Create announcement modal now shows required markers for Title, Content,
+  and Audience; the Department marker follows the selected Audience and is
+  shown only when Department is selected, matching the existing validation.
+- Verification: browser smoke confirmed the markers for both School-wide and
+  Department audiences; Maven compile and `git diff --check` passed.
+- Announcement Edit actions now open a dedicated modal matching the Create
+  announcement form, with prefilled title/content/audience/department fields,
+  required markers, and Save changes/Cancel actions.
+- Verification: browser smoke opened the Edit announcement popup and confirmed
+  the prefilled fields and responsive form layout; Maven compile and
+  `git diff --check` passed.
 - The `/student/groups` Create group modal now visibly marks Group name and
   Registration period as required fields while retaining the existing HTML
   `required` validation.
