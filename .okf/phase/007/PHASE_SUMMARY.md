@@ -186,3 +186,17 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/26
   on desktop, while still wrapping on narrow screens.
 - Verification: browser smoke confirmed the five controls render on one row;
   Maven compile and `git diff --check` passed.
+- The `/student/groups` search form is right-aligned within its card header,
+  matching the directory filter layout while keeping the input and Search
+  button together.
+- Verification: browser smoke confirmed the form sits at the right edge;
+  Maven compile and `git diff --check` passed.
+- The `/student/groups` Create group modal now visibly marks Group name and
+  Registration period as required fields while retaining the existing HTML
+  `required` validation.
+- Verification: browser smoke confirmed both required markers; Maven compile
+  and `git diff --check` passed.
+- The `/student/groups` Join group modal now visibly marks Group ID as a
+  required field while retaining the existing HTML `required` validation.
+- Verification: the Join group form markup was checked; Maven compile and
+  `git diff --check` passed.
