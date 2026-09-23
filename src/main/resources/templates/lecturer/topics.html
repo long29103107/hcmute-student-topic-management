@@ -230,6 +230,63 @@
               </tbody>
             </table>
           </div>
+          <div
+            class="flex flex-col gap-3 border-t border-gray-200 px-6 py-4 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between"
+            th:if="${!#lists.isEmpty(topics)}"
+          >
+            <p>
+              Showing
+              <span
+                class="font-medium text-gray-900"
+                th:text="${topicPage.page * topicPage.size + 1}"
+                >1</span
+              >–<span
+                class="font-medium text-gray-900"
+                th:text="${topicPage.page * topicPage.size + #lists.size(topics)}"
+                >5</span
+              >
+              of
+              <span
+                class="font-medium text-gray-900"
+                th:text="${topicPage.totalItems}"
+                >5</span
+              >
+            </p>
+            <nav aria-label="Topic proposal pagination" th:if="${topicPage.totalPages > 1}">
+              <ul class="inline-flex -space-x-px">
+                <li>
+                  <a
+                    class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${!topicPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
+                    th:attr="aria-disabled=${!topicPage.hasPrevious}"
+                    th:href="@{/lecturer/topics(page=${topicPage.page - 1},size=${topicPage.size})}"
+                    >Previous</a
+                  >
+                </li>
+                <li
+                  th:each="pageNumber : ${#numbers.sequence(0, topicPage.totalPages - 1)}"
+                >
+                  <a
+                    class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${pageNumber == topicPage.page ? 'bg-blue-50 text-blue-700' : ''}"
+                    th:attr="aria-current=${pageNumber == topicPage.page ? 'page' : null}"
+                    th:href="@{/lecturer/topics(page=${pageNumber},size=${topicPage.size})}"
+                    th:text="${pageNumber + 1}"
+                    >1</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                    th:classappend="${!topicPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
+                    th:attr="aria-disabled=${!topicPage.hasNext}"
+                    th:href="@{/lecturer/topics(page=${topicPage.page + 1},size=${topicPage.size})}"
+                    >Next</a
+                  >
+                </li>
+              </ul>
+            </nav>
+          </div>
           <div th:if="${#lists.isEmpty(topics)}">
             <div th:replace="~{fragments/no-data :: noData}"></div>
           </div>

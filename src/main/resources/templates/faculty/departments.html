@@ -86,7 +86,7 @@
               />
               
               <!-- Dropdown lọc Status (Ticket #28) -->
-              <select name="status" class="block rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 w-36">
+              <select name="status" class="block w-44 min-w-[11rem] flex-none rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500">
                   <option value="">All statuses</option>
                   <option value="ACTIVE" th:selected="${departmentStatus == 'ACTIVE'}">Active</option>
                   <option value="INACTIVE" th:selected="${departmentStatus == 'INACTIVE'}">Inactive</option>

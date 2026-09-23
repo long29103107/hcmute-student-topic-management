@@ -122,3 +122,21 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/26
 - Verification: browser smoke confirmed the one-row controls and showed `1–5 of
   11` on page one, then `6–10 of 11` after navigating to page two; compile and
   `git diff --check` passed.
+- The repeatable topic seed now adds ten deterministic DRAFT proposals owned by
+  `nguyen.van.khang`, so the Faculty Head's own-topic directory has two pages at
+  the default page size of five. The `/api/seed/topics` step upserts these
+  fixtures without resetting the database.
+- Verification: `/api/seed/topics` returned `count: 90`; browser smoke showed
+  `Showing 1–5 of 10` and `Showing 6–10 of 10` for the Faculty Head account;
+  `DatabaseSeedControllerTest` passed 3/3 and compile passed.
+- `/lecturer/topics` now exposes server-side page/size parameters with a default
+  of five proposals per page, renders the current range and Previous/Next/page
+  links, and keeps the existing owner-only proposal scope and empty state.
+- Verification: `TopicProposalControllerTest` passed all 7 tests; Maven compile
+  and `git diff --check` passed. Browser smoke reached the authenticated page;
+  the seeded Faculty Head account had no own proposals, so it correctly showed
+  the existing `No data` state rather than pagination controls.
+- `/admin/departments` gives the status filter a fixed wider width (`w-44`) and
+  prevents flex shrinking so `All statuses` and its native arrow remain readable.
+- Verification: browser smoke confirmed the widened filter on the department
+  management page; `mvn.cmd -B -DskipTests compile` and `git diff --check` passed.

@@ -54,6 +54,19 @@ public class TopicProposalService {
     }
 
     @PreAuthorize("hasAuthority('TOPIC_PROPOSE')")
+    public TopicProposalPage listOwnProposalsPage(String lecturerEmail, int page, int size) {
+        List<TopicSummary> topics = listOwnProposals(lecturerEmail);
+        int safeSize = Math.min(Math.max(size, 5), 100);
+        int totalItems = topics.size();
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / safeSize));
+        int safePage = Math.min(Math.max(page, 0), totalPages - 1);
+        int from = Math.min(safePage * safeSize, totalItems);
+        int to = Math.min(from + safeSize, totalItems);
+        return new TopicProposalPage(
+                topics.subList(from, to), safePage, safeSize, totalItems, totalPages);
+    }
+
+    @PreAuthorize("hasAuthority('TOPIC_PROPOSE')")
     public ProposalFormOptions getProposalFormOptions() {
         LocalDateTime now = LocalDateTime.now();
         List<DepartmentOption> departments = departmentRepository.findByActiveTrueOrderByNameAsc().stream()
@@ -276,6 +289,31 @@ public class TopicProposalService {
     }
 
     public record PeriodOption(Long id, String name, String type) {
+    }
+
+    public static final class TopicProposalPage {
+        private final List<TopicSummary> topics;
+        private final int page;
+        private final int size;
+        private final int totalItems;
+        private final int totalPages;
+
+        public TopicProposalPage(
+                List<TopicSummary> topics, int page, int size, int totalItems, int totalPages) {
+            this.topics = List.copyOf(topics);
+            this.page = page;
+            this.size = size;
+            this.totalItems = totalItems;
+            this.totalPages = totalPages;
+        }
+
+        public List<TopicSummary> getTopics() { return topics; }
+        public int getPage() { return page; }
+        public int getSize() { return size; }
+        public int getTotalItems() { return totalItems; }
+        public int getTotalPages() { return totalPages; }
+        public boolean isHasPrevious() { return page > 0; }
+        public boolean isHasNext() { return page + 1 < totalPages; }
     }
 
     private record TopicInput(String title, String description) {

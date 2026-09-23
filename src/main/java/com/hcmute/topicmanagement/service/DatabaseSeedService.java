@@ -752,6 +752,16 @@ public class DatabaseSeedService {
      */
     private static List<TopicSeed> allTopicSeeds() {
         List<TopicSeed> seeds = new ArrayList<>(TOPICS);
+        for (int index = 1; index <= 10; index++) {
+            String number = String.format(Locale.ROOT, "%02d", index);
+            seeds.add(new TopicSeed(
+                    "Đề tài mẫu Khang DRAFT " + number,
+                    "Dữ liệu mẫu cho danh sách đề tài cá nhân và kiểm thử phân trang của giảng viên.",
+                    "CNTT",
+                    "nguyen.van.khang",
+                    TopicStatus.DRAFT,
+                    List.of("vo.hoang.nam")));
+        }
         List<String> departmentCodes = List.of("CNTT", "KHMT", "CNPM", "HTTT");
         List<String> proposerLogins = List.of(
                 "nguyen.thanh.binh", "nguyen.quoc.viet", "phan.tuan.anh", "hoang.duc.long");

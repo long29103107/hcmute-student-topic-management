@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.hcmute.topicmanagement.service.TopicProposalService;
@@ -32,8 +33,12 @@ public class TopicProposalController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('TOPIC_PROPOSE')")
-    public String list(Authentication authentication, Model model) {
-        populatePage(authentication.getName(), model);
+    public String list(
+            Authentication authentication,
+            Model model,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        populatePage(authentication.getName(), model, page, size);
         return "lecturer/topics";
     }
 
@@ -46,7 +51,7 @@ public class TopicProposalController {
             Model model,
             RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            populatePage(authentication.getName(), model);
+            populatePage(authentication.getName(), model, 0, 5);
             model.addAttribute("createForm", form);
             return "lecturer/topics";
         }
@@ -102,10 +107,13 @@ public class TopicProposalController {
         return "redirect:/lecturer/topics";
     }
 
-    private void populatePage(String lecturerEmail, Model model) {
-        List<TopicSummary> topics = topicProposalService.listOwnProposals(lecturerEmail);
+    private void populatePage(String lecturerEmail, Model model, int page, int size) {
+        TopicProposalService.TopicProposalPage topicPage =
+                topicProposalService.listOwnProposalsPage(lecturerEmail, page, size);
+        List<TopicSummary> topics = topicPage.getTopics();
         TopicProposalService.ProposalFormOptions options = topicProposalService.getProposalFormOptions();
         model.addAttribute("pageTitle", "My topic proposals");
+        model.addAttribute("topicPage", topicPage);
         model.addAttribute("topics", topics);
         model.addAttribute("departments", options.getDepartments());
         model.addAttribute("periods", options.getPeriods());
