@@ -563,8 +563,11 @@ public class UserManagementService {
     }
 
     private static boolean matchesDirectoryRole(UserEntity user, String roleCode) {
-        if ("LECTURER".equalsIgnoreCase(roleCode)) {
+        if ("LECTURER_DIRECTORY".equalsIgnoreCase(roleCode)) {
             return hasActiveRole(user, "LECTURER") || hasActiveRole(user, "FACULTY_HEAD");
+        }
+        if ("LECTURER".equalsIgnoreCase(roleCode)) {
+            return hasActiveRole(user, "LECTURER");
         }
         return hasActiveRole(user, roleCode);
     }

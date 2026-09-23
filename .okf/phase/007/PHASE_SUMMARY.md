@@ -91,3 +91,13 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/26
 - Sort and pagination links preserve all directory parameters, and empty
   filtered results use the shared `fragments/no-data` state without topic
   action menus or assignment modals.
+- The shared admin user directory keeps department, role and status filters
+  readable with a minimum filter width, and renders the shared `No data` state
+  only when the current lecturer/student result set is empty.
+- Verification: browser smoke on `/admin/lecturers` confirmed normal results
+  show the table without `No data`, while a non-matching status/search query
+  shows only the empty state. Maven package verification was unavailable
+  because Maven Central access is blocked in the environment.
+- The lecturer directory uses a distinct broad capability scope for its
+  default view (`LECTURER_DIRECTORY` = `LECTURER` or `FACULTY_HEAD`); explicit
+  `LECTURER` and `FACULTY_HEAD` filters are exact-role filters.

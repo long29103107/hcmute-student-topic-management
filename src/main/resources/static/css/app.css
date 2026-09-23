@@ -96,6 +96,11 @@
         margin-inline-start: auto;
     }
 
+    [data-user-directory] .user-directory-filter {
+        min-width: 8.5rem;
+        flex-shrink: 0;
+    }
+
     .ui-info-tooltip-content {
         position: absolute;
         z-index: 30;
@@ -162,6 +167,11 @@
 
         .faculty-department-search {
             margin-inline-start: 0;
+        }
+
+        [data-user-directory] .user-directory-filter {
+            min-width: 0;
+            width: 100%;
         }
     }
 

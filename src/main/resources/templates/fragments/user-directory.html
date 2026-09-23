@@ -107,12 +107,12 @@
               
               <!-- Dropdown lọc theo Khoa (Department) -->
               <label
-                class="relative block min-w-0 sm:w-52 sm:shrink-0"
+                class="user-directory-filter relative block min-w-0 sm:w-52 sm:shrink-0"
                 for="user-department-filter"
               >
                 <span class="sr-only">Filter by department</span>
                 <select
-                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
+                  class="block w-full min-w-[8.5rem] whitespace-nowrap rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
                   id="user-department-filter"
                   name="departmentId"
                 >
@@ -130,13 +130,13 @@
 
               <!-- Dropdown lọc theo Vai trò (Role) - Bổ sung mới cho Issue #27 -->
               <label
-                class="relative block min-w-0 sm:w-44 sm:shrink-0"
+                class="user-directory-filter relative block min-w-0 sm:w-64 sm:shrink-0"
                 for="user-role-filter"
                 th:if="${userDirectoryTitle == 'Lecturer accounts'}"
               >
                 <span class="sr-only">Filter by role</span>
                 <select
-                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
+                  class="block w-full min-w-[8.5rem] whitespace-nowrap rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
                   id="user-role-filter"
                   name="role"
                 >
@@ -148,12 +148,12 @@
 
               <!-- Dropdown lọc theo Trạng thái (Status) -->
               <label
-                class="relative block min-w-0 sm:w-44 sm:shrink-0"
+                class="user-directory-filter relative block min-w-0 sm:w-64 sm:shrink-0"
                 for="user-status-filter"
               >
                 <span class="sr-only">Filter by status</span>
                 <select
-                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
+                  class="block w-full min-w-[8.5rem] whitespace-nowrap rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
                   id="user-status-filter"
                   name="status"
                 >
@@ -418,7 +418,7 @@
               </tbody>
             </table>
           </div>
-          <th:block th:if="${!#lists.isEmpty(users)}">
+          <th:block th:if="${#lists.isEmpty(users)}">
             <div th:replace="~{fragments/no-data :: noData}"></div>
           </th:block>
           <div

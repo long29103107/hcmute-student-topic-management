@@ -46,8 +46,9 @@ public class LecturerManagementController {
             @RequestParam(required = false) Long departmentId,
             @RequestParam(required = false) String role,
             @RequestParam(defaultValue = "") String status, Model model) {
-        // Truyền role cụ thể (nếu có) hoặc mặc định là "LECTURER" để lấy chung nhóm giảng viên/faculty head
-        String targetRole = StringUtils.hasText(role) ? role : "LECTURER";
+        // The directory includes both lecturer capabilities, while an explicit role
+        // filter must match that role exactly.
+        String targetRole = StringUtils.hasText(role) ? role : "LECTURER_DIRECTORY";
         UserManagementService.UserDirectoryPage directory = service.listUsersPage(
                 targetRole, search, departmentId, status, page, size, sort, direction);
         
@@ -76,7 +77,7 @@ public class LecturerManagementController {
             bindingResult.rejectValue("emailOrCode", "email.required", "Email is required for a lecturer.");
         }
         if (bindingResult.hasErrors()) {
-            populateDirectory(model, service.listUsersPage("LECTURER", "", null, "", 0, 20, "account", "asc"), "", null, "", "");
+            populateDirectory(model, service.listUsersPage("LECTURER_DIRECTORY", "", null, "", 0, 20, "account", "asc"), "", null, "", "");
             model.addAttribute("lecturerForm", form);
             model.addAttribute("createForm", form);
             model.addAttribute("createFormName", "lecturerForm");
@@ -109,7 +110,7 @@ public class LecturerManagementController {
     public String delete(@PathVariable Long id, org.springframework.security.core.Authentication authentication,
             RedirectAttributes redirectAttributes) {
         try {
-            service.deleteUser(id, authentication.getName(), "LECTURER");
+            service.deleteUser(id, authentication.getName(), "LECTURER_DIRECTORY");
             redirectAttributes.addFlashAttribute("successMessage", "Lecturer account deleted successfully.");
         } catch (UserManagementService.UserValidationException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
