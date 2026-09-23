@@ -42,13 +42,37 @@
           aria-labelledby="results-heading"
         >
           <div
-            class="flex flex-col justify-between gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:justify-end sm:p-6"
+            class="flex flex-col justify-end gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:justify-end sm:p-6"
+            style="align-items: flex-end"
           >
             <form
               class="flex w-fit max-w-full gap-2"
               th:action="@{/faculty/results}"
               method="get"
             >
+              <!-- Sử dụng toán tử an toàn để tránh lỗi Null Pointer từ Backend -->
+              <input type="hidden" name="page" value="0" />
+              <input type="hidden" name="size" th:value="${resultPage?.size ?: 20}" />
+              <input type="hidden" name="sort" th:value="${resultPage?.sort ?: 'group'}" />
+              <input type="hidden" name="direction" th:value="${resultPage?.direction ?: 'asc'}" />
+
+              <!-- Dropdown lọc Khoa -->
+              <select name="departmentId" class="block rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 w-44">
+                  <option value="">All departments</option>
+                  <option th:each="dept : ${departments}" 
+                          th:value="${dept.id}" 
+                          th:text="${dept.name}" 
+                          th:selected="${dept.id == departmentId}"></option>
+              </select>
+
+              <!-- Dropdown lọc Trạng thái -->
+              <select name="status" class="block rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 w-44">
+                  <option value="">All statuses</option>
+                  <option value="NOT_CREATED" th:selected="${status == 'NOT_CREATED'}">Waiting for scores</option>
+                  <option value="READY" th:selected="${status == 'READY'}">Ready to publish</option>
+                  <option value="PUBLISHED" th:selected="${status == 'PUBLISHED'}">Published</option>
+              </select>
+
               <label class="relative block w-80 max-w-full flex-none" for="result-search">
                 <span class="sr-only">Search results</span>
                 <input
@@ -58,12 +82,12 @@
                   placeholder="Search results"
                   autocomplete="off"
                   th:value="${resultSearch}"
-                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm"
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm focus:border-blue-500 focus:ring-blue-500"
                 />
               </label>
               <button
                 type="submit"
-                class="shrink-0 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800"
+                class="shrink-0 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
               >
                 Search
               </button>
@@ -73,11 +97,35 @@
             <table class="w-full min-w-[980px] text-left text-sm text-gray-600">
               <thead class="bg-gray-50 text-xs uppercase text-gray-700">
                 <tr>
-                  <th scope="col" class="px-6 py-3">Group / topic</th>
-                  <th scope="col" class="px-6 py-3">Department / period</th>
+                  <th scope="col" class="px-6 py-3">
+                    <a class="inline-flex items-center gap-1 hover:text-blue-700"
+                       th:href="@{/faculty/results(page=0,size=${resultPage?.size ?: 20},sort='group',direction=${resultPage?.sort == 'group' and resultPage?.direction == 'asc' ? 'desc' : 'asc'},search=${resultSearch},departmentId=${departmentId},status=${status})}">
+                      Group / topic
+                      <span th:text="${resultPage?.sort == 'group' ? (resultPage?.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a class="inline-flex items-center gap-1 hover:text-blue-700"
+                       th:href="@{/faculty/results(page=0,size=${resultPage?.size ?: 20},sort='department',direction=${resultPage?.sort == 'department' and resultPage?.direction == 'asc' ? 'desc' : 'asc'},search=${resultSearch},departmentId=${departmentId},status=${status})}">
+                      Department / period
+                      <span th:text="${resultPage?.sort == 'department' ? (resultPage?.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
                   <th scope="col" class="px-6 py-3">Evaluations</th>
-                  <th scope="col" class="px-6 py-3">Average</th>
-                  <th scope="col" class="px-6 py-3">Status</th>
+                  <th scope="col" class="px-6 py-3">
+                    <a class="inline-flex items-center gap-1 hover:text-blue-700"
+                       th:href="@{/faculty/results(page=0,size=${resultPage?.size ?: 20},sort='score',direction=${resultPage?.sort == 'score' and resultPage?.direction == 'asc' ? 'desc' : 'asc'},search=${resultSearch},departmentId=${departmentId},status=${status})}">
+                      Average
+                      <span th:text="${resultPage?.sort == 'score' ? (resultPage?.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a class="inline-flex items-center gap-1 hover:text-blue-700"
+                       th:href="@{/faculty/results(page=0,size=${resultPage?.size ?: 20},sort='status',direction=${resultPage?.sort == 'status' and resultPage?.direction == 'asc' ? 'desc' : 'asc'},search=${resultSearch},departmentId=${departmentId},status=${status})}">
+                      Status
+                      <span th:text="${resultPage?.sort == 'status' ? (resultPage?.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
                   <th scope="col" class="px-6 py-3">
                     <span class="sr-only">Actions</span>
                   </th>
@@ -162,7 +210,7 @@
                       />
                       <button
                         type="submit"
-                        class="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                        class="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-300"
                       >
                         Publish result
                       </button>
@@ -182,8 +230,43 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Phân trang -->
           <div
-            class="flex flex-col items-center justify-center px-6 py-14 text-center"
+            class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between"
+            th:if="${resultPage != null and resultPage.totalItems > 0}"
+          >
+            <p class="text-gray-500">
+              Showing
+              <span class="font-medium text-gray-900" th:text="${resultPage.page * resultPage.size + 1}">1</span>–<span class="font-medium text-gray-900" th:text="${resultPage.page * resultPage.size + #lists.size(results)}">10</span>
+              of
+              <span class="font-medium text-gray-900" th:text="${resultPage.totalItems}">10</span>
+            </p>
+            <nav aria-label="Pagination" th:if="${resultPage.totalPages > 1}">
+              <ul class="inline-flex -space-x-px">
+                <li>
+                  <a class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                     th:classappend="${!resultPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
+                     th:href="@{/faculty/results(page=${resultPage.page - 1},size=${resultPage.size},sort=${resultPage.sort},direction=${resultPage.direction},search=${resultSearch},departmentId=${departmentId},status=${status})}">Previous</a>
+                </li>
+                <li th:each="pageNumber : ${#numbers.sequence(0, resultPage.totalPages - 1)}">
+                  <a class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                     th:classappend="${pageNumber == resultPage.page ? 'bg-blue-50 text-blue-700' : ''}"
+                     th:href="@{/faculty/results(page=${pageNumber},size=${resultPage.size},sort=${resultPage.sort},direction=${resultPage.direction},search=${resultSearch},departmentId=${departmentId},status=${status})}"
+                     th:text="${pageNumber + 1}">1</a>
+                </li>
+                <li>
+                  <a class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
+                     th:classappend="${!resultPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
+                     th:href="@{/faculty/results(page=${resultPage.page + 1},size=${resultPage.size},sort=${resultPage.sort},direction=${resultPage.direction},search=${resultSearch},departmentId=${departmentId},status=${status})}">Next</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+
+          <!-- Empty state -->
+          <div
+            class="flex flex-col items-center justify-center px-6 py-14 text-center border-t border-gray-100"
             th:if="${#lists.isEmpty(results)}"
           >
             <div
@@ -205,12 +288,17 @@
                 />
               </svg>
             </div>
-            <h3 class="text-base font-semibold text-gray-900">
+            <h3 class="text-base font-semibold text-gray-900" 
+                th:text="${#strings.isEmpty(resultSearch) and departmentId == null and #strings.isEmpty(status) ? 'No approved registrations' : 'No matching results'}">
               No approved registrations
             </h3>
-            <p class="mt-1 max-w-sm text-sm leading-6 text-gray-500">
+            <p class="mt-1 max-w-sm text-sm leading-6 text-gray-500"
+               th:text="${#strings.isEmpty(resultSearch) and departmentId == null and #strings.isEmpty(status) ? 'Approved registrations in your publication scope will appear here.' : 'Try another keyword or clear the search and filters.'}">
               Approved registrations in your publication scope will appear here.
             </p>
+            <a class="mt-4 text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline"
+               th:if="${!#strings.isEmpty(resultSearch) or departmentId != null or !#strings.isEmpty(status)}"
+               th:href="@{/faculty/results}">Clear search and filters</a>
           </div>
         </section>
       </section>

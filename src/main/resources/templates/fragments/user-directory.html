@@ -83,7 +83,7 @@
         >
           <div class="border-b border-gray-200 p-5 sm:p-6">
             <form
-              class="flex w-full flex-col gap-2 justify-end sm:flex-row sm:items-center"
+              class="flex w-full flex-col gap-3 justify-end sm:flex-row sm:items-center"
               th:action="${directoryPath}"
               method="get"
               data-user-search-form
@@ -104,8 +104,10 @@
                 name="direction"
                 th:value="${directoryPage.direction}"
               />
+              
+              <!-- Dropdown lọc theo Khoa (Department) -->
               <label
-                class="relative block min-w-0 sm:w-64 sm:shrink-0"
+                class="relative block min-w-0 sm:w-52 sm:shrink-0"
                 for="user-department-filter"
               >
                 <span class="sr-only">Filter by department</span>
@@ -118,15 +120,35 @@
                   <option
                     th:each="department : ${departments}"
                     th:value="${department.id}"
-                    th:selected="${directoryPage.departmentId != null and directoryPage.departmentId == department.id}"
+                    th:selected="${selectedDepartmentId != null and selectedDepartmentId == department.id}"
                     th:text="${department.code + ' · ' + department.name}"
                   >
                     CNTT · Information Technology
                   </option>
                 </select>
               </label>
+
+              <!-- Dropdown lọc theo Vai trò (Role) - Bổ sung mới cho Issue #27 -->
               <label
-                class="relative block min-w-0 sm:w-64 sm:shrink-0"
+                class="relative block min-w-0 sm:w-44 sm:shrink-0"
+                for="user-role-filter"
+                th:if="${userDirectoryTitle == 'Lecturer accounts'}"
+              >
+                <span class="sr-only">Filter by role</span>
+                <select
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
+                  id="user-role-filter"
+                  name="role"
+                >
+                  <option value="" th:selected="${selectedRole == '' or selectedRole == null}">All roles</option>
+                  <option value="LECTURER" th:selected="${selectedRole == 'LECTURER'}">Lecturer</option>
+                  <option value="FACULTY_HEAD" th:selected="${selectedRole == 'FACULTY_HEAD'}">Faculty Head</option>
+                </select>
+              </label>
+
+              <!-- Dropdown lọc theo Trạng thái (Status) -->
+              <label
+                class="relative block min-w-0 sm:w-44 sm:shrink-0"
                 for="user-status-filter"
               >
                 <span class="sr-only">Filter by status</span>
@@ -135,26 +157,28 @@
                   id="user-status-filter"
                   name="status"
                 >
-                  <option value="" th:selected="${directoryPage.status == ''}">
+                  <option value="" th:selected="${selectedStatus == '' or selectedStatus == null}">
                     All statuses
                   </option>
                   <option
                     value="ACTIVE"
-                    th:selected="${directoryPage.status == 'ACTIVE'}"
+                    th:selected="${selectedStatus == 'ACTIVE'}"
                   >
                     Active
                   </option>
                   <option
                     value="LOCKED"
-                    th:selected="${directoryPage.status == 'LOCKED'}"
+                    th:selected="${selectedStatus == 'LOCKED'}"
                   >
                     Locked
                   </option>
                 </select>
               </label>
+
+              <!-- Ô tìm kiếm và nút Search -->
               <div class="flex w-full shrink-0 justify-end gap-2 sm:w-auto">
                 <label
-                  class="relative block w-full flex-none sm:w-80"
+                  class="relative block w-full flex-none sm:w-64"
                   for="user-search"
                 >
                   <span class="sr-only">Search accounts</span>
@@ -190,7 +214,7 @@
                   <th class="px-6 py-3" scope="col">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='account',direction=${directoryPage.sort == 'account' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch},departmentId=${directoryPage.departmentId},status=${directoryPage.status})}"
+                      th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='account',direction=${directoryPage.sort == 'account' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch},departmentId=${selectedDepartmentId},role=${selectedRole},status=${selectedStatus})}"
                       >Account
                       <span
                         th:text="${directoryPage.sort == 'account' ? (directoryPage.direction == 'asc' ? '↑' : '↓') : '↕'}"
@@ -205,7 +229,7 @@
                   >
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='studentCode',direction=${directoryPage.sort == 'studentCode' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch},departmentId=${directoryPage.departmentId},status=${directoryPage.status})}"
+                      th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='studentCode',direction=${directoryPage.sort == 'studentCode' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch},departmentId=${selectedDepartmentId},role=${selectedRole},status=${selectedStatus})}"
                       >MSSV
                       <span
                         th:text="${directoryPage.sort == 'studentCode' ? (directoryPage.direction == 'asc' ? '↑' : '↓') : '↕'}"
@@ -216,7 +240,7 @@
                   <th class="px-6 py-3" scope="col">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='department',direction=${directoryPage.sort == 'department' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch},departmentId=${directoryPage.departmentId},status=${directoryPage.status})}"
+                      th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='department',direction=${directoryPage.sort == 'department' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch},departmentId=${selectedDepartmentId},role=${selectedRole},status=${selectedStatus})}"
                       >Department
                       <span
                         th:text="${directoryPage.sort == 'department' ? (directoryPage.direction == 'asc' ? '↑' : '↓') : '↕'}"
@@ -231,7 +255,7 @@
                   >
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='roles',direction=${directoryPage.sort == 'roles' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch},departmentId=${directoryPage.departmentId},status=${directoryPage.status})}"
+                      th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='roles',direction=${directoryPage.sort == 'roles' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch},departmentId=${selectedDepartmentId},role=${selectedRole},status=${selectedStatus})}"
                       >Roles
                       <span
                         th:text="${directoryPage.sort == 'roles' ? (directoryPage.direction == 'asc' ? '↑' : '↓') : '↕'}"
@@ -242,7 +266,7 @@
                   <th class="px-6 py-3" scope="col">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='status',direction=${directoryPage.sort == 'status' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch},departmentId=${directoryPage.departmentId},status=${directoryPage.status})}"
+                      th:href="@{${directoryPath}(page=0,size=${directoryPage.size},sort='status',direction=${directoryPage.sort == 'status' and directoryPage.direction == 'asc' ? 'desc' : 'asc'},search=${directorySearch},departmentId=${selectedDepartmentId},role=${selectedRole},status=${selectedStatus})}"
                       >Status
                       <span
                         th:text="${directoryPage.sort == 'status' ? (directoryPage.direction == 'asc' ? '↑' : '↓') : '↕'}"
@@ -394,7 +418,7 @@
               </tbody>
             </table>
           </div>
-          <th:block th:if="${#lists.isEmpty(users)}">
+          <th:block th:if="${!#lists.isEmpty(users)}">
             <div th:replace="~{fragments/no-data :: noData}"></div>
           </th:block>
           <div
@@ -425,7 +449,7 @@
                   <a
                     class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${!directoryPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
-                    th:href="@{${directoryPath}(page=${directoryPage.page - 1},size=${directoryPage.size},sort=${directoryPage.sort},direction=${directoryPage.direction},search=${directorySearch},departmentId=${directoryPage.departmentId},status=${directoryPage.status})}"
+                    th:href="@{${directoryPath}(page=${directoryPage.page - 1},size=${directoryPage.size},sort=${directoryPage.sort},direction=${directoryPage.direction},search=${directorySearch},departmentId=${selectedDepartmentId},role=${selectedRole},status=${selectedStatus})}"
                     >Previous</a
                   >
                 </li>
@@ -435,7 +459,7 @@
                   <a
                     class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${pageNumber == directoryPage.page ? 'bg-blue-50 text-blue-700' : ''}"
-                    th:href="@{${directoryPath}(page=${pageNumber},size=${directoryPage.size},sort=${directoryPage.sort},direction=${directoryPage.direction},search=${directorySearch},departmentId=${directoryPage.departmentId},status=${directoryPage.status})}"
+                    th:href="@{${directoryPath}(page=${pageNumber},size=${directoryPage.size},sort=${directoryPage.sort},direction=${directoryPage.direction},search=${directorySearch},departmentId=${selectedDepartmentId},role=${selectedRole},status=${selectedStatus})}"
                     th:text="${pageNumber + 1}"
                     >1</a
                   >
@@ -444,7 +468,7 @@
                   <a
                     class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${!directoryPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
-                    th:href="@{${directoryPath}(page=${directoryPage.page + 1},size=${directoryPage.size},sort=${directoryPage.sort},direction=${directoryPage.direction},search=${directorySearch},departmentId=${directoryPage.departmentId},status=${directoryPage.status})}"
+                    th:href="@{${directoryPath}(page=${directoryPage.page + 1},size=${directoryPage.size},sort=${directoryPage.sort},direction=${directoryPage.direction},search=${directorySearch},departmentId=${selectedDepartmentId},role=${selectedRole},status=${selectedStatus})}"
                     >Next</a
                   >
                 </li>

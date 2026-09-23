@@ -64,7 +64,7 @@ class ReportServiceStorageFailureTest {
 
         ReportService reportService = new ReportService(
                 reportRepository, registrationRepository, userRepository, reportStorage,
-                new ReportUploadProperties("target/test-report-storage-unit", 100, "application/pdf"));
+               new ReportUploadProperties("target/test-report-storage-unit", 1000L, 100, "application/pdf"));
 
         assertThatThrownBy(() -> reportService.upload(
                 "leader@student.hcmute.edu.vn", 3L, 15L, 4L,
