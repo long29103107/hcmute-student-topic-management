@@ -140,3 +140,38 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/26
   prevents flex shrinking so `All statuses` and its native arrow remain readable.
 - Verification: browser smoke confirmed the widened filter on the department
   management page; `mvn.cmd -B -DskipTests compile` and `git diff --check` passed.
+- `/faculty/boards` now renders the department/status/sort/direction filter form
+  inside the review-board card header, with the controls aligned to the right
+  beside the card content instead of in a separate panel.
+- Verification: browser smoke confirmed the filters appear inside the Review
+  boards card and remain right-aligned; `mvn.cmd -B -DskipTests compile` and
+  `git diff --check` passed.
+- `/faculty/boards` now uses a flat, sortable directory table for groups,
+  topics, department/period, scheduled time and status. The filter row is
+  limited to department, status, keyword search and Search; search matches the
+  board's group/topic/department/period/status and active member details.
+- Board pagination and sort links preserve all active filters, while the
+  existing Admin/Faculty Head department scope and board action controls remain
+  server-authorized.
+- Verification: `ReviewBoardControllerTest` passed 11/11, Maven compile passed,
+  browser smoke confirmed the flat table, header sort links and compact filter
+  row, and `git diff --check` passed.
+- The Review board edit modal footer now spans the full form width so Cancel and
+  Save changes are aligned to the right edge of the modal.
+- Verification: browser smoke opened the Edit review board modal and confirmed
+  the right-aligned actions; `mvn.cmd -B -DskipTests compile` and
+  `git diff --check` passed.
+- The Review boards status select now uses a fixed wider, non-shrinking width
+  (`w-44`) so `All statuses` and its native arrow remain readable.
+- Verification: browser smoke confirmed the wider status filter; Maven compile
+  and `git diff --check` passed.
+- The Review board Edit form now closes the Chair/Secretary field group before
+  its full-width footer, matching the Create form with normal-height actions
+  aligned to the right.
+- Verification: the template structure was rechecked, Maven compile passed,
+  and `git diff --check` passed.
+- Follow-up fix: replaced the unsupported `col-span-full` utility with the
+  generated `sm:col-span-2` utility, so the Edit footer spans both form columns
+  at the same breakpoint as the form grid.
+- Verification: browser smoke confirmed the divider spans the full modal and
+  the actions match the Create form; Maven compile and `git diff --check` passed.

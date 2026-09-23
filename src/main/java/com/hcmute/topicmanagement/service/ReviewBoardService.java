@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.Locale;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -78,12 +77,14 @@ public class ReviewBoardService {
             int size,
             Long departmentId,
             String status,
+            String search,
             String sort,
             String direction) {
 
         UserEntity actor = findActiveActor(actorEmail);
 
         String normalizedStatus = normalizeFilterStatus(status);
+        String normalizedSearch = normalizeSearch(search);
         String normalizedSort = normalizeSort(sort);
         String normalizedDirection = normalizeDirection(direction);
 
@@ -106,6 +107,7 @@ public class ReviewBoardService {
                                 normalizedSort,
                                 normalizedDirection))
                         .map(this::toSummary)
+                        .filter(board -> matchesSearch(board, normalizedSearch))
                         .toList();
 
         int safeSize = safeSize(size);
@@ -161,11 +163,16 @@ public class ReviewBoardService {
                 totalPages,
                 departmentId,
                 normalizedStatus,
+                search == null ? "" : search.trim(),
                 normalizedSort,
                 normalizedDirection);
     }
 
     private static boolean matchesSearch(ReviewBoardSummary board, String search) {
+        if (search.isBlank()) {
+            return true;
+        }
+
         return contains(board.topicTitle(), search)
                 || contains(board.groupName(), search)
                 || contains(board.departmentCode(), search)
@@ -878,6 +885,12 @@ public class ReviewBoardService {
         }
     }
 
+    private static String normalizeSearch(String search) {
+        return search == null
+                ? ""
+                : search.trim().toLowerCase(Locale.ROOT);
+    }
+
     private static int safeSize(
             int size) {
 
@@ -1018,6 +1031,7 @@ public class ReviewBoardService {
 
         private final Long departmentId;
         private final String status;
+        private final String search;
         private final String sort;
         private final String direction;
 
@@ -1033,6 +1047,7 @@ public class ReviewBoardService {
                 int totalPages,
                 Long departmentId,
                 String status,
+                String search,
                 String sort,
                 String direction) {
 
@@ -1049,6 +1064,7 @@ public class ReviewBoardService {
 
             this.departmentId = departmentId;
             this.status = status == null ? "" : status;
+            this.search = search == null ? "" : search;
             this.sort = sort == null ? "scheduled" : sort;
             this.direction = direction == null ? "asc" : direction;
         }
@@ -1096,6 +1112,10 @@ public class ReviewBoardService {
 
         public String getStatus() {
             return status;
+        }
+
+        public String getSearch() {
+            return search;
         }
 
         public String getSort() {

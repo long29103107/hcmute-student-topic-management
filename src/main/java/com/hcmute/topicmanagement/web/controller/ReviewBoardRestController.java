@@ -37,6 +37,7 @@ public class ReviewBoardRestController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Long departmentId,
             @RequestParam(defaultValue = "") String status,
+            @RequestParam(defaultValue = "") String search,
             @RequestParam(defaultValue = "scheduled") String sort,
             @RequestParam(defaultValue = "asc") String direction) {
 
@@ -46,6 +47,7 @@ public class ReviewBoardRestController {
                 size,
                 departmentId,
                 status,
+                search,
                 sort,
                 direction);
     }

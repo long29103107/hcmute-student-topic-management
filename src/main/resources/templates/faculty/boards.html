@@ -31,11 +31,6 @@
             >
               Review boards
             </h1>
-
-            <p class="mt-3 max-w-3xl text-sm leading-6 text-gray-500">
-              Create one board for each approved registration and assign 3–5
-              lecturers with exactly one Chair and one Secretary.
-            </p>
           </div>
 
           <div class="flex flex-wrap items-center gap-3">
@@ -56,20 +51,6 @@
               Create board
             </button>
           </div>
-        </div>
-
-        <!-- Information -->
-        <div
-          class="mb-6 flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-5 text-blue-900"
-          role="status"
-        >
-          <span class="mt-0.5 text-blue-600">ⓘ</span>
-
-          <span>
-            Only approved registrations in your management scope are available.
-            Topic supervisors and lecturers outside the topic department are
-            rejected by the server.
-          </span>
         </div>
 
         <!-- ========================================================= -->
@@ -99,10 +80,6 @@
                   >
                     Create review board
                   </h2>
-<<<<<<< HEAD
-
-=======
->>>>>>> main
                   <p
                     id="create-board-modal-description"
                     class="mt-1 text-sm text-gray-500"
@@ -318,14 +295,24 @@
         <!-- FILTER + SORT -->
         <!-- ========================================================= -->
 
-        <form
-          id="board-filters"
-          action="/faculty/boards#board-filters"
-          method="get"
-          class="mb-6 flex w-full flex-col gap-2 justify-end sm:flex-row sm:flex-wrap sm:items-center rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+        <section
+          class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+          aria-labelledby="boards-heading"
         >
+          <!-- Section header and filters -->
+          <div
+            class="flex flex-col justify-end gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:justify-end sm:p-6"
+          >
+            <form
+              id="board-filters"
+              action="/faculty/boards#board-filters"
+              method="get"
+              class="flex w-full flex-wrap justify-end gap-2"
+            >
           <input type="hidden" name="page" value="0" />
           <input type="hidden" name="size" value="10" />
+          <input type="hidden" name="sort" th:value="${boardPage.sort}" />
+          <input type="hidden" name="direction" th:value="${boardPage.direction}" />
 
           <!-- Department -->
           <label class="sr-only" for="department-filter">
@@ -357,7 +344,7 @@
           <select
             id="status-filter"
             name="status"
-            class="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+            class="w-44 flex-none rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
           >
             <option
               value=""
@@ -376,118 +363,175 @@
               ACTIVE
             </option>
           </select>
-          <!-- Sort -->
-          <label class="sr-only" for="sort-filter">Sort by</label>
-          <select
-            id="sort-filter"
-            name="sort"
-            class="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+          <!-- Search -->
+          <label class="relative block w-full flex-none sm:w-80" for="board-search">
+            <span class="sr-only">Search boards</span>
+            <input
+              id="board-search"
+              name="search"
+              type="search"
+              placeholder="Search boards"
+              autocomplete="off"
+              th:value="${boardPage.search}"
+              class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+            />
+          </label>
+
+          <button
+            type="submit"
+            class="shrink-0 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
           >
-            <option value="topic" th:selected="${boardPage.sort == 'topic'}">
-              Topic
-            </option>
-
-            <option value="group" th:selected="${boardPage.sort == 'group'}">
-              Group
-            </option>
-
-            <option
-              value="department"
-              th:selected="${boardPage.sort == 'department'}"
-            >
-              Department
-            </option>
-
-            <option value="period" th:selected="${boardPage.sort == 'period'}">
-              Registration period
-            </option>
-
-            <option
-              value="scheduled"
-              th:selected="${boardPage.sort == 'scheduled'}"
-            >
-              Scheduled time
-            </option>
-
-            <option value="status" th:selected="${boardPage.sort == 'status'}">
-              Status
-            </option>
-          </select>
-
-          <!-- Direction -->
-          <label class="sr-only" for="direction-filter">Direction</label>
-          <select
-            id="direction-filter"
-            name="direction"
-            class="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-          >
-            <option value="asc" th:selected="${boardPage.direction == 'asc'}">
-              Ascending
-            </option>
-
-            <option value="desc" th:selected="${boardPage.direction == 'desc'}">
-              Descending
-            </option>
-          </select>
-
-          <!-- Action Buttons (Reset & Apply filters) -->
-          <div
-            class="flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto"
-          >
-            <a
-              href="/faculty/boards?size=10"
-              class="inline-flex shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-4 focus:ring-gray-100"
-            >
-              Reset
-            </a>
-
-            <button
-              type="submit"
-              class="shrink-0 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
-            >
-              Apply filters
-            </button>
+            Search
+          </button>
+            </form>
           </div>
-        </form>
         <!-- ========================================================= -->
         <!-- BOARDS -->
         <!-- ========================================================= -->
 
-        <section
-          class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
-          aria-labelledby="boards-heading"
-        >
-          <!-- Section header -->
-          <div
-            class="flex flex-col justify-between gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-end sm:p-6"
-          >
-            <div>
-              <p
-                class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500"
-              >
-                Assignment queue
-              </p>
-
-              <h2
-                id="boards-heading"
-                class="text-xl font-semibold text-gray-900"
-              >
-                Managed boards
-              </h2>
-            </div>
-
-            <span
-              class="text-sm text-gray-500"
-              th:text="${boardPage.totalItems + ' boards'}"
-            >
-              0 boards
-            </span>
+          <!-- Flat board directory -->
+          <div class="overflow-x-auto" th:if="${!#lists.isEmpty(boards)}">
+            <table class="w-full min-w-[1180px] text-left text-sm text-gray-600">
+              <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                <tr>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/faculty/boards(page=0,size=${boardPage.size},sort='group',direction=${boardPage.sort == 'group' and boardPage.direction == 'asc' ? 'desc' : 'asc'},search=${boardPage.search},departmentId=${boardPage.departmentId},status=${boardPage.status})}"
+                    >
+                      Group
+                      <span th:text="${boardPage.sort == 'group' ? (boardPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/faculty/boards(page=0,size=${boardPage.size},sort='topic',direction=${boardPage.sort == 'topic' and boardPage.direction == 'asc' ? 'desc' : 'asc'},search=${boardPage.search},departmentId=${boardPage.departmentId},status=${boardPage.status})}"
+                    >
+                      Topic
+                      <span th:text="${boardPage.sort == 'topic' ? (boardPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/faculty/boards(page=0,size=${boardPage.size},sort='department',direction=${boardPage.sort == 'department' and boardPage.direction == 'asc' ? 'desc' : 'asc'},search=${boardPage.search},departmentId=${boardPage.departmentId},status=${boardPage.status})}"
+                    >
+                      Department / period
+                      <span th:text="${boardPage.sort == 'department' ? (boardPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">Members</th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/faculty/boards(page=0,size=${boardPage.size},sort='scheduled',direction=${boardPage.sort == 'scheduled' and boardPage.direction == 'asc' ? 'desc' : 'asc'},search=${boardPage.search},departmentId=${boardPage.departmentId},status=${boardPage.status})}"
+                    >
+                      Scheduled
+                      <span th:text="${boardPage.sort == 'scheduled' ? (boardPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <a
+                      class="inline-flex items-center gap-1 hover:text-blue-700"
+                      th:href="@{/faculty/boards(page=0,size=${boardPage.size},sort='status',direction=${boardPage.sort == 'status' and boardPage.direction == 'asc' ? 'desc' : 'asc'},search=${boardPage.search},departmentId=${boardPage.departmentId},status=${boardPage.status})}"
+                    >
+                      Status
+                      <span th:text="${boardPage.sort == 'status' ? (boardPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
+                    </a>
+                  </th>
+                  <th scope="col" class="px-6 py-3">
+                    <span class="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  th:each="board : ${boards}"
+                  class="border-b border-gray-100 align-top hover:bg-gray-50"
+                >
+                  <td class="px-6 py-4">
+                    <span class="font-semibold text-gray-900" th:text="${board.groupName}">Group Phoenix</span>
+                    <span class="mt-1 block text-xs text-gray-500" th:text="${'Registration #' + board.registrationId}">Registration #1</span>
+                  </td>
+                  <td class="max-w-sm px-6 py-4">
+                    <span class="font-medium text-gray-900" th:text="${board.topicTitle}">Topic title</span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="block font-medium text-gray-900" th:text="${board.departmentCode + ' · ' + board.departmentName}">CNTT · Công nghệ thông tin</span>
+                    <span class="mt-1 block text-xs text-gray-500" th:text="${board.periodName}">Registration period</span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <ul class="space-y-1">
+                      <li th:each="member : ${board.members}" th:if="${member.active}">
+                        <span class="mr-1 text-xs font-semibold uppercase text-gray-400" th:text="${member.role}">CHAIR</span>
+                        <span class="font-medium text-gray-900" th:text="${member.fullName}">Lecturer</span>
+                      </li>
+                    </ul>
+                  </td>
+                  <td class="whitespace-nowrap px-6 py-4">
+                    <span th:if="${board.scheduledAt != null}" th:text="${#temporals.format(board.scheduledAt, 'dd/MM/yyyy HH:mm')}">21/09/2026 10:49</span>
+                    <span th:if="${board.scheduledAt == null}" class="text-gray-400">—</span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-800" th:text="${board.status}">ACTIVE</span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div
+                      sec:authorize="hasAuthority('REVIEW_BOARD_MANAGE')"
+                      class="relative flex justify-end"
+                    >
+                      <button
+                        type="button"
+                        class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100"
+                        th:id="${'board-actions-table-' + board.id}"
+                        th:attr="data-dropdown-toggle=${'board-actions-table-menu-' + board.id},aria-controls=${'board-actions-table-menu-' + board.id}"
+                        aria-haspopup="true"
+                        aria-label="Board actions"
+                      >
+                        <span aria-hidden="true">⋮</span>
+                      </button>
+                      <div
+                        class="z-10 hidden w-48 divide-y divide-gray-100 rounded-lg bg-white shadow"
+                        th:id="${'board-actions-table-menu-' + board.id}"
+                      >
+                        <ul class="py-2 text-sm text-gray-700" th:attr="aria-labelledby=${'board-actions-table-' + board.id}">
+                          <li>
+                            <button
+                              type="button"
+                              th:attr="data-modal-target=${'edit-board-' + board.id},data-modal-toggle=${'edit-board-' + board.id}"
+                              class="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                            >
+                              Edit board
+                            </button>
+                          </li>
+                          <li th:if="${board.status == 'DRAFT' or board.status == 'ASSIGNED' or board.status == 'SCHEDULED'}">
+                            <form method="post" class="m-0" th:action="${'/faculty/boards/' + board.id + '/status'}">
+                              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                              <input type="hidden" name="status" value="ACTIVE" />
+                              <button type="submit" class="block w-full px-4 py-2 text-left text-blue-700 hover:bg-blue-50">Start board</button>
+                            </form>
+                          </li>
+                          <li th:if="${board.status == 'ACTIVE' or board.status == 'SCHEDULED'}">
+                            <form method="post" class="m-0" th:action="${'/faculty/boards/' + board.id + '/status'}">
+                              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                              <input type="hidden" name="status" value="COMPLETED" />
+                              <button type="submit" class="block w-full px-4 py-2 text-left hover:bg-gray-100">Complete</button>
+                            </form>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          <!-- Board list -->
+          <!-- Legacy card markup retained only as a non-rendered fallback while the table is canonical. -->
           <div
             class="divide-y divide-gray-100"
-            th:if="${!#lists.isEmpty(boards)}"
+            th:if="${false}"
           >
             <article th:each="board : ${boards}" class="p-5 sm:p-6">
               <div
@@ -745,6 +789,7 @@
                                     size=${boardPage.size},
                                     departmentId=${boardPage.departmentId},
                                     status=${boardPage.status},
+                                    search=${boardPage.search},
                                     sort=${boardPage.sort},
                                     direction=${boardPage.direction}
                                )}"
@@ -767,6 +812,7 @@
                                     size=${boardPage.size},
                                     departmentId=${boardPage.departmentId},
                                     status=${boardPage.status},
+                                    search=${boardPage.search},
                                     sort=${boardPage.sort},
                                     direction=${boardPage.direction}
                                )}"
@@ -786,6 +832,7 @@
                                     size=${boardPage.size},
                                     departmentId=${boardPage.departmentId},
                                     status=${boardPage.status},
+                                    search=${boardPage.search},
                                     sort=${boardPage.sort},
                                     direction=${boardPage.direction}
                                )}"
@@ -978,9 +1025,10 @@
                     </option>
                   </select>
                 </div>
+              </div>
 
-                <!-- Save -->
-                <div class="flex justify-end gap-3">
+              <!-- Save -->
+              <div class="flex w-full items-center justify-end gap-3 border-t border-gray-200 pt-5 sm:col-span-2">
                   <button
                     type="button"
                     th:attr="data-modal-hide=${'edit-board-' + board.id}"

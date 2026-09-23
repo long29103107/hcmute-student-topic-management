@@ -163,19 +163,17 @@ class ReviewBoardControllerTest {
                 .andExpect(content().string(
                         containsString("Status")))
                 .andExpect(content().string(
-                        containsString("Sort by")))
+                        containsString("Group")))
                 .andExpect(content().string(
-                        containsString("Ascending")))
+                        containsString("Topic")))
                 .andExpect(content().string(
-                        containsString("Descending")))
+                        containsString("Scheduled")))
                 .andExpect(content().string(
                         containsString("All departments")))
                 .andExpect(content().string(
                         containsString("All statuses")))
                 .andExpect(content().string(
-                        containsString("Apply filters")))
-                .andExpect(content().string(
-                        containsString("Reset")))
+                        containsString("Search boards")))
                 .andExpect(content().string(
                         containsString("Previous")))
                 .andExpect(content().string(
@@ -264,6 +262,22 @@ class ReviewBoardControllerTest {
                 .andExpect(jsonPath("$.status")
                         .value(boardStatus))
                 .andExpect(jsonPath("$.boards").isArray());
+    }
+
+    @Test
+    void searchFilterWorksForApi() throws Exception {
+
+        mockMvc.perform(
+                        get("/api/faculty/boards")
+                                .param("search", "Phoenix")
+                                .with(user(facultyHeadPrincipal(
+                                        CNTT_HEAD,
+                                        "REVIEW_BOARD_VIEW"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.search").value("Phoenix"))
+                .andExpect(jsonPath("$.totalItems").value(1))
+                .andExpect(jsonPath("$.boards[0].groupName")
+                        .value("Nhóm Phoenix"));
     }
 
     @Test
