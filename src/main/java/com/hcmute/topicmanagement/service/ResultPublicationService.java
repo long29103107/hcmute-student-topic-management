@@ -25,6 +25,7 @@ import com.hcmute.topicmanagement.model.enums.RegistrationResultStatus;
 import com.hcmute.topicmanagement.model.enums.ReviewBoardStatus;
 import com.hcmute.topicmanagement.model.enums.TopicRegistrationStatus;
 import com.hcmute.topicmanagement.repository.EvaluationRepository;
+import com.hcmute.topicmanagement.repository.DepartmentRepository;
 import com.hcmute.topicmanagement.repository.RegistrationResultRepository;
 import com.hcmute.topicmanagement.repository.ReviewBoardMemberRepository;
 import com.hcmute.topicmanagement.repository.ReviewBoardRepository;
@@ -41,6 +42,7 @@ public class ResultPublicationService {
     private final ReviewBoardRepository reviewBoardRepository;
     private final ReviewBoardMemberRepository reviewBoardMemberRepository;
     private final UserRepository userRepository;
+    private final DepartmentRepository departmentRepository;
     private final EvaluationScoreCalculator scoreCalculator;
 
     public ResultPublicationService(
@@ -50,6 +52,7 @@ public class ResultPublicationService {
             ReviewBoardRepository reviewBoardRepository,
             ReviewBoardMemberRepository reviewBoardMemberRepository,
             UserRepository userRepository,
+            DepartmentRepository departmentRepository,
             EvaluationScoreCalculator scoreCalculator) {
         this.topicRegistrationRepository = topicRegistrationRepository;
         this.evaluationRepository = evaluationRepository;
@@ -57,6 +60,7 @@ public class ResultPublicationService {
         this.reviewBoardRepository = reviewBoardRepository;
         this.reviewBoardMemberRepository = reviewBoardMemberRepository;
         this.userRepository = userRepository;
+        this.departmentRepository = departmentRepository;
         this.scoreCalculator = scoreCalculator;
     }
 
@@ -67,15 +71,128 @@ public class ResultPublicationService {
 
     @PreAuthorize("hasAuthority('REGISTRATION_REVIEW')")
     public PublicationPage listForPublication(String publisherEmail, String search) {
+        return listForPublication(publisherEmail, search, null);
+    }
+
+    @PreAuthorize("hasAuthority('REGISTRATION_REVIEW')")
+    public PublicationPage listForPublication(String publisherEmail, String search, Long departmentId) {
         UserEntity publisher = findActivePublisher(publisherEmail);
         String normalizedSearch = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
-        List<ResultSummary> results = topicRegistrationRepository
-                .findByStatusForReview(TopicRegistrationStatus.APPROVED).stream()
-                .filter(registration -> canManage(publisher, registration))
-                .map(this::toSummary)
+        Long scopedDepartmentId = publicationDepartmentId(publisher, departmentId);
+        List<ResultSummary> results = loadPublicationResults(publisher, scopedDepartmentId).stream()
                 .filter(result -> normalizedSearch.isEmpty() || matchesSearch(result, normalizedSearch))
                 .toList();
-        return new PublicationPage(results, scopeLabel(publisher));
+        return new PublicationPage(
+                results,
+                scopeLabel(publisher),
+                publicationDepartmentOptions(publisher),
+                scopedDepartmentId);
+    }
+
+    @PreAuthorize("hasAuthority('REGISTRATION_REVIEW')")
+    public PublicationDirectoryPage listForPublicationPage(
+            String publisherEmail, String search, Long departmentId, String status,
+            int page, int size, String sort, String direction) {
+        UserEntity publisher = findActivePublisher(publisherEmail);
+        String normalizedSearch = normalizeSearch(search);
+        String normalizedStatus = normalizePublicationStatus(status);
+        String normalizedSort = normalizePublicationSort(sort);
+        String normalizedDirection = normalizeDirection(direction);
+        int safeSize = Math.min(Math.max(size, 5), 100);
+        Long scopedDepartmentId = publicationDepartmentId(publisher, departmentId);
+        List<ResultSummary> scopedResults = loadPublicationResults(publisher, scopedDepartmentId);
+        List<ResultSummary> filtered = scopedResults.stream()
+                .filter(result -> normalizedStatus.isBlank()
+                        || matchesPublicationStatus(result, normalizedStatus))
+                .filter(result -> matchesSearch(result, normalizedSearch))
+                .sorted(publicationComparator(normalizedSort, normalizedDirection))
+                .toList();
+        int totalItems = filtered.size();
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / safeSize));
+        int safePage = Math.min(Math.max(page, 0), totalPages - 1);
+        int from = Math.min(safePage * safeSize, totalItems);
+        int to = Math.min(from + safeSize, totalItems);
+        return new PublicationDirectoryPage(
+                filtered.subList(from, to), safePage, safeSize, totalItems, totalPages,
+                normalizedSearch, normalizedSort, normalizedDirection, scopedDepartmentId,
+                normalizedStatus, publicationDepartmentOptions(publisher), scopeLabel(publisher));
+    }
+
+    private List<ResultSummary> loadPublicationResults(UserEntity publisher, Long departmentId) {
+        return topicRegistrationRepository.findByStatusForReview(TopicRegistrationStatus.APPROVED).stream()
+                .filter(registration -> canManage(publisher, registration))
+                .filter(registration -> departmentId == null
+                        || (registration.getTopic().getDepartment() != null
+                                && Objects.equals(departmentId,
+                                        registration.getTopic().getDepartment().getId())))
+                .map(this::toSummary)
+                .toList();
+    }
+
+    private static Long publicationDepartmentId(UserEntity publisher, Long requestedDepartmentId) {
+        return hasActiveRole(publisher, "ADMIN") ? requestedDepartmentId : departmentIdFor(publisher);
+    }
+
+    private static String normalizePublicationStatus(String status) {
+        String normalized = status == null ? "" : status.trim().toUpperCase(Locale.ROOT);
+        return switch (normalized) {
+            case "NOT_CREATED", "READY", "PUBLISHED" -> normalized;
+            default -> "";
+        };
+    }
+
+    private static String normalizePublicationSort(String sort) {
+        String normalized = sort == null ? "" : sort.trim().toLowerCase(Locale.ROOT);
+        return switch (normalized) {
+            case "group", "department", "score", "status" -> normalized;
+            default -> "group";
+        };
+    }
+
+    private static boolean matchesPublicationStatus(ResultSummary result, String status) {
+        return switch (status) {
+            case "NOT_CREATED" -> "NOT_CREATED".equals(result.status());
+            case "READY" -> result.publishable();
+            case "PUBLISHED" -> "PUBLISHED".equals(result.status());
+            default -> true;
+        };
+    }
+
+    private static Comparator<ResultSummary> publicationComparator(String sort, String direction) {
+        Comparator<ResultSummary> comparator = switch (sort) {
+            case "department" -> Comparator.comparing(
+                    ResultSummary::departmentCode,
+                    Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                    .thenComparing(ResultSummary::groupName, String.CASE_INSENSITIVE_ORDER);
+            case "score" -> Comparator.comparing(
+                    ResultSummary::averageScore,
+                    Comparator.nullsLast(Comparator.naturalOrder()))
+                    .thenComparing(ResultSummary::groupName, String.CASE_INSENSITIVE_ORDER);
+            case "status" -> Comparator.comparing(
+                    ResultSummary::status,
+                    Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                    .thenComparing(ResultSummary::groupName, String.CASE_INSENSITIVE_ORDER);
+            default -> Comparator.comparing(ResultSummary::groupName, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(ResultSummary::topicTitle, String.CASE_INSENSITIVE_ORDER);
+        };
+        return "desc".equals(direction) ? comparator.reversed() : comparator;
+    }
+
+    private List<FilterOption> publicationDepartmentOptions(UserEntity publisher) {
+        if (hasActiveRole(publisher, "ADMIN")) {
+            return departmentRepository.findByActiveTrueOrderByNameAsc().stream()
+                    .map(department -> new FilterOption(
+                            department.getId(), department.getCode(), department.getName()))
+                    .toList();
+        }
+        DepartmentEntity department = publisher.getDepartment();
+        return department == null
+                ? List.of()
+                : List.of(new FilterOption(department.getId(), department.getCode(), department.getName()));
+    }
+
+    private static Long departmentIdFor(UserEntity publisher) {
+        return publisher.getDepartment() == null ? null : publisher.getDepartment().getId();
     }
 
     private boolean matchesSearch(ResultSummary result, String search) {
@@ -390,10 +507,43 @@ public class ResultPublicationService {
                 : "Faculty Head · " + publisher.getDepartment().getCode();
     }
 
-    public record PublicationPage(List<ResultSummary> results, String scopeLabel) {
+    public record PublicationPage(
+            List<ResultSummary> results,
+            String scopeLabel,
+            List<FilterOption> departments,
+            Long departmentId) {
+
+        public PublicationPage(List<ResultSummary> results, String scopeLabel) {
+            this(results, scopeLabel, List.of(), null);
+        }
+
         public PublicationPage {
             results = List.copyOf(results);
+            departments = List.copyOf(departments);
         }
+    }
+
+    public record PublicationDirectoryPage(
+            List<ResultSummary> results,
+            int page,
+            int size,
+            int totalItems,
+            int totalPages,
+            String search,
+            String sort,
+            String direction,
+            Long departmentId,
+            String status,
+            List<FilterOption> departments,
+            String scopeLabel) {
+
+        public PublicationDirectoryPage {
+            results = List.copyOf(results);
+            departments = List.copyOf(departments);
+        }
+
+        public boolean hasPrevious() { return page > 0; }
+        public boolean hasNext() { return page + 1 < totalPages; }
     }
 
     public record ResultSummary(

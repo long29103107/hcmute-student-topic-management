@@ -46,7 +46,7 @@
             style="align-items: flex-end"
           >
             <form
-              class="flex w-fit max-w-full gap-2"
+              class="flex w-full min-w-max flex-nowrap items-center justify-end gap-2 overflow-x-auto"
               th:action="@{/faculty/results}"
               method="get"
             >
@@ -57,23 +57,23 @@
               <input type="hidden" name="direction" th:value="${resultPage?.direction ?: 'asc'}" />
 
               <!-- Dropdown lọc Khoa -->
-              <select name="departmentId" class="block rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 w-44">
+              <select name="departmentId" class="block w-64 flex-none rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500">
                   <option value="">All departments</option>
                   <option th:each="dept : ${departments}" 
                           th:value="${dept.id}" 
-                          th:text="${dept.name}" 
+                          th:text="${dept.label + ' · ' + dept.secondaryLabel}"
                           th:selected="${dept.id == departmentId}"></option>
               </select>
 
               <!-- Dropdown lọc Trạng thái -->
-              <select name="status" class="block rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 w-44">
+              <select name="status" class="block w-44 flex-none rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500">
                   <option value="">All statuses</option>
                   <option value="NOT_CREATED" th:selected="${status == 'NOT_CREATED'}">Waiting for scores</option>
                   <option value="READY" th:selected="${status == 'READY'}">Ready to publish</option>
                   <option value="PUBLISHED" th:selected="${status == 'PUBLISHED'}">Published</option>
               </select>
 
-              <label class="relative block w-80 max-w-full flex-none" for="result-search">
+              <label class="relative block w-80 flex-none" for="result-search">
                 <span class="sr-only">Search results</span>
                 <input
                   id="result-search"

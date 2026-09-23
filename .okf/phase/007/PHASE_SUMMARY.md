@@ -108,3 +108,17 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/26
 - The repeatable database seed now creates 20 student groups total, using
   existing student fixtures with a mix of ACTIVE, COMPLETED and INACTIVE
   statuses for directory pagination and status-filter verification.
+- `/faculty/results` now supplies Department filter options from active
+  departments. Admin receives all active departments and may filter the
+  approved publication queue by department; Faculty Head receives only their
+  assigned department and the service keeps the result scope restricted to it.
+- Verification: `mvn.cmd -B -DskipTests compile` passed; browser smoke confirmed
+  the Admin dropdown contains the active departments and filtering to CNTT
+  leaves only CNTT results.
+- `/faculty/results` now paginates the filtered publication queue with a default
+  page size of five, preserving department, status, search and sort parameters
+  across page links. The filter/search controls use one fixed-width horizontal
+  row with overflow handling so the fields do not overlap.
+- Verification: browser smoke confirmed the one-row controls and showed `1–5 of
+  11` on page one, then `6–10 of 11` after navigating to page two; compile and
+  `git diff --check` passed.

@@ -25,15 +25,27 @@ public class ResultController {
     @PreAuthorize("hasAuthority('REGISTRATION_REVIEW')")
     public String publicationQueue(
             Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(defaultValue = "") String status,
+            @RequestParam(defaultValue = "group") String sort,
+            @RequestParam(defaultValue = "asc") String direction,
             Model model) {
-        ResultPublicationService.PublicationPage publicationPage =
-                resultPublicationService.listForPublication(authentication.getName(), search);
+        ResultPublicationService.PublicationDirectoryPage publicationPage =
+                resultPublicationService.listForPublicationPage(
+                        authentication.getName(), search, departmentId, status,
+                        page, size, sort, direction);
         model.addAttribute("pageTitle", "Result publication");
         model.addAttribute("publicationPage", publicationPage);
         model.addAttribute("results", publicationPage.results());
         model.addAttribute("resultScope", publicationPage.scopeLabel());
-        model.addAttribute("resultSearch", search);
+        model.addAttribute("resultSearch", publicationPage.search());
+        model.addAttribute("departments", publicationPage.departments());
+        model.addAttribute("departmentId", publicationPage.departmentId());
+        model.addAttribute("status", publicationPage.status());
+        model.addAttribute("resultPage", publicationPage);
         return "faculty/results";
     }
 
