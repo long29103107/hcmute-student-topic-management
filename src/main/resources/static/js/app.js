@@ -1239,6 +1239,69 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const registrationApproveModal = document.querySelector('[data-registration-approve-modal]');
+    const registrationApproveForms = [...document.querySelectorAll('[data-registration-approve-form]')];
+    if (registrationApproveModal && registrationApproveForms.length > 0) {
+        const topicLabel = registrationApproveModal.querySelector('[data-registration-approve-topic]');
+        const groupLabel = registrationApproveModal.querySelector('[data-registration-approve-group]');
+        const confirmButton = registrationApproveModal.querySelector('[data-registration-approve-modal-confirm]');
+        const cancelButton = registrationApproveModal.querySelector('[data-registration-approve-modal-cancel]');
+        let pendingForm;
+        let lastFocusedButton;
+
+        const closeModal = () => {
+            registrationApproveModal.classList.add('hidden');
+            registrationApproveModal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('overflow-hidden');
+            pendingForm = undefined;
+            lastFocusedButton?.focus();
+        };
+
+        const openModal = (form, button) => {
+            pendingForm = form;
+            lastFocusedButton = button;
+            if (topicLabel) {
+                topicLabel.textContent = form.dataset.registrationTopic || '';
+            }
+            if (groupLabel) {
+                groupLabel.textContent = form.dataset.registrationGroup || '';
+            }
+            registrationApproveModal.classList.remove('hidden');
+            registrationApproveModal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('overflow-hidden');
+            window.setTimeout(() => cancelButton?.focus(), 0);
+        };
+
+        registrationApproveForms.forEach((form) => {
+            form.addEventListener('submit', (event) => {
+                if (form.dataset.registrationApproveConfirmed === 'true') {
+                    delete form.dataset.registrationApproveConfirmed;
+                    return;
+                }
+                event.preventDefault();
+                openModal(form, form.querySelector('button[type="submit"]'));
+            });
+        });
+
+        registrationApproveModal.querySelectorAll('[data-registration-approve-modal-close]')
+            .forEach((button) => button.addEventListener('click', closeModal));
+        cancelButton?.addEventListener('click', closeModal);
+        confirmButton?.addEventListener('click', () => {
+            if (!pendingForm) {
+                return;
+            }
+            const formToSubmit = pendingForm;
+            formToSubmit.dataset.registrationApproveConfirmed = 'true';
+            closeModal();
+            formToSubmit.requestSubmit();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !registrationApproveModal.classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+    }
+
     document.querySelectorAll('[data-period-form]').forEach((form) => {
         const fields = {};
         const messages = {};

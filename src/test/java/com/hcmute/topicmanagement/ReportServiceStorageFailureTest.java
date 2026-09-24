@@ -21,6 +21,7 @@ import com.hcmute.topicmanagement.model.TopicRegistrationEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
 import com.hcmute.topicmanagement.repository.ReportRepository;
+import com.hcmute.topicmanagement.repository.RegistrationResultRepository;
 import com.hcmute.topicmanagement.repository.TopicRegistrationRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
 import com.hcmute.topicmanagement.service.LocalReportStorage;
@@ -34,6 +35,7 @@ class ReportServiceStorageFailureTest {
         UserRepository userRepository = mock(UserRepository.class);
         TopicRegistrationRepository registrationRepository = mock(TopicRegistrationRepository.class);
         ReportRepository reportRepository = mock(ReportRepository.class);
+        RegistrationResultRepository registrationResultRepository = mock(RegistrationResultRepository.class);
         ReportStorage reportStorage = mock(ReportStorage.class);
 
         UserEntity leader = mock(UserEntity.class);
@@ -63,7 +65,7 @@ class ReportServiceStorageFailureTest {
         when(reportStorage.store(any())).thenThrow(new ReportStorage.ReportStorageException("storage down"));
 
         ReportService reportService = new ReportService(
-                reportRepository, registrationRepository, userRepository, reportStorage,
+                reportRepository, registrationResultRepository, registrationRepository, userRepository, reportStorage,
                new ReportUploadProperties("target/test-report-storage-unit", 1000L, 100, "application/pdf"));
 
         assertThatThrownBy(() -> reportService.upload(

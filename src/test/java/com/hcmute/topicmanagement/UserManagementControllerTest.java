@@ -81,7 +81,7 @@ class UserManagementControllerTest {
                 .andExpect(content().string(not(containsString("Lecturer Filter"))))
                 .andExpect(content().string(containsString("Manage students")));
 
-        mockMvc.perform(get("/admin/users?role=LECTURER")
+        mockMvc.perform(get("/admin/lecturers")
                         .with(user(admin("USER_READ", "USER_CREATE", "USER_ROLE_ASSIGN"))))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Lecturer Filter")))
@@ -180,8 +180,8 @@ class UserManagementControllerTest {
                 .andExpect(content().string(not(containsString("Student Filter Locked " + suffix))))
                 .andExpect(content().string(containsString("name=\"departmentId\"")))
                 .andExpect(content().string(containsString("name=\"status\"")))
-                .andExpect(content().string(containsString("departmentId=" + firstDepartment.getId())))
-                .andExpect(content().string(containsString("status=ACTIVE")));
+                .andExpect(content().string(containsString("value=\"" + firstDepartment.getId() + "\"")))
+                .andExpect(content().string(containsString("value=\"ACTIVE\"")));
     }
 
     @Test

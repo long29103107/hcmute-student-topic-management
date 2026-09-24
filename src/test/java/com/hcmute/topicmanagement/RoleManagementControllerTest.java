@@ -63,7 +63,7 @@ class RoleManagementControllerTest {
     @Test
     void adminCanOpenPermissionAssignmentForm() throws Exception {
         RoleEntity role = roleRepository.save(new RoleEntity(
-                "FACULTY_HEAD", "Faculty Head", "Manages faculty workflows."));
+                "FACULTY_HEAD_TEST", "Faculty Head", "Manages faculty workflows."));
 
         mockMvc.perform(get("/admin/roles/" + role.getId() + "/permissions")
                         .with(user(admin("ROLE_UPDATE", "PERMISSION_ASSIGN"))))
@@ -75,8 +75,8 @@ class RoleManagementControllerTest {
     @Test
     void combinedWorkspaceRendersSelectedRoleAndPermissions() throws Exception {
         RoleEntity role = roleRepository.save(new RoleEntity(
-                "LECTURER", "Lecturer", "Propose and supervise topics."));
-        permissionRepository.save(new PermissionEntity("TOPIC_PROPOSE", "Propose topics", "Topics"));
+                "LECTURER_TEST", "Lecturer", "Propose and supervise topics."));
+        permissionRepository.save(new PermissionEntity("TOPIC_PROPOSE_TEST", "Propose topics", "Topics"));
 
         mockMvc.perform(get("/admin/roles?roleId=" + role.getId())
                         .with(user(admin("ROLE_READ", "ROLE_UPDATE", "PERMISSION_ASSIGN"))))

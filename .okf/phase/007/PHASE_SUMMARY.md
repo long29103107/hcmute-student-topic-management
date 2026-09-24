@@ -403,3 +403,45 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/26
 - Latest verification: `mvn.cmd -B -Dtest=DatabaseSeedControllerTest test`
   passed (3 tests, 0 failures), including the scoring-page visibility check
   and an exact assertion for 15 Hoàng DRAFT assignments.
+- Test suite maintenance now follows the current production templates and
+  service rules: stale announcement, supervisor, user-management, and topic-
+  publication assertions were updated; pagination fixtures use the current
+  page size; topic-registration fixtures assign matching student/topic
+  departments; schema SQL assertions normalize line endings; and test H2
+  databases are unique per Spring context to prevent `create-drop` collisions.
+- Latest verification: `mvn.cmd -B test` passed (195 tests, 0 failures, 0
+  errors), and `git diff --check` passed.
+- Faculty registration review now gates approval behind a shared confirmation
+  modal. The final confirmation submits the existing CSRF-protected approval
+  form, while cancel, close, and Escape leave the registration unchanged.
+- Latest verification: `mvn.cmd -B -Dtest=TopicRegistrationReviewControllerTest
+  test` passed (6 tests, 0 failures), `mvn.cmd -B test` passed (195 tests, 0
+  failures, 0 errors), and `git diff --check` passed.
+- Review-board action menus use Flowbite's `bottom-end` placement and allow
+  overflow on desktop table layouts, so the menu opens below the action button
+  without being clipped by the table container; narrow screens retain
+  horizontal table scrolling.
+- Latest verification: `mvn.cmd -B -Dtest=ReviewBoardControllerTest test`
+  passed (11 tests, 0 failures), `node --check src/main/resources/static/js/app.js`
+  passed, and `git diff --check` passed.
+- Final UI verification after removing the desktop table overflow conflict:
+  the Review boards action menu is configured to open below the button with
+  all available actions, while the focused controller test still passes (11
+  tests, 0 failures).
+- Student registration summaries now expose whether the associated result is
+  published. The student registration page hides the report-upload button and
+  modal after Faculty Head publication, while the report service rejects
+  direct upload attempts after publication as well.
+- Latest verification: `mvn.cmd -B -Dtest=ReportServiceStorageFailureTest,ReportControllerTest,TopicRegistrationControllerTest test`
+  passed (18 tests, 0 failures), and `mvn.cmd -B test` passed (197 tests, 0
+  failures, 0 errors).
+- Review-board department filter now has a fixed `w-56 flex-none` width so the
+  `All departments` label and longer department options do not collapse into
+  the adjacent status filter.
+- Latest verification: `mvn.cmd -B -Dtest=ReviewBoardControllerTest test`
+  passed (11 tests, 0 failures), and `git diff --check` passed.
+- Follow-up UI adjustment changes the review-board three-dot action menu
+  placement from `top-end` to `bottom-end`, so it opens below the clicked
+  button while retaining right-edge alignment.
+- Latest verification: `mvn.cmd -B -Dtest=ReviewBoardControllerTest test`
+  passed (11 tests, 0 failures), and `git diff --check` passed.

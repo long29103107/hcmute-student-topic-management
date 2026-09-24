@@ -53,6 +53,8 @@ import com.hcmute.topicmanagement.security.DatabaseUserPrincipal;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class TopicRegistrationControllerTest {
 
+    private DepartmentEntity testStudentDepartment;
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -297,8 +299,7 @@ class TopicRegistrationControllerTest {
     }
 
     private TopicEntity saveTopic(RegistrationPeriodEntity period, String title, TopicStatus status) {
-        DepartmentEntity department = departmentRepository.saveAndFlush(
-                new DepartmentEntity("REG-" + suffix(), "Registration Department " + suffix()));
+        DepartmentEntity department = testStudentDepartment();
         UserEntity lecturer = account("registration-lecturer-" + suffix(), "Registration Lecturer " + suffix(), "LECTURER");
         TopicEntity topic = new TopicEntity(period, department, lecturer, title, "Topic description");
         topic.setStatus(status);
@@ -316,7 +317,18 @@ class TopicRegistrationControllerTest {
     }
 
     private UserEntity student(String login, String fullName) {
-        return account(login, fullName, "STUDENT");
+        UserEntity student = account(login, fullName, "STUDENT");
+        student.setDepartment(testStudentDepartment());
+        return userRepository.saveAndFlush(student);
+    }
+
+    private DepartmentEntity testStudentDepartment() {
+        if (testStudentDepartment == null) {
+            String suffix = suffix();
+            testStudentDepartment = departmentRepository.saveAndFlush(
+                    new DepartmentEntity("REG-" + suffix, "Registration Department " + suffix));
+        }
+        return testStudentDepartment;
     }
 
     private UserEntity account(String login, String fullName, String roleCode) {

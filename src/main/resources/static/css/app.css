@@ -27,6 +27,16 @@
         flex: 1 1 auto;
     }
 
+    body.app-layout [data-board-table-wrapper] {
+        overflow-x: auto;
+    }
+
+    @media (min-width: 64rem) {
+        body.app-layout [data-board-table-wrapper] {
+            overflow: visible;
+        }
+    }
+
     [data-sidebar-group] > summary {
         list-style: none;
     }

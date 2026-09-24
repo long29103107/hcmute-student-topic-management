@@ -18,9 +18,11 @@ import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
 import com.hcmute.topicmanagement.model.enums.GroupStatus;
 import com.hcmute.topicmanagement.model.enums.RegistrationPeriodStatus;
+import com.hcmute.topicmanagement.model.enums.RegistrationResultStatus;
 import com.hcmute.topicmanagement.model.enums.TopicRegistrationStatus;
 import com.hcmute.topicmanagement.model.enums.TopicStatus;
 import com.hcmute.topicmanagement.repository.RegistrationPeriodRepository;
+import com.hcmute.topicmanagement.repository.RegistrationResultRepository;
 import com.hcmute.topicmanagement.repository.ReportRepository;
 import com.hcmute.topicmanagement.repository.StudentGroupRepository;
 import com.hcmute.topicmanagement.repository.TopicRegistrationRepository;
@@ -38,6 +40,7 @@ public class TopicRegistrationService {
     private final StudentGroupRepository studentGroupRepository;
     private final TopicRepository topicRepository;
     private final RegistrationPeriodRepository registrationPeriodRepository;
+    private final RegistrationResultRepository registrationResultRepository;
     private final UserRepository userRepository;
     private final RegistrationPeriodService registrationPeriodService;
     private final ReportRepository reportRepository;
@@ -47,6 +50,7 @@ public class TopicRegistrationService {
             StudentGroupRepository studentGroupRepository,
             TopicRepository topicRepository,
             RegistrationPeriodRepository registrationPeriodRepository,
+            RegistrationResultRepository registrationResultRepository,
             UserRepository userRepository,
             RegistrationPeriodService registrationPeriodService,
             ReportRepository reportRepository) {
@@ -54,6 +58,7 @@ public class TopicRegistrationService {
         this.studentGroupRepository = studentGroupRepository;
         this.topicRepository = topicRepository;
         this.registrationPeriodRepository = registrationPeriodRepository;
+        this.registrationResultRepository = registrationResultRepository;
         this.userRepository = userRepository;
         this.registrationPeriodService = registrationPeriodService;
         this.reportRepository = reportRepository;
@@ -240,6 +245,9 @@ public class TopicRegistrationService {
                 registration.getSubmittedBy().getFullName(), registration.getSubmittedBy().getEmailOrCode(),
                 registration.getSubmittedAt(), registration.getStatus().name(),
                 statusLabel(registration.getStatus()), registration.getRejectionReason(),
+                registrationResultRepository.findByTopicRegistration_Id(registration.getId())
+                        .map(result -> result.getStatus() == RegistrationResultStatus.PUBLISHED)
+                        .orElse(false),
                 reportRepository.findByTopicRegistration_IdOrderBySubmittedAtDesc(registration.getId()).stream()
                         .map(report -> new ReportFileSummary(
                                 report.getId(), report.getOriginalName(), report.getFileSize(), report.getSubmittedAt()))
@@ -339,13 +347,15 @@ public class TopicRegistrationService {
         private final String statusCode;
         private final String statusLabel;
         private final String rejectionReason;
+        private final boolean resultPublished;
         private final List<ReportFileSummary> reportFiles;
 
         public TopicRegistrationSummary(
                 Long id, Long groupId, String groupName, Long topicId, String topicTitle,
                 Long periodId, String periodName, Long submittedById, String submittedByName,
                 String submittedByLogin, LocalDateTime submittedAt, String statusCode,
-                String statusLabel, String rejectionReason, List<ReportFileSummary> reportFiles) {
+                String statusLabel, String rejectionReason, boolean resultPublished,
+                List<ReportFileSummary> reportFiles) {
             this.id = id;
             this.groupId = groupId;
             this.groupName = groupName;
@@ -360,6 +370,7 @@ public class TopicRegistrationService {
             this.statusCode = statusCode;
             this.statusLabel = statusLabel;
             this.rejectionReason = rejectionReason;
+            this.resultPublished = resultPublished;
             this.reportFiles = List.copyOf(reportFiles);
         }
 
@@ -377,6 +388,7 @@ public class TopicRegistrationService {
         public String getStatusCode() { return statusCode; }
         public String getStatusLabel() { return statusLabel; }
         public String getRejectionReason() { return rejectionReason; }
+        public boolean isResultPublished() { return resultPublished; }
         public List<ReportFileSummary> getReportFiles() { return reportFiles; }
     }
 

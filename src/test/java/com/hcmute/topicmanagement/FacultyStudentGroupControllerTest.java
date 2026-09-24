@@ -79,6 +79,7 @@ class FacultyStudentGroupControllerTest {
     @Test
     void adminSeesAllGroupsAndMissingReadPermissionIsRejected() throws Exception {
         mockMvc.perform(get("/faculty/groups")
+                        .param("size", "100")
                         .with(user(adminPrincipal())))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Nhóm Phoenix")))

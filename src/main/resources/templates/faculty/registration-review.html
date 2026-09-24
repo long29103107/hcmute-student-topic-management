@@ -257,6 +257,9 @@
                       class="mb-3"
                       th:action="@{/faculty/registrations/review}"
                       method="post"
+                      th:id="${'registration-approve-form-' + registration.id}"
+                      data-registration-approve-form
+                      th:attr="data-registration-topic=${registration.topicTitle},data-registration-group=${registration.groupName}"
                     >
                       <input
                         type="hidden"
@@ -533,6 +536,99 @@
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="registration-approve-modal"
+          class="fixed inset-0 z-[70] hidden overflow-y-auto"
+          tabindex="-1"
+          aria-hidden="true"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="registration-approve-modal-title"
+          aria-describedby="registration-approve-modal-description"
+          data-registration-approve-modal
+        >
+          <div
+            class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm"
+            data-registration-approve-modal-close
+          ></div>
+          <div class="relative flex min-h-full items-center justify-center p-4">
+            <div
+              class="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5"
+            >
+              <div class="flex items-start gap-4 px-6 pb-5 pt-6">
+                <div
+                  class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700"
+                >
+                  <svg
+                    class="h-5 w-5"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="m5 12 4 4L19 6"
+                    />
+                  </svg>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <h2
+                    id="registration-approve-modal-title"
+                    class="text-lg font-semibold text-gray-900"
+                  >
+                    Approve registration?
+                  </h2>
+                  <p
+                    id="registration-approve-modal-description"
+                    class="mt-2 text-sm leading-6 text-gray-500"
+                  >
+                    The group can continue with this approved topic
+                    registration.
+                  </p>
+                  <p
+                    class="mt-2 truncate text-sm font-semibold text-gray-800"
+                    data-registration-approve-topic
+                  ></p>
+                  <p
+                    class="truncate text-xs text-gray-500"
+                    data-registration-approve-group
+                  ></p>
+                </div>
+                <button
+                  type="button"
+                  class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-900"
+                  aria-label="Close approval dialog"
+                  data-registration-approve-modal-close
+                >
+                  ×
+                </button>
+              </div>
+              <div
+                class="flex justify-end gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4"
+              >
+                <button
+                  type="button"
+                  class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                  data-registration-approve-modal-cancel
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  class="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
+                  data-registration-approve-modal-confirm
+                >
+                  Approve registration
+                </button>
+              </div>
             </div>
           </div>
         </div>

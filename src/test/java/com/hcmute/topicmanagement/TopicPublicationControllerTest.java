@@ -227,6 +227,7 @@ class TopicPublicationControllerTest {
                 TopicStatus.APPROVED);
 
         mockMvc.perform(get("/faculty/topics/publish")
+                        .param("search", topic.getTitle())
                         .with(user(adminPrincipal(admin.getEmailOrCode()))))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(topic.getTitle())));

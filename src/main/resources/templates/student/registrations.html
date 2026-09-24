@@ -182,7 +182,7 @@
                   </td>
                   <td class="min-w-[300px] px-6 py-4">
                     <button
-                      th:if="${registration.statusCode == 'APPROVED'}"
+                      th:if="${registration.statusCode == 'APPROVED' and !registration.resultPublished}"
                       type="button"
                       class="inline-flex items-center rounded-lg bg-blue-700 px-3 py-2 text-xs font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
                       th:attr="data-report-upload-open=${'report-upload-' + registration.id}"
@@ -200,6 +200,11 @@
                       th:unless="${registration.statusCode == 'APPROVED'}"
                       class="text-xs text-gray-400"
                       >Available after approval</span
+                    >
+                    <span
+                      th:if="${registration.statusCode == 'APPROVED' and registration.resultPublished}"
+                      class="text-xs text-gray-400"
+                      >Upload closed after result publication</span
                     >
                   </td>
                 </tr>
@@ -267,7 +272,7 @@
 
         <div
           th:each="registration : ${registrations}"
-          th:if="${registration.statusCode == 'APPROVED'}"
+          th:if="${registration.statusCode == 'APPROVED' and !registration.resultPublished}"
           th:id="${'report-upload-' + registration.id}"
           data-report-upload-modal
           class="fixed inset-0 z-50 hidden overflow-y-auto bg-gray-900/50 p-4 sm:p-6"

@@ -110,8 +110,8 @@ class AnnouncementControllerTest {
                 .andExpect(view().name("announcements/manage"))
                 .andExpect(content().string(containsString("data-announcement-confirm-modal")))
                 .andExpect(content().string(containsString("data-modal-target=\"create-announcement-modal\"")))
+                .andExpect(content().string(containsString("data-announcement-action-form")))
                 .andExpect(content().string(containsString("data-modal-target=\"edit-announcement-modal-")))
-                .andExpect(content().string(containsString("data-dropdown-toggle=\"announcement-actions-menu-")))
                 .andExpect(content().string(containsString("Edit announcement")))
                 .andExpect(content().string(containsString("Save changes")))
                 .andExpect(content().string(containsString("Search announcements")))
@@ -187,7 +187,7 @@ class AnnouncementControllerTest {
                 .andExpect(content().string(org.hamcrest.Matchers.not(containsString("name=\"announcement-sort\""))))
                 .andExpect(content().string(containsString("id=\"announcement-search\"")))
                 .andExpect(content().string(containsString("Showing")))
-                .andExpect(content().string(containsString("aria-label=\"Pagination\"")))
+                .andExpect(content().string(containsString("aria-label=\"Announcement pagination\"")))
                 .andExpect(content().string(containsString("aria-current=\"page\"")))
                 .andExpect(content().string(containsString(
                         "page=0&amp;size=5&amp;search=Pagination&amp;sort=title&amp;direction=asc")))

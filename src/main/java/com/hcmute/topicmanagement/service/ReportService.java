@@ -18,6 +18,8 @@ import com.hcmute.topicmanagement.model.StudentGroupEntity;
 import com.hcmute.topicmanagement.model.TopicRegistrationEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
+import com.hcmute.topicmanagement.model.enums.RegistrationResultStatus;
+import com.hcmute.topicmanagement.repository.RegistrationResultRepository;
 import com.hcmute.topicmanagement.repository.ReportRepository;
 import com.hcmute.topicmanagement.repository.TopicRegistrationRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
@@ -27,6 +29,7 @@ import com.hcmute.topicmanagement.repository.UserRepository;
 public class ReportService {
 
     private final ReportRepository reportRepository;
+    private final RegistrationResultRepository registrationResultRepository;
     private final TopicRegistrationRepository topicRegistrationRepository;
     private final UserRepository userRepository;
     private final ReportStorage reportStorage;
@@ -34,11 +37,13 @@ public class ReportService {
 
     public ReportService(
             ReportRepository reportRepository,
+            RegistrationResultRepository registrationResultRepository,
             TopicRegistrationRepository topicRegistrationRepository,
             UserRepository userRepository,
             ReportStorage reportStorage,
             ReportUploadProperties uploadProperties) {
         this.reportRepository = reportRepository;
+        this.registrationResultRepository = registrationResultRepository;
         this.topicRegistrationRepository = topicRegistrationRepository;
         this.userRepository = userRepository;
         this.reportStorage = reportStorage;
@@ -71,6 +76,12 @@ public class ReportService {
                 .findApprovedByIdForReadOnly(registrationId)
                 .orElseThrow(() -> new ReportNotFoundException(
                         "Approved topic registration not found: " + registrationId));
+        if (registrationResultRepository.findByTopicRegistration_Id(registrationId)
+                .map(result -> result.getStatus() == RegistrationResultStatus.PUBLISHED)
+                .orElse(false)) {
+            throw new ReportValidationException(
+                    "Reports cannot be changed after the result is published.");
+        }
         StudentGroupEntity group = registration.getStudentGroup();
         if (!groupId.equals(group.getId()) || !periodId.equals(registration.getRegistrationPeriod().getId())) {
             throw new ReportAccessException(

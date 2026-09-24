@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.argThat;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -40,10 +41,12 @@ class DatabaseSchemaServiceTest {
                 + "`registration_periods`, `departments`, `user_roles`, `role_permissions`, "
                 + "`users`, `permissions`, `roles`");
         verify(dropStatement).execute("SET FOREIGN_KEY_CHECKS = 1");
-        verify(ddlStatement).execute("CREATE DATABASE IF NOT EXISTS hcmute_topic_management\n"
+        verify(ddlStatement).execute(argThat(sql -> sql.replace("\r\n", "\n")
+                .equals("CREATE DATABASE IF NOT EXISTS hcmute_topic_management\n"
                 + "    CHARACTER SET utf8mb4\n"
-                + "    COLLATE utf8mb4_unicode_ci");
-        verify(ddlStatement).execute("CREATE TABLE IF NOT EXISTS roles (\n"
+                + "    COLLATE utf8mb4_unicode_ci")));
+        verify(ddlStatement).execute(argThat(sql -> sql.replace("\r\n", "\n")
+                .equals("CREATE TABLE IF NOT EXISTS roles (\n"
                 + "    id BIGINT NOT NULL AUTO_INCREMENT,\n"
                 + "    code VARCHAR(30) NOT NULL,\n"
                 + "    name VARCHAR(100) NOT NULL,\n"
@@ -54,7 +57,7 @@ class DatabaseSchemaServiceTest {
                 + "    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),\n"
                 + "    CONSTRAINT pk_roles PRIMARY KEY (id),\n"
                 + "    CONSTRAINT uk_roles_code UNIQUE (code)\n"
-                + ") ENGINE = InnoDB");
+                + ") ENGINE = InnoDB")));
         assertThat(result.step()).isEqualTo("ddl");
         assertThat(result.count()).isEqualTo(18);
     }

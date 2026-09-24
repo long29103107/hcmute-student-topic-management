@@ -2,6 +2,7 @@ package com.hcmute.topicmanagement;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -31,6 +32,7 @@ import org.springframework.mock.web.MockMultipartFile;
 
 import com.hcmute.topicmanagement.model.DepartmentEntity;
 import com.hcmute.topicmanagement.model.RegistrationPeriodEntity;
+import com.hcmute.topicmanagement.model.RegistrationResultEntity;
 import com.hcmute.topicmanagement.model.ReportEntity;
 import com.hcmute.topicmanagement.model.ReviewBoardEntity;
 import com.hcmute.topicmanagement.model.ReviewBoardMemberEntity;
@@ -42,10 +44,12 @@ import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
 import com.hcmute.topicmanagement.model.enums.PeriodType;
 import com.hcmute.topicmanagement.model.enums.RegistrationPeriodStatus;
+import com.hcmute.topicmanagement.model.enums.RegistrationResultStatus;
 import com.hcmute.topicmanagement.model.enums.TopicRegistrationStatus;
 import com.hcmute.topicmanagement.model.enums.TopicStatus;
 import com.hcmute.topicmanagement.repository.DepartmentRepository;
 import com.hcmute.topicmanagement.repository.RegistrationPeriodRepository;
+import com.hcmute.topicmanagement.repository.RegistrationResultRepository;
 import com.hcmute.topicmanagement.repository.ReportRepository;
 import com.hcmute.topicmanagement.repository.ReviewBoardMemberRepository;
 import com.hcmute.topicmanagement.repository.ReviewBoardRepository;
@@ -85,6 +89,9 @@ class ReportControllerTest {
 
     @Autowired
     private RegistrationPeriodRepository registrationPeriodRepository;
+
+    @Autowired
+    private RegistrationResultRepository registrationResultRepository;
 
     @Autowired
     private StudentGroupRepository studentGroupRepository;
@@ -243,6 +250,50 @@ class ReportControllerTest {
                 .andExpect(content().string(containsString(
                         "/student/registrations/" + registration.getId() + "/report")))
                 .andExpect(content().string(containsString("Upload report")));
+    }
+
+    @Test
+    void studentRegistrationPageHidesUploadFormAfterResultPublication() throws Exception {
+        String suffix = suffix();
+        UserEntity leader = student("report-published-page-" + suffix, "Report Published Page " + suffix);
+        RegistrationPeriodEntity period = period(suffix);
+        StudentGroupEntity group = group(period, leader);
+        TopicRegistrationEntity registration = registration(period, group, leader, TopicRegistrationStatus.APPROVED);
+        RegistrationResultEntity result = new RegistrationResultEntity(registration);
+        result.setStatus(RegistrationResultStatus.PUBLISHED);
+        registrationResultRepository.saveAndFlush(result);
+
+        mockMvc.perform(get("/student/registrations")
+                        .with(user(studentPrincipal(leader.getEmailOrCode()))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("Upload report"))))
+                .andExpect(content().string(containsString("Upload closed after result publication")))
+                .andExpect(content().string(not(containsString("data-report-upload-open"))));
+    }
+
+    @Test
+    void publishedResultBlocksReportUploadEndpoint() throws Exception {
+        String suffix = suffix();
+        UserEntity leader = student("report-published-upload-" + suffix, "Report Published Upload " + suffix);
+        RegistrationPeriodEntity period = period(suffix);
+        StudentGroupEntity group = group(period, leader);
+        TopicRegistrationEntity registration = registration(period, group, leader, TopicRegistrationStatus.APPROVED);
+        RegistrationResultEntity result = new RegistrationResultEntity(registration);
+        result.setStatus(RegistrationResultStatus.PUBLISHED);
+        registrationResultRepository.saveAndFlush(result);
+
+        mockMvc.perform(multipart("/api/student/groups/{groupId}/registrations/{registrationId}/reports",
+                        group.getId(), registration.getId())
+                        .file(pdf("report.pdf", "pdf-data"))
+                        .param("periodId", period.getId().toString())
+                        .with(user(studentPrincipal(leader.getEmailOrCode())))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("REPORT_INVALID"))
+                .andExpect(jsonPath("$.message").value(
+                        "Reports cannot be changed after the result is published."));
+
+        assertThat(reportRepository.count()).isZero();
     }
 
     @Test

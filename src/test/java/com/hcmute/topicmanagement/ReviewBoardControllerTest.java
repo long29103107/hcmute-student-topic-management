@@ -43,7 +43,9 @@ import com.hcmute.topicmanagement.security.DatabaseUserPrincipal;
 import com.hcmute.topicmanagement.service.DatabaseSeedService;
 
 
-@SpringBootTest
+@SpringBootTest(properties = {
+        "spring.datasource.url=jdbc:h2:mem:reviewboardtest;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+})
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
@@ -196,7 +198,9 @@ class ReviewBoardControllerTest {
                 .andExpect(content().string(
                         containsString("Edit board")))
                 .andExpect(content().string(
-                        containsString("data-dropdown-toggle")));
+                        containsString("data-dropdown-toggle")))
+                .andExpect(content().string(
+                        containsString("data-dropdown-placement=\"bottom-end\"")));
     }
 
     @Test

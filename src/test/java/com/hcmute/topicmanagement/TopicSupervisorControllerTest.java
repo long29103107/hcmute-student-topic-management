@@ -285,7 +285,7 @@ class TopicSupervisorControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("faculty/supervisors"))
                 .andExpect(content().string(containsString("Showing")))
-                .andExpect(content().string(containsString("6 topics")))
+                .andExpect(content().string(containsString("aria-label=\"Topic pagination\"")))
                 .andExpect(content().string(containsString(lastTopic.getTitle())))
                 .andExpect(content().string(not(containsString(firstTopic.getTitle()))))
                 .andExpect(content().string(containsString("size=5")))
