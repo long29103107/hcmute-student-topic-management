@@ -340,3 +340,66 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/26
   `/faculty/registrations/evaluators`.
 - Latest verification: `mvn.cmd -B -Dtest=DatabaseSeedControllerTest test`
   passed (3 tests, 0 failures).
+- Announcement seed now adds 20 realistic school-wide fixtures and 15
+  department-scoped KT fixtures authored by `hoang.thai.xuan.khoa`, with
+  Published/Draft/Hidden lifecycle coverage for the manage-page filters.
+- Latest verification: `mvn.cmd -B -Dtest=DatabaseSeedControllerTest test`
+  passed (3 tests, 0 failures), and `git diff --check` reported no whitespace
+  errors.
+- Announcement management now gives the department filter a fixed `w-80`
+  width with `flex-none` so long department labels do not collapse into the
+  select arrow.
+- Verification: `git diff --check` passed. `AnnouncementControllerTest` still
+  has two existing SSR expectation failures for the removed actions dropdown
+  and outdated pagination aria label; the template width change itself does
+  not affect those assertions.
+- Topic publication seed now adds 20 realistic `APPROVED` accounting topics
+  in department `KT`, with Hoàng Thái Xuân Khoa as an eligible supervisor, so
+  his Faculty Head scope has 20 items on `/faculty/topics/publish`.
+- Latest verification: `mvn.cmd -B -Dtest=DatabaseSeedControllerTest test`
+  passed (3 tests, 0 failures), including the Faculty Head page visibility
+  assertion; `git diff --check` also passed.
+- Student-group seed now adds 20 realistic groups across five sample
+  registration periods, with mixed Active/Completed/Inactive statuses and
+  department-specific student members; total seeded groups is 40.
+- Latest verification: `mvn.cmd -B -Dtest=DatabaseSeedControllerTest test`
+  passed (3 tests, 0 failures), and `git diff --check` passed.
+- Registration-review seed now adds 20 realistic pending KT registrations for
+  Hoàng Thái Xuân Khoa's Faculty Head scope, distributed across the existing
+  KT groups `Nhóm InfoSec`, `Nhóm SysNet`, and `Nhóm AI Lab`. The related topic
+  proposals now use accounting-focused titles and descriptions, and the full
+  seeded registration count is 66.
+- Latest verification: `mvn.cmd -B -Dtest=DatabaseSeedControllerTest test`
+  passed (3 tests, 0 failures), including Faculty Head visibility for a seeded
+  registration-review item.
+- Review-board seed now adds 20 realistic KT boards for
+  `hoang.thai.xuan.khoa`, using the approved accounting topics, KT student
+  groups, and three active KT lecturers per board. The boards cover DRAFT,
+  ASSIGNED, SCHEDULED, ACTIVE, and COMPLETED statuses; seeded totals are 86
+  registrations and 22 boards.
+- Latest verification: `mvn.cmd -B -Dtest=DatabaseSeedControllerTest test`
+  passed (3 tests, 0 failures), including Faculty Head visibility on
+  `/faculty/boards` for a seeded accounting board.
+- Result-publication seed now adds 15 KT result records linked to the seeded
+  accounting boards, with realistic evaluation scores and DRAFT, FINALIZED,
+  and PUBLISHED result states. Hoàng Thái Xuân Khoa can see the seeded rows on
+  `/faculty/results`; the total seeded result count is now 16 including the
+  original published result.
+- Latest verification: `mvn.cmd -B -Dtest=DatabaseSeedControllerTest test`
+  passed (3 tests, 0 failures), including Faculty Head visibility on
+  `/faculty/results` for a seeded accounting result.
+- Lecturer topic seed now adds 15 realistic KT proposals owned by
+  `hoang.thai.xuan.khoa`, distributed across DRAFT, PENDING_APPROVAL, REJECTED,
+  and APPROVED states so the lecturer workspace can exercise editing,
+  submission, filtering, and pagination. Seed totals are now 185 topics and
+  190 supervisor assignments.
+- Latest verification: `mvn.cmd -B -Dtest=DatabaseSeedControllerTest test`
+  passed (3 tests, 0 failures), including the seeded owner's visibility on
+  `/lecturer/topics`.
+- Lecturer scoring seed now adds 15 blank, editable DRAFT evaluations for
+  `hoang.thai.xuan.khoa` on approved KT registrations without published
+  results or review-board locks, so the Faculty Head can enter scores at
+  `/lecturer/scoring`.
+- Latest verification: `mvn.cmd -B -Dtest=DatabaseSeedControllerTest test`
+  passed (3 tests, 0 failures), including the scoring-page visibility check
+  and an exact assertion for 15 Hoàng DRAFT assignments.

@@ -24,16 +24,20 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.hcmute.topicmanagement.model.DepartmentEntity;
 import com.hcmute.topicmanagement.model.enums.AnnouncementStatus;
+import com.hcmute.topicmanagement.model.enums.EvaluationStatus;
 import com.hcmute.topicmanagement.model.enums.RegistrationPeriodStatus;
 import com.hcmute.topicmanagement.model.enums.TopicStatus;
 import com.hcmute.topicmanagement.repository.DepartmentRepository;
 import com.hcmute.topicmanagement.repository.AnnouncementRepository;
+import com.hcmute.topicmanagement.repository.EvaluationRepository;
 import com.hcmute.topicmanagement.repository.PermissionRepository;
 import com.hcmute.topicmanagement.repository.RegistrationPeriodRepository;
 import com.hcmute.topicmanagement.repository.RegistrationResultRepository;
+import com.hcmute.topicmanagement.repository.ReviewBoardRepository;
 import com.hcmute.topicmanagement.repository.RoleRepository;
 import com.hcmute.topicmanagement.repository.RolePermissionRepository;
 import com.hcmute.topicmanagement.repository.StudentGroupRepository;
+import com.hcmute.topicmanagement.repository.TopicRegistrationRepository;
 import com.hcmute.topicmanagement.repository.TopicRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
 import com.hcmute.topicmanagement.repository.UserRoleRepository;
@@ -63,7 +67,16 @@ class DatabaseSeedControllerTest {
     private RegistrationResultRepository registrationResultRepository;
 
     @Autowired
+    private EvaluationRepository evaluationRepository;
+
+    @Autowired
     private StudentGroupRepository studentGroupRepository;
+
+    @Autowired
+    private TopicRegistrationRepository topicRegistrationRepository;
+
+    @Autowired
+    private ReviewBoardRepository reviewBoardRepository;
 
     @Autowired
     private TopicRepository topicRepository;
@@ -146,32 +159,79 @@ class DatabaseSeedControllerTest {
         org.assertj.core.api.Assertions.assertThat(permissionRepository.count()).isEqualTo(28);
         org.assertj.core.api.Assertions.assertThat(departmentRepository.count()).isEqualTo(16);
         org.assertj.core.api.Assertions.assertThat(registrationPeriodRepository.count()).isEqualTo(21);
-        org.assertj.core.api.Assertions.assertThat(studentGroupRepository.count()).isEqualTo(20);
-        org.assertj.core.api.Assertions.assertThat(topicRepository.count()).isEqualTo(150);
-        org.assertj.core.api.Assertions.assertThat(announcementRepository.count()).isEqualTo(3);
+        org.assertj.core.api.Assertions.assertThat(studentGroupRepository.count()).isEqualTo(40);
+        org.assertj.core.api.Assertions.assertThat(topicRegistrationRepository.count()).isEqualTo(86);
+        org.assertj.core.api.Assertions.assertThat(reviewBoardRepository.count()).isEqualTo(22);
+        org.assertj.core.api.Assertions.assertThat(topicRepository.count()).isEqualTo(185);
+        org.assertj.core.api.Assertions.assertThat(announcementRepository.count()).isEqualTo(38);
         org.assertj.core.api.Assertions.assertThat(announcementRepository.findAll().stream()
                 .filter(announcement -> announcement.getStatus() == AnnouncementStatus.PUBLISHED)
-                .count()).isEqualTo(2);
+                .count()).isEqualTo(22);
         org.assertj.core.api.Assertions.assertThat(announcementRepository.findAll().stream()
                 .filter(announcement -> announcement.getStatus() == AnnouncementStatus.DRAFT)
-                .count()).isEqualTo(1);
-        org.assertj.core.api.Assertions.assertThat(registrationResultRepository.count()).isEqualTo(1);
-        org.assertj.core.api.Assertions.assertThat(topicRepository.countSupervisorAssignments()).isEqualTo(155);
+                .count()).isEqualTo(9);
+        DepartmentEntity accounting = departmentRepository.findByCodeIgnoreCase("KT").orElseThrow();
+        org.assertj.core.api.Assertions.assertThat(topicRepository
+                .findByDepartment_IdAndStatus(accounting.getId(), TopicStatus.APPROVED))
+                .hasSize(23);
+        mockMvc.perform(get("/faculty/topics/publish")
+                        .param("search", "dòng tiền")
+                        .with(user(facultyHeadPrincipal())))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Ứng dụng phân tích dòng tiền cho doanh nghiệp vừa và nhỏ")));
+        mockMvc.perform(get("/faculty/registrations/review")
+                        .param("search", "Phân tích chênh lệch chi phí")
+                        .with(user(facultyHeadPrincipal())))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(
+                        "Phân tích chênh lệch chi phí theo trung tâm trách nhiệm")));
+        mockMvc.perform(get("/faculty/boards")
+                        .param("search", "Ứng dụng phân tích dòng tiền")
+                        .with(user(facultyHeadPrincipal())))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(
+                        "Ứng dụng phân tích dòng tiền cho doanh nghiệp vừa và nhỏ")));
+        mockMvc.perform(get("/faculty/results")
+                        .param("search", "Ứng dụng phân tích dòng tiền")
+                        .with(user(facultyHeadPrincipal())))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(
+                        "Ứng dụng phân tích dòng tiền cho doanh nghiệp vừa và nhỏ")));
+        mockMvc.perform(get("/lecturer/topics")
+                        .param("search", "Phân tích hiệu quả kiểm soát chi phí")
+                        .with(user(facultyHeadPrincipal())))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(
+                        "Phân tích hiệu quả kiểm soát chi phí tại doanh nghiệp thương mại")));
+        mockMvc.perform(get("/lecturer/scoring")
+                        .param("search", "Đề tài evaluator KT 01")
+                        .with(user(facultyHeadPrincipal())))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Đề tài evaluator KT 01")));
+        var hoang = userRepository.findByLoginIdentifier(
+                "hoang.thai.xuan.khoa@lecturer.hcmute.edu.vn").orElseThrow();
+        org.assertj.core.api.Assertions.assertThat(evaluationRepository
+                .findByLecturer_IdAndStatus(hoang.getId(), EvaluationStatus.DRAFT))
+                .hasSize(15)
+                .allSatisfy(evaluation -> org.assertj.core.api.Assertions.assertThat(evaluation.getBoard()).isNull());
+        org.assertj.core.api.Assertions.assertThat(registrationResultRepository.count()).isEqualTo(16);
+        org.assertj.core.api.Assertions.assertThat(topicRepository.countSupervisorAssignments()).isEqualTo(190);
         org.assertj.core.api.Assertions.assertThat(topicRepository.findAllForSupervisorManagement())
-                .hasSize(150)
+                .hasSize(185)
                 .allSatisfy(topic -> org.assertj.core.api.Assertions.assertThat(topic.getSupervisors())
                         .hasSizeBetween(1, 2));
         var topicReviewPermission = permissionRepository.findByCode("TOPIC_REVIEW").orElseThrow();
         var announcementManagePermission = permissionRepository.findByCode("ANNOUNCEMENT_MANAGE").orElseThrow();
         org.assertj.core.api.Assertions.assertThat(topicRepository
                 .findByStatusOrderByCreatedAtDesc(com.hcmute.topicmanagement.model.enums.TopicStatus.PENDING_APPROVAL))
-                .hasSize(35);
+                .hasSize(39);
         for (TopicStatus topicStatus : TopicStatus.values()) {
             int expectedCount = switch (topicStatus) {
                 case PUBLISHED -> 60;
-                case DRAFT -> 25;
-                case PENDING_APPROVAL -> 35;
-                case REJECTED, APPROVED -> 15;
+                case DRAFT -> 29;
+                case PENDING_APPROVAL -> 39;
+                case REJECTED -> 19;
+                case APPROVED -> 38;
             };
             org.assertj.core.api.Assertions.assertThat(topicRepository
                     .findByStatusOrderByCreatedAtDesc(topicStatus))
@@ -263,14 +323,16 @@ class DatabaseSeedControllerTest {
                 .andExpect(jsonPath("$.departments").value(16))
                 .andExpect(jsonPath("$.users").value(79))
                 .andExpect(jsonPath("$.registrationPeriods").value(21))
-                .andExpect(jsonPath("$.studentGroups").value(20))
-                .andExpect(jsonPath("$.topics").value(150))
-                .andExpect(jsonPath("$.topicSupervisors").value(155))
+                .andExpect(jsonPath("$.studentGroups").value(40))
+                .andExpect(jsonPath("$.topics").value(185))
+                .andExpect(jsonPath("$.topicSupervisors").value(190))
                 .andExpect(jsonPath("$.facultyHeads").value(5))
                 .andExpect(jsonPath("$.lecturers").value(20))
                 .andExpect(jsonPath("$.students").value(53))
-                .andExpect(jsonPath("$.announcements").value(3))
-                .andExpect(jsonPath("$.registrationResults").value(1))
+                .andExpect(jsonPath("$.announcements").value(38))
+                .andExpect(jsonPath("$.registrations").value(86))
+                .andExpect(jsonPath("$.reviewBoards").value(22))
+                .andExpect(jsonPath("$.registrationResults").value(16))
                 .andExpect(jsonPath("$.studentProfiles").doesNotExist());
 
         org.assertj.core.api.Assertions.assertThat(roleRepository.count()).isEqualTo(4);
@@ -278,11 +340,13 @@ class DatabaseSeedControllerTest {
         org.assertj.core.api.Assertions.assertThat(userRepository.count()).isEqualTo(79);
         org.assertj.core.api.Assertions.assertThat(departmentRepository.count()).isEqualTo(16);
         org.assertj.core.api.Assertions.assertThat(registrationPeriodRepository.count()).isEqualTo(21);
-        org.assertj.core.api.Assertions.assertThat(studentGroupRepository.count()).isEqualTo(20);
-        org.assertj.core.api.Assertions.assertThat(topicRepository.count()).isEqualTo(150);
-        org.assertj.core.api.Assertions.assertThat(announcementRepository.count()).isEqualTo(3);
-        org.assertj.core.api.Assertions.assertThat(registrationResultRepository.count()).isEqualTo(1);
-        org.assertj.core.api.Assertions.assertThat(topicRepository.countSupervisorAssignments()).isEqualTo(155);
+        org.assertj.core.api.Assertions.assertThat(studentGroupRepository.count()).isEqualTo(40);
+        org.assertj.core.api.Assertions.assertThat(topicRegistrationRepository.count()).isEqualTo(86);
+        org.assertj.core.api.Assertions.assertThat(reviewBoardRepository.count()).isEqualTo(22);
+        org.assertj.core.api.Assertions.assertThat(topicRepository.count()).isEqualTo(185);
+        org.assertj.core.api.Assertions.assertThat(announcementRepository.count()).isEqualTo(38);
+        org.assertj.core.api.Assertions.assertThat(registrationResultRepository.count()).isEqualTo(16);
+        org.assertj.core.api.Assertions.assertThat(topicRepository.countSupervisorAssignments()).isEqualTo(190);
         org.assertj.core.api.Assertions.assertThat(userRoleRepository.countByRole_CodeAndActiveTrueAndUser_ActiveTrue("FACULTY_HEAD"))
                 .isEqualTo(5);
         org.assertj.core.api.Assertions.assertThat(userRoleRepository.countByRole_CodeAndActiveTrueAndUser_ActiveTrue("LECTURER"))
@@ -343,5 +407,20 @@ class DatabaseSeedControllerTest {
                 "System Administrator",
                 "Administrator",
                 List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+    }
+
+    private static DatabaseUserPrincipal facultyHeadPrincipal() {
+        return new DatabaseUserPrincipal(
+                "hoang.thai.xuan.khoa@lecturer.hcmute.edu.vn",
+                "",
+                "Hoàng Thái Xuân Khoa",
+                "Faculty Head",
+                List.of(
+                        new SimpleGrantedAuthority("ROLE_FACULTY_HEAD"),
+                        new SimpleGrantedAuthority("TOPIC_PROPOSE"),
+                        new SimpleGrantedAuthority("TOPIC_REVIEW"),
+                        new SimpleGrantedAuthority("REGISTRATION_REVIEW"),
+                        new SimpleGrantedAuthority("REVIEW_BOARD_VIEW"),
+                        new SimpleGrantedAuthority("EVALUATION_SUBMIT")));
     }
 }
