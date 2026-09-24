@@ -42,7 +42,7 @@
             style="align-items: flex-end"
           >
             <form
-              class="ml-auto flex w-fit max-w-full gap-2 self-end"
+              class="flex w-full flex-wrap justify-end gap-2"
               th:action="@{/faculty/topics/review}"
               method="get"
             >
@@ -54,6 +54,42 @@
                 name="direction"
                 th:value="${topicPage.direction}"
               />
+              <label class="sr-only" for="topic-review-department-filter"
+                >Department</label
+              >
+              <select
+                id="topic-review-department-filter"
+                name="departmentId"
+                class="block w-full flex-none rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 sm:w-64"
+              >
+                <option value="">All departments</option>
+                <option
+                  th:each="department : ${topicPage.departmentOptions}"
+                  th:value="${department.id}"
+                  th:selected="${department.id == topicDepartmentId}"
+                  th:text="${department.code + ' · ' + department.name}"
+                >
+                  CNTT · Công nghệ thông tin
+                </option>
+              </select>
+              <label class="sr-only" for="topic-review-period-filter"
+                >Registration period</label
+              >
+              <select
+                id="topic-review-period-filter"
+                name="periodId"
+                class="block w-full flex-none rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 sm:w-64"
+              >
+                <option value="">All periods</option>
+                <option
+                  th:each="period : ${topicPage.periodOptions}"
+                  th:value="${period.id}"
+                  th:selected="${period.id == topicPeriodId}"
+                  th:text="${period.name + ' · ' + period.type}"
+                >
+                  Semester 1 · COURSE
+                </option>
+              </select>
               <label
                 class="relative block w-80 max-w-full flex-none"
                 for="topic-review-search"
@@ -86,7 +122,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/faculty/topics/review(page=0,size=${topicPage.size},search=${topicSearch},sort='topic',direction=${topicSort == 'topic' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/faculty/topics/review(page=0,size=${topicPage.size},search=${topicSearch},departmentId=${topicDepartmentId},periodId=${topicPeriodId},sort='topic',direction=${topicSort == 'topic' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Topic
                       <span
@@ -98,7 +134,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/faculty/topics/review(page=0,size=${topicPage.size},search=${topicSearch},sort='proposer',direction=${topicSort == 'proposer' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/faculty/topics/review(page=0,size=${topicPage.size},search=${topicSearch},departmentId=${topicDepartmentId},periodId=${topicPeriodId},sort='proposer',direction=${topicSort == 'proposer' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Proposed by
                       <span
@@ -110,7 +146,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/faculty/topics/review(page=0,size=${topicPage.size},search=${topicSearch},sort='department',direction=${topicSort == 'department' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/faculty/topics/review(page=0,size=${topicPage.size},search=${topicSearch},departmentId=${topicDepartmentId},periodId=${topicPeriodId},sort='department',direction=${topicSort == 'department' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Department
                       <span
@@ -122,7 +158,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/faculty/topics/review(page=0,size=${topicPage.size},search=${topicSearch},sort='period',direction=${topicSort == 'period' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/faculty/topics/review(page=0,size=${topicPage.size},search=${topicSearch},departmentId=${topicDepartmentId},periodId=${topicPeriodId},sort='period',direction=${topicSort == 'period' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Registration period
                       <span
@@ -134,7 +170,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/faculty/topics/review(page=0,size=${topicPage.size},search=${topicSearch},sort='status',direction=${topicSort == 'status' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/faculty/topics/review(page=0,size=${topicPage.size},search=${topicSearch},departmentId=${topicDepartmentId},periodId=${topicPeriodId},sort='status',direction=${topicSort == 'status' and topicDirection == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Status
                       <span
@@ -329,7 +365,7 @@
                     class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${!topicPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
                     th:attr="aria-disabled=${!topicPage.hasPrevious}"
-                    th:href="@{/faculty/topics/review(page=${topicPage.page - 1},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch})}"
+                    th:href="@{/faculty/topics/review(page=${topicPage.page - 1},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch},departmentId=${topicDepartmentId},periodId=${topicPeriodId})}"
                     >Previous</a
                   >
                 </li>
@@ -340,7 +376,7 @@
                     class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${pageNumber == topicPage.page ? 'bg-blue-50 text-blue-700' : ''}"
                     th:attr="aria-current=${pageNumber == topicPage.page ? 'page' : null}"
-                    th:href="@{/faculty/topics/review(page=${pageNumber},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch})}"
+                    th:href="@{/faculty/topics/review(page=${pageNumber},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch},departmentId=${topicDepartmentId},periodId=${topicPeriodId})}"
                     th:text="${pageNumber + 1}"
                     >1</a
                   >
@@ -350,7 +386,7 @@
                     class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${!topicPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
                     th:attr="aria-disabled=${!topicPage.hasNext}"
-                    th:href="@{/faculty/topics/review(page=${topicPage.page + 1},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch})}"
+                    th:href="@{/faculty/topics/review(page=${topicPage.page + 1},size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction},search=${topicSearch},departmentId=${topicDepartmentId},periodId=${topicPeriodId})}"
                     >Next</a
                   >
                 </li>
@@ -382,21 +418,21 @@
             </div>
             <h3
               class="text-base font-semibold text-gray-900"
-              th:text="${#strings.isEmpty(topicSearch) ? 'No pending proposals' : 'No matching proposals'}"
+              th:text="${!topicPage.filtered ? 'No pending proposals' : 'No matching proposals'}"
             >
               No pending proposals
             </h3>
             <p
               class="mt-1 max-w-sm text-sm leading-6 text-gray-500"
-              th:text="${#strings.isEmpty(topicSearch) ? 'There are no topic proposals waiting for review right now.' : 'Try a different keyword or clear the search to see more proposals.'}"
+              th:text="${!topicPage.filtered ? 'There are no topic proposals waiting for review right now.' : 'Try a different keyword, department or period, or clear the filters to see more proposals.'}"
             >
               There are no topic proposals waiting for review right now.
             </p>
             <a
               class="mt-4 text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline"
-              th:if="${!#strings.isEmpty(topicSearch)}"
+              th:if="${topicPage.filtered}"
               th:href="@{/faculty/topics/review(page=0,size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction})}"
-              >Clear search</a
+              >Clear filters</a
             >
           </div>
         </section>

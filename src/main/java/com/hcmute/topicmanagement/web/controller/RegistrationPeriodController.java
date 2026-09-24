@@ -37,10 +37,11 @@ public class RegistrationPeriodController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "") String status,
             @RequestParam(defaultValue = "period") String sort,
             @RequestParam(defaultValue = "asc") String direction,
             Model model) {
-        populatePage(model, search, page, size, sort, direction);
+        populatePage(model, search, status, page, size, sort, direction);
         return "faculty/periods";
     }
 
@@ -53,7 +54,7 @@ public class RegistrationPeriodController {
         Model model,
             RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            populatePage(model, "", 0, 10, "period", "asc");
+            populatePage(model, "", "", 0, 10, "period", "asc");
             model.addAttribute("createForm", form);
             return "faculty/periods";
         }
@@ -97,16 +98,18 @@ public class RegistrationPeriodController {
         return "redirect:/faculty/periods";
     }
 
-    private void populatePage(Model model, String search, int page, int size, String sort, String direction) {
+    private void populatePage(
+            Model model, String search, String status, int page, int size, String sort, String direction) {
         String normalizedSearch = search == null ? "" : search.trim();
         RegistrationPeriodService.PeriodPage periodPage = registrationPeriodService.listPeriodsPage(
-                normalizedSearch, page, size, sort, direction);
+                normalizedSearch, status, page, size, sort, direction);
         var periods = periodPage.getPeriods();
         model.addAttribute("pageTitle", "Registration period management");
         model.addAttribute("periodPage", periodPage);
         model.addAttribute("periodSearch", periodPage.getSearch());
         model.addAttribute("periodSort", periodPage.getSort());
         model.addAttribute("periodDirection", periodPage.getDirection());
+        model.addAttribute("periodStatusFilter", periodPage.getStatus());
         model.addAttribute("periods", periods);
         model.addAttribute("periodTypes", PeriodType.values());
         model.addAttribute("periodStatuses", RegistrationPeriodStatus.values());

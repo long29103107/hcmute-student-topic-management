@@ -30,17 +30,21 @@ public class TopicReviewController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(required = false) Long periodId,
             @RequestParam(defaultValue = "topic") String sort,
             @RequestParam(defaultValue = "asc") String direction,
             Model model) {
         model.addAttribute("pageTitle", "Topic review");
         TopicReviewService.TopicReviewPage topicPage = topicReviewService.listPendingPage(
-                authentication.getName(), search, page, size, sort, direction);
+                authentication.getName(), search, departmentId, periodId, page, size, sort, direction);
         model.addAttribute("topicPage", topicPage);
         model.addAttribute("topics", topicPage.getTopics());
         model.addAttribute("topicSearch", topicPage.getSearch());
         model.addAttribute("topicSort", topicPage.getSort());
         model.addAttribute("topicDirection", topicPage.getDirection());
+        model.addAttribute("topicDepartmentId", topicPage.getDepartmentId());
+        model.addAttribute("topicPeriodId", topicPage.getPeriodId());
         return "faculty/review";
     }
 

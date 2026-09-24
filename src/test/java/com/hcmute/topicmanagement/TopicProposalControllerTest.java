@@ -154,6 +154,201 @@ class TopicProposalControllerTest {
     }
 
     @Test
+    void lecturerCanFilterOwnTopicProposalsByDepartmentStatusAndSearch() throws Exception {
+        String suffix = suffix();
+        UserEntity lecturer = lecturer("filter-" + suffix);
+        UserEntity otherLecturer = lecturer("filter-other-" + suffix);
+        DepartmentEntity departmentA = department("FA-" + suffix);
+        DepartmentEntity departmentB = department("FB-" + suffix);
+        DepartmentEntity unusedActive = department("FU-" + suffix);
+        DepartmentEntity inactive = department("FX-" + suffix);
+        inactive.setActive(false);
+        departmentRepository.saveAndFlush(inactive);
+        RegistrationPeriodEntity period = openPeriod("F-" + suffix);
+        topicRepository.saveAndFlush(new TopicEntity(
+                period, departmentA, lecturer, "Draft A alpha " + suffix, "Draft A description"));
+        TopicEntity pendingA = new TopicEntity(
+                period, departmentA, lecturer, "Pending A alpha " + suffix, "Pending A description");
+        pendingA.setStatus(TopicStatus.PENDING_APPROVAL);
+        topicRepository.saveAndFlush(pendingA);
+        topicRepository.saveAndFlush(new TopicEntity(
+                period, departmentB, lecturer, "Draft B beta " + suffix, "Draft B description"));
+        topicRepository.saveAndFlush(new TopicEntity(
+                period, departmentA, otherLecturer, "Other A alpha " + suffix, "Other lecturer description"));
+
+        // Directory header renders search, Department and Status controls; Department lists active departments.
+        mockMvc.perform(get("/lecturer/topics")
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode()))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("name=\"search\"")))
+                .andExpect(content().string(containsString("name=\"departmentId\"")))
+                .andExpect(content().string(containsString("name=\"status\"")))
+                .andExpect(content().string(containsString("All departments")))
+                .andExpect(content().string(containsString("All statuses")))
+                .andExpect(content().string(containsString("Pending approval")))
+                .andExpect(content().string(containsString(unusedActive.getCode())))
+                .andExpect(content().string(not(containsString(inactive.getCode()))))
+                .andExpect(content().string(not(containsString("Other A alpha " + suffix))));
+
+        // Department filter: only the selected department, never another lecturer's proposal.
+        mockMvc.perform(get("/lecturer/topics")
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))
+                        .param("departmentId", departmentA.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Draft A alpha " + suffix)))
+                .andExpect(content().string(containsString("Pending A alpha " + suffix)))
+                .andExpect(content().string(not(containsString("Draft B beta " + suffix))))
+                .andExpect(content().string(not(containsString("Other A alpha " + suffix))))
+                .andExpect(content().string(containsString("departmentId=" + departmentA.getId())));
+
+        // Status filter, then clearing it back to All.
+        mockMvc.perform(get("/lecturer/topics")
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))
+                        .param("status", "PENDING_APPROVAL"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Pending A alpha " + suffix)))
+                .andExpect(content().string(not(containsString("Draft A alpha " + suffix))))
+                .andExpect(content().string(not(containsString("Draft B beta " + suffix))))
+                .andExpect(content().string(containsString("status=PENDING_APPROVAL")));
+
+        mockMvc.perform(get("/lecturer/topics")
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))
+                        .param("status", ""))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Draft A alpha " + suffix)))
+                .andExpect(content().string(containsString("Pending A alpha " + suffix)))
+                .andExpect(content().string(containsString("Draft B beta " + suffix)));
+
+        // Search matches the department and registration period shown in the directory.
+        mockMvc.perform(get("/lecturer/topics")
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))
+                        .param("search", departmentB.getName()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Draft B beta " + suffix)))
+                .andExpect(content().string(not(containsString("Draft A alpha " + suffix))));
+
+        mockMvc.perform(get("/lecturer/topics")
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))
+                        .param("search", period.getName()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Draft A alpha " + suffix)))
+                .andExpect(content().string(containsString("Draft B beta " + suffix)))
+                .andExpect(content().string(not(containsString("Other A alpha " + suffix))));
+
+        // Search + department + status combine with AND semantics and stay in the lecturer's scope.
+        mockMvc.perform(get("/lecturer/topics")
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))
+                        .param("search", "alpha " + suffix)
+                        .param("departmentId", departmentA.getId().toString())
+                        .param("status", "draft"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Draft A alpha " + suffix)))
+                .andExpect(content().string(not(containsString("Pending A alpha " + suffix))))
+                .andExpect(content().string(not(containsString("Draft B beta " + suffix))))
+                .andExpect(content().string(not(containsString("Other A alpha " + suffix))))
+                .andExpect(content().string(containsString("status=DRAFT")))
+                .andExpect(content().string(containsString("departmentId=" + departmentA.getId())));
+
+        // Unknown status values fall back to All instead of failing the page.
+        mockMvc.perform(get("/lecturer/topics")
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))
+                        .param("status", "NOT_A_STATUS"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Draft A alpha " + suffix)))
+                .andExpect(content().string(containsString("Draft B beta " + suffix)));
+
+        // No-match state: shared empty state, a way back, and no stale row actions or edit modals.
+        mockMvc.perform(get("/lecturer/topics")
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))
+                        .param("departmentId", departmentB.getId().toString())
+                        .param("status", "PUBLISHED"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("No data")))
+                .andExpect(content().string(containsString("Clear search and filters")))
+                .andExpect(content().string(not(containsString("Draft B beta " + suffix))))
+                .andExpect(content().string(not(containsString("topic-actions-menu-"))))
+                .andExpect(content().string(not(containsString("submit-topic-form-"))))
+                .andExpect(content().string(not(containsString("edit-topic-modal-"))))
+                .andExpect(content().string(not(containsString("Topic proposal pagination"))));
+    }
+
+    @Test
+    void lecturerTopicDirectoryPaginatesClampsPagesAndPreservesQueryState() throws Exception {
+        String suffix = suffix();
+        UserEntity lecturer = lecturer("paging-" + suffix);
+        DepartmentEntity department = department("PG-" + suffix);
+        RegistrationPeriodEntity period = openPeriod("PG-" + suffix);
+        for (int index = 1; index <= 7; index++) {
+            topicRepository.saveAndFlush(new TopicEntity(
+                    period, department, lecturer, String.format("Paged topic %02d %s", index, suffix),
+                    "Paged description"));
+        }
+        String searchValue = suffix.toLowerCase(Locale.ROOT);
+
+        // Page 2 of 2 with every query parameter preserved in the pagination links.
+        mockMvc.perform(get("/lecturer/topics")
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))
+                        .param("search", suffix)
+                        .param("departmentId", department.getId().toString())
+                        .param("status", "DRAFT")
+                        .param("sort", "title")
+                        .param("direction", "asc")
+                        .param("size", "5")
+                        .param("page", "1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Paged topic 06 " + suffix)))
+                .andExpect(content().string(containsString("Paged topic 07 " + suffix)))
+                .andExpect(content().string(not(containsString("Paged topic 01 " + suffix))))
+                .andExpect(content().string(containsString("Topic proposal pagination")))
+                .andExpect(content().string(containsString("page=0")))
+                .andExpect(content().string(containsString("size=5")))
+                .andExpect(content().string(containsString("search=" + searchValue)))
+                .andExpect(content().string(containsString("departmentId=" + department.getId())))
+                .andExpect(content().string(containsString("status=DRAFT")))
+                .andExpect(content().string(containsString("sort=topic")))
+                .andExpect(content().string(containsString("direction=asc")))
+                // Active ascending column shows the ascending indicator.
+                .andExpect(content().string(containsString("↑")));
+
+        // Out-of-range pages clamp to the last and first pages.
+        mockMvc.perform(get("/lecturer/topics")
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))
+                        .param("search", suffix)
+                        .param("sort", "title")
+                        .param("direction", "asc")
+                        .param("size", "5")
+                        .param("page", "99"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Paged topic 07 " + suffix)))
+                .andExpect(content().string(not(containsString("Paged topic 01 " + suffix))));
+
+        mockMvc.perform(get("/lecturer/topics")
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))
+                        .param("search", suffix)
+                        .param("sort", "title")
+                        .param("direction", "asc")
+                        .param("size", "5")
+                        .param("page", "-3"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Paged topic 01 " + suffix)))
+                .andExpect(content().string(not(containsString("Paged topic 07 " + suffix))));
+
+        // Descending sort reverses the order and shows the descending indicator.
+        String html = mockMvc.perform(get("/lecturer/topics")
+                        .with(user(lecturerPrincipal(lecturer.getEmailOrCode())))
+                        .param("search", suffix)
+                        .param("sort", "topic")
+                        .param("direction", "desc")
+                        .param("size", "100"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("↓")))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        assertTrue(html.indexOf("Paged topic 07 " + suffix) < html.indexOf("Paged topic 01 " + suffix));
+    }
+
+    @Test
     void invalidTopicProposalFormIsRejected() throws Exception {
         String suffix = suffix();
         UserEntity lecturer = lecturer(suffix);

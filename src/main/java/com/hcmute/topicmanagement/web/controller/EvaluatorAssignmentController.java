@@ -30,18 +30,20 @@ public class EvaluatorAssignmentController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Long departmentId,
             @RequestParam(defaultValue = "topic") String sort,
             @RequestParam(defaultValue = "asc") String direction,
             Model model) {
         EvaluatorAssignmentService.EvaluatorAssignmentPage assignmentPage =
                 evaluatorAssignmentService.listManageableRegistrations(
-                        authentication.getName(), search, page, size, sort, direction);
+                        authentication.getName(), search, departmentId, page, size, sort, direction);
         model.addAttribute("pageTitle", "Evaluator assignments");
         model.addAttribute("assignmentPage", assignmentPage);
         model.addAttribute("registrations", assignmentPage.registrations());
         model.addAttribute("registrationSearch", assignmentPage.search());
         model.addAttribute("registrationSort", assignmentPage.sort());
         model.addAttribute("registrationDirection", assignmentPage.direction());
+        model.addAttribute("registrationDepartmentId", assignmentPage.departmentId());
         model.addAttribute("evaluatorScope", assignmentPage.scopeLabel());
         return "faculty/evaluator-assignments";
     }

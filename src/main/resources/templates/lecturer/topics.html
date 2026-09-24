@@ -64,12 +64,51 @@
             class="flex justify-end border-b border-gray-200 p-5 sm:p-6"
           >
             <form
-              class="flex w-full max-w-xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-end"
+              class="flex w-full flex-wrap justify-end gap-2"
               th:action="@{/lecturer/topics}"
               method="get"
+              data-user-search-form
             >
+              <input type="hidden" name="page" value="0" />
+              <input type="hidden" name="size" th:value="${topicPage.size}" />
               <input type="hidden" name="sort" th:value="${topicPage.sort}" />
               <input type="hidden" name="direction" th:value="${topicPage.direction}" />
+              <label class="sr-only" for="topic-proposal-department-filter"
+                >Department</label
+              >
+              <select
+                id="topic-proposal-department-filter"
+                name="departmentId"
+                class="block w-full flex-none rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 sm:w-64"
+              >
+                <option value="">All departments</option>
+                <option
+                  th:each="department : ${topicPage.departmentOptions}"
+                  th:value="${department.id}"
+                  th:selected="${department.id == topicPage.departmentId}"
+                  th:text="${department.code + ' · ' + department.name}"
+                >
+                  CNTT · Công nghệ thông tin
+                </option>
+              </select>
+              <label class="sr-only" for="topic-proposal-status-filter"
+                >Topic status</label
+              >
+              <select
+                id="topic-proposal-status-filter"
+                name="status"
+                class="block w-44 flex-none rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+              >
+                <option value="">All statuses</option>
+                <option
+                  th:each="statusOption : ${topicPage.statusOptions}"
+                  th:value="${statusOption.code}"
+                  th:selected="${statusOption.code == topicPage.status}"
+                  th:text="${statusOption.label}"
+                >
+                  Draft
+                </option>
+              </select>
               <label class="sr-only" for="topic-proposal-search"
                 >Search topic proposals</label
               >
@@ -79,11 +118,13 @@
                 type="search"
                 th:value="${topicPage.search}"
                 placeholder="Search topics"
-                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 sm:w-80"
+                autocomplete="off"
+                data-user-search
+                class="block w-full flex-none rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 sm:w-80"
               />
               <button
                 type="submit"
-                class="shrink-0 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                class="w-full flex-none rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 sm:w-auto"
               >
                 Search
               </button>
@@ -98,7 +139,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/lecturer/topics(page=0,size=${topicPage.size},search=${topicPage.search},sort='topic',direction=${topicPage.sort == 'topic' and topicPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/lecturer/topics(page=0,size=${topicPage.size},search=${topicPage.search},departmentId=${topicPage.departmentId},status=${topicPage.status},sort='topic',direction=${topicPage.sort == 'topic' and topicPage.direction == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Topic
                       <span th:text="${topicPage.sort == 'topic' ? (topicPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
@@ -107,7 +148,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/lecturer/topics(page=0,size=${topicPage.size},search=${topicPage.search},sort='department',direction=${topicPage.sort == 'department' and topicPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/lecturer/topics(page=0,size=${topicPage.size},search=${topicPage.search},departmentId=${topicPage.departmentId},status=${topicPage.status},sort='department',direction=${topicPage.sort == 'department' and topicPage.direction == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Department
                       <span th:text="${topicPage.sort == 'department' ? (topicPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
@@ -116,7 +157,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/lecturer/topics(page=0,size=${topicPage.size},search=${topicPage.search},sort='period',direction=${topicPage.sort == 'period' and topicPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/lecturer/topics(page=0,size=${topicPage.size},search=${topicPage.search},departmentId=${topicPage.departmentId},status=${topicPage.status},sort='period',direction=${topicPage.sort == 'period' and topicPage.direction == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Registration period
                       <span th:text="${topicPage.sort == 'period' ? (topicPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
@@ -125,7 +166,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/lecturer/topics(page=0,size=${topicPage.size},search=${topicPage.search},sort='status',direction=${topicPage.sort == 'status' and topicPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/lecturer/topics(page=0,size=${topicPage.size},search=${topicPage.search},departmentId=${topicPage.departmentId},status=${topicPage.status},sort='status',direction=${topicPage.sort == 'status' and topicPage.direction == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Status
                       <span th:text="${topicPage.sort == 'status' ? (topicPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
@@ -134,7 +175,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/lecturer/topics(page=0,size=${topicPage.size},search=${topicPage.search},sort='updated',direction=${topicPage.sort == 'updated' and topicPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/lecturer/topics(page=0,size=${topicPage.size},search=${topicPage.search},departmentId=${topicPage.departmentId},status=${topicPage.status},sort='updated',direction=${topicPage.sort == 'updated' and topicPage.direction == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Last updated
                       <span th:text="${topicPage.sort == 'updated' ? (topicPage.direction == 'asc' ? '↑' : '↓') : '↕'}">↕</span>
@@ -309,7 +350,7 @@
                     class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${!topicPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
                     th:attr="aria-disabled=${!topicPage.hasPrevious}"
-                    th:href="@{/lecturer/topics(page=${topicPage.page - 1},size=${topicPage.size},search=${topicPage.search},sort=${topicPage.sort},direction=${topicPage.direction})}"
+                    th:href="@{/lecturer/topics(page=${topicPage.page - 1},size=${topicPage.size},search=${topicPage.search},departmentId=${topicPage.departmentId},status=${topicPage.status},sort=${topicPage.sort},direction=${topicPage.direction})}"
                     >Previous</a
                   >
                 </li>
@@ -320,7 +361,7 @@
                     class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${pageNumber == topicPage.page ? 'bg-blue-50 text-blue-700' : ''}"
                     th:attr="aria-current=${pageNumber == topicPage.page ? 'page' : null}"
-                    th:href="@{/lecturer/topics(page=${pageNumber},size=${topicPage.size},search=${topicPage.search},sort=${topicPage.sort},direction=${topicPage.direction})}"
+                    th:href="@{/lecturer/topics(page=${pageNumber},size=${topicPage.size},search=${topicPage.search},departmentId=${topicPage.departmentId},status=${topicPage.status},sort=${topicPage.sort},direction=${topicPage.direction})}"
                     th:text="${pageNumber + 1}"
                     >1</a
                   >
@@ -330,7 +371,7 @@
                     class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${!topicPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
                     th:attr="aria-disabled=${!topicPage.hasNext}"
-                    th:href="@{/lecturer/topics(page=${topicPage.page + 1},size=${topicPage.size},search=${topicPage.search},sort=${topicPage.sort},direction=${topicPage.direction})}"
+                    th:href="@{/lecturer/topics(page=${topicPage.page + 1},size=${topicPage.size},search=${topicPage.search},departmentId=${topicPage.departmentId},status=${topicPage.status},sort=${topicPage.sort},direction=${topicPage.direction})}"
                     >Next</a
                   >
                 </li>
@@ -339,6 +380,13 @@
           </div>
           <div th:if="${#lists.isEmpty(topics)}">
             <div th:replace="~{fragments/no-data :: noData}"></div>
+            <p class="pb-6 text-center text-sm" th:if="${topicPage.filtered}">
+              <a
+                class="font-medium text-blue-700 hover:text-blue-800 hover:underline"
+                th:href="@{/lecturer/topics(page=0,size=${topicPage.size},sort=${topicPage.sort},direction=${topicPage.direction})}"
+                >Clear search and filters</a
+              >
+            </p>
           </div>
         </section>
       </section>

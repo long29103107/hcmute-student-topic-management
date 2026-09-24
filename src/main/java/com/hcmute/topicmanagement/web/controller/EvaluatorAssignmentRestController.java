@@ -39,10 +39,11 @@ public class EvaluatorAssignmentRestController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Long departmentId,
             @RequestParam(defaultValue = "topic") String sort,
             @RequestParam(defaultValue = "asc") String direction) {
         return evaluatorAssignmentService.listManageableRegistrations(
-                authentication.getName(), search, page, size, sort, direction);
+                authentication.getName(), search, departmentId, page, size, sort, direction);
     }
 
     @PutMapping("/{id}/evaluator")

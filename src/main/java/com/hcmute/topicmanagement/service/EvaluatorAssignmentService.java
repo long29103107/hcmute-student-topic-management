@@ -44,6 +44,12 @@ public class EvaluatorAssignmentService {
     @PreAuthorize("hasAuthority('REGISTRATION_REVIEW')")
     public EvaluatorAssignmentPage listManageableRegistrations(
             String actorEmail, String search, int page, int size, String sort, String direction) {
+        return listManageableRegistrations(actorEmail, search, null, page, size, sort, direction);
+    }
+
+    @PreAuthorize("hasAuthority('REGISTRATION_REVIEW')")
+    public EvaluatorAssignmentPage listManageableRegistrations(
+            String actorEmail, String search, Long departmentId, int page, int size, String sort, String direction) {
         UserEntity actor = findActiveManager(actorEmail);
         ManagementScope scope = scopeFor(actor);
         String normalizedSearch = normalizeSearch(search);
@@ -51,15 +57,30 @@ public class EvaluatorAssignmentService {
         String normalizedDirection = normalizeDirection(direction);
         int safeSize = Math.min(Math.max(size, 5), 100);
 
-        List<RegistrationSummary> filtered = scope.hasDepartmentScope()
+        // Scope first (Admin: all departments, Faculty Head: own department only), then derive the
+        // department options and apply the optional department filter inside that scope.
+        List<TopicRegistrationEntity> scoped = scope.hasDepartmentScope()
                 ? topicRegistrationRepository.findByStatusOrderBySubmittedAtDesc(TopicRegistrationStatus.APPROVED)
                         .stream()
                         .filter(registration -> scope.isAdmin() || belongsToDepartment(scope, registration))
-                        .map(this::toSummary)
-                        .filter(registration -> matchesSearch(registration, normalizedSearch))
-                        .sorted(registrationComparator(normalizedSort, normalizedDirection))
                         .toList()
                 : List.of();
+        List<DepartmentFilterOption> departmentOptions = scoped.stream()
+                .map(registration -> registration.getTopic().getDepartment())
+                .filter(Objects::nonNull)
+                .map(department -> new DepartmentFilterOption(
+                        department.getId(), department.getCode(), department.getName()))
+                .distinct()
+                .sorted(Comparator.comparing(
+                        DepartmentFilterOption::code, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
+                .toList();
+        List<RegistrationSummary> filtered = scoped.stream()
+                .filter(registration -> departmentId == null || (registration.getTopic().getDepartment() != null
+                        && departmentId.equals(registration.getTopic().getDepartment().getId())))
+                .map(this::toSummary)
+                .filter(registration -> matchesSearch(registration, normalizedSearch))
+                .sorted(registrationComparator(normalizedSort, normalizedDirection))
+                .toList();
 
         int totalItems = filtered.size();
         int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / safeSize));
@@ -68,7 +89,8 @@ public class EvaluatorAssignmentService {
         int to = Math.min(from + safeSize, totalItems);
         return new EvaluatorAssignmentPage(
                 filtered.subList(from, to), safePage, safeSize, totalItems, totalPages,
-                normalizedSearch, normalizedSort, normalizedDirection, scope.label());
+                normalizedSearch, normalizedSort, normalizedDirection, scope.label(),
+                departmentId, departmentOptions);
     }
 
     @Transactional
@@ -328,13 +350,27 @@ public class EvaluatorAssignmentService {
             String search,
             String sort,
             String direction,
-            String scopeLabel) {
+            String scopeLabel,
+            Long departmentId,
+            List<DepartmentFilterOption> departmentOptions) {
         public EvaluatorAssignmentPage {
             registrations = List.copyOf(registrations);
+            departmentOptions = departmentOptions == null ? List.of() : List.copyOf(departmentOptions);
+        }
+
+        public EvaluatorAssignmentPage(
+                List<RegistrationSummary> registrations, int page, int size, int totalItems, int totalPages,
+                String search, String sort, String direction, String scopeLabel) {
+            this(registrations, page, size, totalItems, totalPages, search, sort, direction, scopeLabel,
+                    null, List.of());
         }
 
         public boolean hasPrevious() { return page > 0; }
         public boolean hasNext() { return page + 1 < totalPages; }
+        public boolean filtered() { return departmentId != null || (search != null && !search.isBlank()); }
+    }
+
+    public record DepartmentFilterOption(Long id, String code, String name) {
     }
 
     public record RegistrationSummary(

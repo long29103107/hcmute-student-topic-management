@@ -3,6 +3,7 @@ package com.hcmute.topicmanagement;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -263,6 +264,83 @@ class EvaluatorAssignmentControllerTest {
         mockMvc.perform(get("/api/faculty/registrations/evaluators")
                         .with(user(studentPrincipal(student.getEmailOrCode()))))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void evaluatorQueueCanBeFilteredByDepartmentWithinManagementScope() throws Exception {
+        String suffix = suffix();
+        DepartmentEntity departmentA = department("EVAL-FA-" + suffix);
+        DepartmentEntity departmentB = department("EVAL-FB-" + suffix);
+        UserEntity admin = account("eval-filter-admin-" + suffix, "Filter Admin " + suffix, "ADMIN", null);
+        UserEntity facultyHead = account("eval-filter-head-" + suffix, "Filter Head " + suffix,
+                "FACULTY_HEAD", departmentA);
+        registration(openPeriod("FA-" + suffix), departmentA, "Filter A approved " + suffix,
+                TopicRegistrationStatus.APPROVED);
+        registration(openPeriod("FB-" + suffix), departmentB, "Filter B approved " + suffix,
+                TopicRegistrationStatus.APPROVED);
+
+        // Admin sees every department as an option and can narrow the queue to one department.
+        mockMvc.perform(get("/faculty/registrations/evaluators")
+                        .with(user(adminPrincipal(admin.getEmailOrCode())))
+                        .param("departmentId", departmentA.getId().toString())
+                        .param("sort", "department")
+                        .param("direction", "desc"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("All departments")))
+                .andExpect(content().string(containsString(departmentB.getCode())))
+                .andExpect(content().string(containsString("Filter A approved " + suffix)))
+                .andExpect(content().string(not(containsString("Filter B approved " + suffix))))
+                .andExpect(content().string(containsString("departmentId=" + departmentA.getId())));
+
+        // Sorting by department works in both directions and the active column shows its indicator.
+        String ascending = mockMvc.perform(get("/faculty/registrations/evaluators")
+                        .with(user(adminPrincipal(admin.getEmailOrCode())))
+                        .param("search", suffix)
+                        .param("sort", "department")
+                        .param("direction", "asc"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("↑")))
+                .andExpect(content().string(containsString("id=\"evaluator-department-filter\"")))
+                .andReturn().getResponse().getContentAsString();
+        assertTrue(ascending.indexOf("Filter A approved " + suffix) < ascending.indexOf("Filter B approved " + suffix));
+
+        String descending = mockMvc.perform(get("/faculty/registrations/evaluators")
+                        .with(user(adminPrincipal(admin.getEmailOrCode())))
+                        .param("search", suffix)
+                        .param("sort", "department")
+                        .param("direction", "desc"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("↓")))
+                .andReturn().getResponse().getContentAsString();
+        assertTrue(descending.indexOf("Filter B approved " + suffix) < descending.indexOf("Filter A approved " + suffix));
+
+        mockMvc.perform(get("/api/faculty/registrations/evaluators")
+                        .with(user(adminPrincipal(admin.getEmailOrCode())))
+                        .param("departmentId", departmentB.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.departmentId").value(departmentB.getId()))
+                .andExpect(jsonPath("$.registrations[*].topicTitle").value(hasItem("Filter B approved " + suffix)))
+                .andExpect(jsonPath("$.registrations[*].topicTitle").value(
+                        not(hasItem("Filter A approved " + suffix))));
+
+        // Faculty Head options stay inside their department; a foreign department id reveals nothing.
+        mockMvc.perform(get("/faculty/registrations/evaluators")
+                        .with(user(facultyHeadPrincipal(facultyHead.getEmailOrCode()))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Filter A approved " + suffix)))
+                .andExpect(content().string(not(containsString(departmentB.getCode()))));
+
+        mockMvc.perform(get("/faculty/registrations/evaluators")
+                        .with(user(facultyHeadPrincipal(facultyHead.getEmailOrCode())))
+                        .param("departmentId", departmentB.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("Filter B approved " + suffix))))
+                .andExpect(content().string(containsString("No registrations match your filters.")))
+                .andExpect(content().string(containsString("Clear filters")));
+    }
+
+    private static DatabaseUserPrincipal adminPrincipal(String email) {
+        return principal(email, "ROLE_ADMIN", "REGISTRATION_REVIEW");
     }
 
     private TopicRegistrationEntity registration(

@@ -167,6 +167,152 @@ class RegistrationPeriodControllerTest {
     }
 
     @Test
+    void facultyHeadCanFilterRegistrationPeriodsByEachStatusAndSearch() throws Exception {
+        String suffix = suffix();
+        String email = "period.status." + suffix.toLowerCase(Locale.ROOT) + "@lecturer.hcmute.edu.vn";
+        saveUser("period-status-" + suffix, "Period Status User " + suffix, email);
+        periodWithStatus("Status draft alpha " + suffix, RegistrationPeriodStatus.DRAFT);
+        periodWithStatus("Status open alpha " + suffix, RegistrationPeriodStatus.OPEN);
+        periodWithStatus("Status open beta " + suffix, RegistrationPeriodStatus.OPEN);
+        periodWithStatus("Status closed alpha " + suffix, RegistrationPeriodStatus.CLOSED);
+        periodWithStatus("Status archived alpha " + suffix, RegistrationPeriodStatus.ARCHIVED);
+        List<String> names = List.of(
+                "Status draft alpha " + suffix, "Status open alpha " + suffix, "Status open beta " + suffix,
+                "Status closed alpha " + suffix, "Status archived alpha " + suffix);
+
+        // The Status dropdown sits in the search form with All plus every period status.
+        mockMvc.perform(get("/faculty/periods")
+                        .with(user(facultyHead(email)))
+                        .param("search", suffix))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("id=\"period-status-filter\"")))
+                .andExpect(content().string(containsString("All statuses")))
+                .andExpect(content().string(containsString("value=\"ARCHIVED\"")));
+
+        // Each status returns only periods with that status.
+        for (RegistrationPeriodStatus periodStatus : RegistrationPeriodStatus.values()) {
+            String marker = "Status " + periodStatus.name().toLowerCase(Locale.ROOT) + " ";
+            var result = mockMvc.perform(get("/faculty/periods")
+                            .with(user(facultyHead(email)))
+                            .param("search", suffix)
+                            .param("status", periodStatus.name()))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string(containsString("status=" + periodStatus.name())));
+            for (String name : names) {
+                result.andExpect(content().string(name.startsWith(marker)
+                        ? containsString(name)
+                        : not(containsString(name))));
+            }
+        }
+
+        // Clearing the status (All) returns every period again.
+        var all = mockMvc.perform(get("/faculty/periods")
+                        .with(user(facultyHead(email)))
+                        .param("search", suffix)
+                        .param("status", ""))
+                .andExpect(status().isOk());
+        for (String name : names) {
+            all.andExpect(content().string(containsString(name)));
+        }
+
+        // Search + Status use AND semantics.
+        mockMvc.perform(get("/faculty/periods")
+                        .with(user(facultyHead(email)))
+                        .param("search", "beta " + suffix)
+                        .param("status", "open"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Status open beta " + suffix)))
+                .andExpect(content().string(not(containsString("Status open alpha " + suffix))));
+
+        // Empty filtered result: shared no-data state, a clear link and no stale period actions.
+        mockMvc.perform(get("/faculty/periods")
+                        .with(user(facultyHead(email)))
+                        .param("search", "beta " + suffix)
+                        .param("status", "ARCHIVED"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("No data")))
+                .andExpect(content().string(containsString("Clear search and filters")))
+                .andExpect(content().string(not(containsString("Status open beta " + suffix))))
+                .andExpect(content().string(not(containsString("edit-period-modal-"))))
+                .andExpect(content().string(not(containsString("Registration period pagination"))));
+
+        // Unknown values fall back to All statuses, like the Faculty student groups directory.
+        mockMvc.perform(get("/faculty/periods")
+                        .with(user(facultyHead(email)))
+                        .param("search", suffix)
+                        .param("status", "UNKNOWN"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Status open alpha " + suffix)))
+                .andExpect(content().string(containsString("Status closed alpha " + suffix)));
+    }
+
+    @Test
+    void periodStatusFilterIsPreservedAcrossSortAndPaginationAndRequiresPermission() throws Exception {
+        String suffix = suffix();
+        String email = "period.status.page." + suffix.toLowerCase(Locale.ROOT) + "@lecturer.hcmute.edu.vn";
+        saveUser("period-status-page-" + suffix, "Period Status Page User " + suffix, email);
+        for (int index = 1; index <= 7; index++) {
+            periodWithStatus(String.format("Status page %02d %s", index, suffix), RegistrationPeriodStatus.OPEN);
+        }
+        periodWithStatus("Status page 00 closed " + suffix, RegistrationPeriodStatus.CLOSED);
+        String searchValue = suffix.toLowerCase(Locale.ROOT);
+
+        mockMvc.perform(get("/faculty/periods")
+                        .with(user(facultyHead(email)))
+                        .param("search", suffix)
+                        .param("status", "OPEN")
+                        .param("sort", "name")
+                        .param("direction", "asc")
+                        .param("size", "5")
+                        .param("page", "1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Status page 06 " + suffix)))
+                .andExpect(content().string(containsString("Status page 07 " + suffix)))
+                .andExpect(content().string(not(containsString("Status page 01 " + suffix))))
+                .andExpect(content().string(not(containsString("Status page 00 closed " + suffix))))
+                .andExpect(content().string(containsString("Registration period pagination")))
+                .andExpect(content().string(containsString("status=OPEN")))
+                .andExpect(content().string(containsString("search=" + searchValue)))
+                .andExpect(content().string(containsString("size=5")))
+                .andExpect(content().string(containsString("sort=period")))
+                .andExpect(content().string(containsString("direction=asc")));
+
+        // Out-of-range page clamps to the last filtered page.
+        mockMvc.perform(get("/faculty/periods")
+                        .with(user(facultyHead(email)))
+                        .param("search", suffix)
+                        .param("status", "OPEN")
+                        .param("size", "5")
+                        .param("page", "42"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Status page 07 " + suffix)))
+                .andExpect(content().string(not(containsString("Status page 01 " + suffix))));
+
+        // The filter does not widen access: users without PERIOD_MANAGE are still rejected.
+        mockMvc.perform(get("/faculty/periods")
+                        .with(user("student").roles("STUDENT"))
+                        .param("status", "OPEN"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/faculty/periods")
+                        .with(user("faculty-head").roles("FACULTY_HEAD"))
+                        .param("status", "OPEN"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/faculty/periods")
+                        .with(user(adminPrincipal()))
+                        .param("status", "OPEN"))
+                .andExpect(status().isOk());
+    }
+
+    private void periodWithStatus(String name, RegistrationPeriodStatus periodStatus) {
+        LocalDateTime start = LocalDateTime.of(2026, 9, 1, 8, 0);
+        LocalDateTime end = LocalDateTime.of(2026, 9, 30, 23, 59);
+        RegistrationPeriodEntity period = new RegistrationPeriodEntity(
+                name, PeriodType.COURSE, start, end, start, end);
+        period.setStatus(periodStatus);
+        registrationPeriodRepository.saveAndFlush(period);
+    }
+
+    @Test
     void facultyHeadCanCreateDatnAndKltnPeriodTypes() throws Exception {
         String suffix = suffix();
         String email = "period.types." + suffix.toLowerCase(Locale.ROOT) + "@lecturer.hcmute.edu.vn";

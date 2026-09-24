@@ -45,11 +45,20 @@ public class RegistrationPeriodService {
 
     @PreAuthorize("hasAuthority('PERIOD_MANAGE')")
     public PeriodPage listPeriodsPage(String search, int page, int size, String sort, String direction) {
+        return listPeriodsPage(search, "", page, size, sort, direction);
+    }
+
+    @PreAuthorize("hasAuthority('PERIOD_MANAGE')")
+    public PeriodPage listPeriodsPage(
+            String search, String status, int page, int size, String sort, String direction) {
         String normalizedSearch = normalizeSearch(search);
+        RegistrationPeriodStatus selectedStatus = parseStatusFilter(status);
+        String normalizedStatus = selectedStatus == null ? "" : selectedStatus.name();
         String normalizedSort = normalizeSort(sort);
         String normalizedDirection = normalizeDirection(direction);
         int safeSize = Math.min(Math.max(size, 5), 100);
         List<PeriodSummary> filtered = listPeriods().stream()
+                .filter(period -> selectedStatus == null || selectedStatus == period.getStatus())
                 .filter(period -> matchesSearch(period, normalizedSearch))
                 .sorted(periodComparator(normalizedSort, normalizedDirection))
                 .toList();
@@ -60,7 +69,20 @@ public class RegistrationPeriodService {
         int to = Math.min(from + safeSize, totalItems);
         return new PeriodPage(
                 filtered.subList(from, to), safePage, safeSize, totalItems, totalPages,
-                normalizedSearch, normalizedSort, normalizedDirection);
+                normalizedSearch, normalizedSort, normalizedDirection, normalizedStatus);
+    }
+
+    /** Unknown or blank status filter values mean "all statuses" instead of an error page. */
+    private static RegistrationPeriodStatus parseStatusFilter(String status) {
+        String normalized = status == null ? "" : status.trim().toUpperCase(Locale.ROOT);
+        if (normalized.isBlank()) {
+            return null;
+        }
+        try {
+            return RegistrationPeriodStatus.valueOf(normalized);
+        } catch (IllegalArgumentException exception) {
+            return null;
+        }
     }
 
     /** Read-only contract for topic and topic-registration modules. */
@@ -339,6 +361,8 @@ public class RegistrationPeriodService {
     private static String normalizeSort(String sort) {
         return switch (sort == null ? "" : sort.trim().toLowerCase(Locale.ROOT)) {
             case "lecturer", "student", "status", "creator" -> sort.trim().toLowerCase(Locale.ROOT);
+            // "name" is the directory contract's name for the Period column.
+            case "name", "period" -> "period";
             default -> "period";
         };
     }
@@ -407,10 +431,17 @@ public class RegistrationPeriodService {
         private final String search;
         private final String sort;
         private final String direction;
+        private final String status;
 
         public PeriodPage(
                 List<PeriodSummary> periods, int page, int size, int totalItems, int totalPages,
                 String search, String sort, String direction) {
+            this(periods, page, size, totalItems, totalPages, search, sort, direction, "");
+        }
+
+        public PeriodPage(
+                List<PeriodSummary> periods, int page, int size, int totalItems, int totalPages,
+                String search, String sort, String direction, String status) {
             this.periods = List.copyOf(periods);
             this.page = page;
             this.size = size;
@@ -419,6 +450,7 @@ public class RegistrationPeriodService {
             this.search = search;
             this.sort = sort;
             this.direction = direction;
+            this.status = status == null ? "" : status;
         }
 
         public List<PeriodSummary> getPeriods() { return periods; }
@@ -429,6 +461,7 @@ public class RegistrationPeriodService {
         public String getSearch() { return search; }
         public String getSort() { return sort; }
         public String getDirection() { return direction; }
+        public String getStatus() { return status; }
         public boolean isHasPrevious() { return page > 0; }
         public boolean isHasNext() { return page + 1 < totalPages; }
     }

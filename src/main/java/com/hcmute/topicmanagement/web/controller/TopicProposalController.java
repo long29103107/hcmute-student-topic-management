@@ -39,9 +39,11 @@ public class TopicProposalController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(defaultValue = "") String status,
             @RequestParam(defaultValue = "updated") String sort,
             @RequestParam(defaultValue = "desc") String direction) {
-        populatePage(authentication.getName(), model, page, size, search, sort, direction);
+        populatePage(authentication.getName(), model, page, size, search, departmentId, status, sort, direction);
         return "lecturer/topics";
     }
 
@@ -54,7 +56,7 @@ public class TopicProposalController {
             Model model,
             RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            populatePage(authentication.getName(), model, 0, 5, "", "updated", "desc");
+            populatePage(authentication.getName(), model, 0, 5, "", null, "", "updated", "desc");
             model.addAttribute("createForm", form);
             return "lecturer/topics";
         }
@@ -111,9 +113,10 @@ public class TopicProposalController {
     }
 
     private void populatePage(
-            String lecturerEmail, Model model, int page, int size, String search, String sort, String direction) {
-        TopicProposalService.TopicProposalPage topicPage =
-                topicProposalService.listOwnProposalsPage(lecturerEmail, page, size, search, sort, direction);
+            String lecturerEmail, Model model, int page, int size, String search, Long departmentId, String status,
+            String sort, String direction) {
+        TopicProposalService.TopicProposalPage topicPage = topicProposalService.listOwnProposalsPage(
+                lecturerEmail, page, size, search, departmentId, status, sort, direction);
         List<TopicSummary> topics = topicPage.getTopics();
         TopicProposalService.ProposalFormOptions options = topicProposalService.getProposalFormOptions();
         model.addAttribute("pageTitle", "My topic proposals");
