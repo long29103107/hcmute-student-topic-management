@@ -69,14 +69,39 @@
             <form
               method="get"
               th:action="@{/faculty/registrations/evaluators}"
-              class="flex flex-wrap gap-2"
+              class="flex w-full flex-wrap justify-end gap-2"
             >
+              <input type="hidden" name="page" value="0" />
+              <input type="hidden" name="size" th:value="${assignmentPage.size}" />
+              <label class="sr-only" for="evaluator-department-filter"
+                >Department</label
+              >
+              <select
+                id="evaluator-department-filter"
+                name="departmentId"
+                class="block w-full flex-none rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 sm:w-64"
+              >
+                <option value="">All departments</option>
+                <option
+                  th:each="department : ${assignmentPage.departmentOptions}"
+                  th:value="${department.id}"
+                  th:selected="${department.id == registrationDepartmentId}"
+                  th:text="${department.code + ' · ' + department.name}"
+                >
+                  CNTT · Công nghệ thông tin
+                </option>
+              </select>
+              <label class="sr-only" for="evaluator-registration-search"
+                >Search registrations</label
+              >
               <input
+                id="evaluator-registration-search"
                 type="search"
                 name="search"
                 th:value="${registrationSearch}"
                 placeholder="Search registrations"
-                class="w-56 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                autocomplete="off"
+                class="block w-full flex-none rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 sm:w-80"
               />
               <input type="hidden" name="sort" th:value="${registrationSort}" />
               <input
@@ -86,7 +111,7 @@
               />
               <button
                 type="submit"
-                class="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
+                class="w-full flex-none rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 sm:w-auto"
               >
                 Search
               </button>
@@ -100,7 +125,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/faculty/registrations/evaluators(page=0,size=${assignmentPage.size},search=${registrationSearch},sort='group',direction=${registrationSort == 'group' and registrationDirection == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/faculty/registrations/evaluators(page=0,size=${assignmentPage.size},search=${registrationSearch},departmentId=${registrationDepartmentId},sort='group',direction=${registrationSort == 'group' and registrationDirection == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Group
                       <span
@@ -112,7 +137,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/faculty/registrations/evaluators(page=0,size=${assignmentPage.size},search=${registrationSearch},sort='topic',direction=${assignmentPage.sort == 'topic' and assignmentPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/faculty/registrations/evaluators(page=0,size=${assignmentPage.size},search=${registrationSearch},departmentId=${registrationDepartmentId},sort='topic',direction=${assignmentPage.sort == 'topic' and assignmentPage.direction == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Topic
                       <span
@@ -124,7 +149,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/faculty/registrations/evaluators(page=0,size=${assignmentPage.size},search=${registrationSearch},sort='department',direction=${assignmentPage.sort == 'department' and assignmentPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/faculty/registrations/evaluators(page=0,size=${assignmentPage.size},search=${registrationSearch},departmentId=${registrationDepartmentId},sort='department',direction=${assignmentPage.sort == 'department' and assignmentPage.direction == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Department
                       <span
@@ -136,7 +161,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/faculty/registrations/evaluators(page=0,size=${assignmentPage.size},search=${registrationSearch},sort='period',direction=${assignmentPage.sort == 'period' and assignmentPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/faculty/registrations/evaluators(page=0,size=${assignmentPage.size},search=${registrationSearch},departmentId=${registrationDepartmentId},sort='period',direction=${assignmentPage.sort == 'period' and assignmentPage.direction == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Registration period
                       <span
@@ -148,7 +173,7 @@
                   <th scope="col" class="px-6 py-3">
                     <a
                       class="inline-flex items-center gap-1 hover:text-blue-700"
-                      th:href="@{/faculty/registrations/evaluators(page=0,size=${assignmentPage.size},search=${registrationSearch},sort='evaluator',direction=${assignmentPage.sort == 'evaluator' and assignmentPage.direction == 'asc' ? 'desc' : 'asc'})}"
+                      th:href="@{/faculty/registrations/evaluators(page=0,size=${assignmentPage.size},search=${registrationSearch},departmentId=${registrationDepartmentId},sort='evaluator',direction=${assignmentPage.sort == 'evaluator' and assignmentPage.direction == 'asc' ? 'desc' : 'asc'})}"
                     >
                       Evaluator
                       <span
@@ -275,7 +300,7 @@
                     class="rounded-s-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${!assignmentPage.hasPrevious ? 'pointer-events-none opacity-50' : ''}"
                     th:attr="aria-disabled=${!assignmentPage.hasPrevious}"
-                    th:href="@{/faculty/registrations/evaluators(page=${assignmentPage.page - 1},size=${assignmentPage.size},sort=${assignmentPage.sort},direction=${assignmentPage.direction},search=${registrationSearch})}"
+                    th:href="@{/faculty/registrations/evaluators(page=${assignmentPage.page - 1},size=${assignmentPage.size},sort=${assignmentPage.sort},direction=${assignmentPage.direction},search=${registrationSearch},departmentId=${registrationDepartmentId})}"
                     >Previous</a
                   >
                 </li>
@@ -286,7 +311,7 @@
                     class="border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${pageNumber == assignmentPage.page ? 'bg-blue-50 text-blue-700' : ''}"
                     th:attr="aria-current=${pageNumber == assignmentPage.page ? 'page' : null}"
-                    th:href="@{/faculty/registrations/evaluators(page=${pageNumber},size=${assignmentPage.size},sort=${assignmentPage.sort},direction=${assignmentPage.direction},search=${registrationSearch})}"
+                    th:href="@{/faculty/registrations/evaluators(page=${pageNumber},size=${assignmentPage.size},sort=${assignmentPage.sort},direction=${assignmentPage.direction},search=${registrationSearch},departmentId=${registrationDepartmentId})}"
                     th:text="${pageNumber + 1}"
                     >1</a
                   >
@@ -296,7 +321,7 @@
                     class="rounded-e-lg border border-gray-300 bg-white px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100"
                     th:classappend="${!assignmentPage.hasNext ? 'pointer-events-none opacity-50' : ''}"
                     th:attr="aria-disabled=${!assignmentPage.hasNext}"
-                    th:href="@{/faculty/registrations/evaluators(page=${assignmentPage.page + 1},size=${assignmentPage.size},sort=${assignmentPage.sort},direction=${assignmentPage.direction},search=${registrationSearch})}"
+                    th:href="@{/faculty/registrations/evaluators(page=${assignmentPage.page + 1},size=${assignmentPage.size},sort=${assignmentPage.sort},direction=${assignmentPage.direction},search=${registrationSearch},departmentId=${registrationDepartmentId})}"
                     >Next</a
                   >
                 </li>
@@ -305,15 +330,20 @@
           </div>
           <p
             class="px-6 py-12 text-center text-sm text-gray-500"
-            th:if="${#lists.isEmpty(registrations) and #strings.isEmpty(registrationSearch)}"
+            th:if="${#lists.isEmpty(registrations) and !assignmentPage.filtered()}"
           >
             No approved registrations are available in your management scope.
           </p>
           <p
             class="px-6 py-12 text-center text-sm text-gray-500"
-            th:if="${#lists.isEmpty(registrations) and !#strings.isEmpty(registrationSearch)}"
+            th:if="${#lists.isEmpty(registrations) and assignmentPage.filtered()}"
           >
-            No registrations match your search.
+            No registrations match your filters.
+            <a
+              class="font-medium text-blue-700 hover:text-blue-800 hover:underline"
+              th:href="@{/faculty/registrations/evaluators(page=0,size=${assignmentPage.size},sort=${assignmentPage.sort},direction=${assignmentPage.direction})}"
+              >Clear filters</a
+            >
           </p>
         </section>
       </section>

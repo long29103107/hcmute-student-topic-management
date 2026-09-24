@@ -472,7 +472,7 @@ public class DatabaseSeedService {
         seedRolePermissions(roles, permissions);
         seedDepartments();
         seedUsers(roles);
-        seedRegistrationPeriods();
+        List<RegistrationPeriodEntity> registrationPeriods = seedRegistrationPeriods();
         List<StudentGroupEntity> studentGroups = seedStudentGroups();
         List<TopicEntity> topics = seedTopics();
         List<AnnouncementEntity> announcements = seedAnnouncements();
@@ -486,7 +486,7 @@ public class DatabaseSeedService {
                 PERMISSIONS.size(),
                 DEPARTMENTS.size(),
                 USERS.size(),
-                1,
+                registrationPeriods.size(),
                 studentGroups.size(),
                 topics.size(),
                 topics.stream().mapToInt(topic -> topic.getSupervisors().size()).sum(),
@@ -694,6 +694,7 @@ public class DatabaseSeedService {
 
     private List<RegistrationPeriodEntity> seedRegistrationPeriods() {
         LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
+        UserEntity admin = userRepository.findByLoginIdentifier("admin").orElse(null);
         RegistrationPeriodEntity period = registrationPeriodRepository.findByNameIgnoreCase(SEEDED_PERIOD_NAME)
                 .orElseGet(() -> new RegistrationPeriodEntity(
                         SEEDED_PERIOD_NAME,
@@ -711,8 +712,46 @@ public class DatabaseSeedService {
         period.setReviewerScoreDeadline(null);
         period.setCouncilReportDate(null);
         period.setStatus(RegistrationPeriodStatus.OPEN);
-        period.setCreatedBy(userRepository.findByLoginIdentifier("admin").orElse(null));
-        return List.of(registrationPeriodRepository.saveAndFlush(period));
+        period.setCreatedBy(admin);
+
+        List<RegistrationPeriodEntity> periods = new ArrayList<>();
+        periods.add(period);
+        PeriodType[] types = PeriodType.values();
+        for (int index = 1; index <= 20; index++) {
+            String number = String.format(Locale.ROOT, "%02d", index);
+            String name = "Đợt đăng ký mẫu " + number + " - năm học 2025-2026";
+            LocalDateTime lecturerStart = now.minusDays(45L + index * 30L);
+            LocalDateTime lecturerEnd = lecturerStart.plusDays(14);
+            LocalDateTime studentStart = lecturerEnd.plusDays(2);
+            LocalDateTime studentEnd = studentStart.plusDays(30);
+            RegistrationPeriodEntity sample = registrationPeriodRepository.findByNameIgnoreCase(name).orElse(null);
+            if (sample == null) {
+                sample = new RegistrationPeriodEntity(
+                        name,
+                        types[(index - 1) % types.length],
+                        lecturerStart,
+                        lecturerEnd,
+                        studentStart,
+                        studentEnd);
+            }
+            sample.setName(name);
+            sample.setType(types[(index - 1) % types.length]);
+            sample.setLecturerRegistrationStart(lecturerStart);
+            sample.setLecturerRegistrationEnd(lecturerEnd);
+            sample.setStudentRegistrationStart(studentStart);
+            sample.setStudentRegistrationEnd(studentEnd);
+            sample.setReviewerScoreDeadline(studentEnd.plusDays(14));
+            sample.setCouncilReportDate(studentEnd.plusDays(21));
+            sample.setStatus(switch (index % 4) {
+                case 1 -> RegistrationPeriodStatus.DRAFT;
+                case 2 -> RegistrationPeriodStatus.OPEN;
+                case 3 -> RegistrationPeriodStatus.CLOSED;
+                default -> RegistrationPeriodStatus.ARCHIVED;
+            });
+            sample.setCreatedBy(admin);
+            periods.add(sample);
+        }
+        return registrationPeriodRepository.saveAllAndFlush(periods);
     }
 
     private List<TopicEntity> seedTopics() {
@@ -727,9 +766,15 @@ public class DatabaseSeedService {
                         throw new IllegalStateException("Seed department before topic: " + seed.departmentCode());
                     }
                     UserEntity proposer = requireSeedUser(seed.proposerLogin());
-                    TopicEntity topic = topicRepository.findFirstByTitleIgnoreCase(seed.title())
-                            .orElseGet(() -> new TopicEntity(
-                                    period, department, proposer, seed.title(), seed.description()));
+                    TopicEntity topic = topicRepository.findFirstByTitleIgnoreCase(seed.title()).orElse(null);
+                    if (topic == null && seed.title().startsWith("Đề tài mẫu Hoàng Thái Xuân Khoa ")) {
+                        String legacyTitle = seed.title().replace(
+                                "Đề tài mẫu Hoàng Thái Xuân Khoa ", "Đề tài mẫu Bùi Thanh Hà ");
+                        topic = topicRepository.findFirstByTitleIgnoreCase(legacyTitle).orElse(null);
+                    }
+                    if (topic == null) {
+                        topic = new TopicEntity(period, department, proposer, seed.title(), seed.description());
+                    }
                     topic.setRegistrationPeriod(period);
                     topic.setDepartment(department);
                     topic.setProposedBy(proposer);
@@ -737,9 +782,9 @@ public class DatabaseSeedService {
                     topic.setDescription(seed.description());
                     topic.setStatus(seed.status());
                     topic.getSupervisors().clear();
-                    seed.supervisorLogins().stream()
-                            .map(this::requireSeedUser)
-                            .forEach(supervisor -> topic.getSupervisors().add(supervisor));
+                    for (String supervisorLogin : seed.supervisorLogins()) {
+                        topic.getSupervisors().add(requireSeedUser(supervisorLogin));
+                    }
                     return topic;
                 })
                 .toList();
@@ -767,6 +812,50 @@ public class DatabaseSeedService {
                 "nguyen.thanh.binh", "nguyen.quoc.viet", "phan.tuan.anh", "hoang.duc.long");
         List<String> supervisorLogins = List.of(
                 "nguyen.van.khang", "tran.thi.hong.gam", "le.quang.huy", "pham.minh.tuan");
+
+        for (int index = 1; index <= 20; index++) {
+            int ownerIndex = (index - 1) % departmentCodes.size();
+            String number = String.format(Locale.ROOT, "%02d", index);
+            TopicStatus status = switch (index % 4) {
+                case 0 -> TopicStatus.PENDING_APPROVAL;
+                case 1 -> TopicStatus.DRAFT;
+                case 2 -> TopicStatus.REJECTED;
+                default -> TopicStatus.APPROVED;
+            };
+            seeds.add(new TopicSeed(
+                    "Đề tài mẫu Hoàng Thái Xuân Khoa " + number,
+                    "Dữ liệu mẫu cho topic proposal của giảng viên và kiểm thử phân trang.",
+                    departmentCodes.get(ownerIndex),
+                    "hoang.thai.xuan.khoa",
+                    status,
+                    List.of(supervisorLogins.get(ownerIndex))));
+        }
+
+        List<String> ktLecturerLogins = List.of(
+                "nguyen.hoang.long", "nguyen.anh.quan", "thai.gia.khang", "nguyen.anh.minh");
+        for (int index = 1; index <= 20; index++) {
+            int ownerIndex = (index - 1) % departmentCodes.size();
+            String number = String.format(Locale.ROOT, "%02d", index);
+            seeds.add(new TopicSeed(
+                    "Đề tài review mẫu " + number,
+                    "Dữ liệu mẫu đang chờ faculty review để kiểm thử bộ lọc và phân trang.",
+                    "KT",
+                    ktLecturerLogins.get(ownerIndex),
+                    TopicStatus.PENDING_APPROVAL,
+                    List.of(ktLecturerLogins.get(ownerIndex))));
+        }
+
+        for (int index = 1; index <= 20; index++) {
+            int ownerIndex = (index - 1) % ktLecturerLogins.size();
+            String number = String.format(Locale.ROOT, "%02d", index);
+            seeds.add(new TopicSeed(
+                    "Đề tài evaluator KT " + number,
+                    "Dữ liệu mẫu đã duyệt để kiểm thử danh sách phân công evaluator của khoa KT.",
+                    "KT",
+                    ktLecturerLogins.get(ownerIndex),
+                    TopicStatus.PUBLISHED,
+                    List.of(ktLecturerLogins.get((ownerIndex + 1) % ktLecturerLogins.size()))));
+        }
 
         for (TopicStatus status : TopicStatus.values()) {
             int existingCount = (int) TOPICS.stream()
@@ -812,6 +901,14 @@ public class DatabaseSeedService {
                     period,
                     groupNames.get((index - 1) % groupNames.size()),
                     "Đề tài mẫu PUBLISHED " + number,
+                    TopicRegistrationStatus.APPROVED));
+        }
+        for (int index = 1; index <= 20; index++) {
+            String number = String.format(Locale.ROOT, "%02d", index);
+            registrations.add(upsertSeedRegistration(
+                    period,
+                    groupNames.get((index - 1) % groupNames.size()),
+                    "Đề tài evaluator KT " + number,
                     TopicRegistrationStatus.APPROVED));
         }
         return registrations;

@@ -38,12 +38,38 @@ public class TopicReviewService {
     @PreAuthorize("hasAuthority('TOPIC_REVIEW')")
     public TopicReviewPage listPendingPage(
             String reviewerEmail, String search, int page, int size, String sort, String direction) {
+        return listPendingPage(reviewerEmail, search, null, null, page, size, sort, direction);
+    }
+
+    @PreAuthorize("hasAuthority('TOPIC_REVIEW')")
+    public TopicReviewPage listPendingPage(
+            String reviewerEmail, String search, Long departmentId, Long periodId,
+            int page, int size, String sort, String direction) {
         String normalizedSearch = normalizeSearch(search);
         String normalizedSort = normalizeSort(sort);
         String normalizedDirection = normalizeDirection(direction);
         int safeSize = Math.min(Math.max(size, 5), 100);
-        List<TopicReviewSummary> filtered = pendingTopics(reviewerEmail).stream()
+        // pendingTopics() already applies the Admin / Faculty Head department scope, so the filter
+        // options and filtered rows can never reach topics outside the reviewer's authority.
+        List<TopicReviewSummary> scopedTopics = pendingTopics(reviewerEmail).stream()
                 .map(TopicReviewService::toSummary)
+                .toList();
+        List<DepartmentFilterOption> departmentOptions = scopedTopics.stream()
+                .map(topic -> new DepartmentFilterOption(
+                        topic.getDepartmentId(), topic.getDepartmentCode(), topic.getDepartmentName()))
+                .distinct()
+                .sorted(Comparator.comparing(
+                        DepartmentFilterOption::code, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
+                .toList();
+        List<PeriodFilterOption> periodOptions = scopedTopics.stream()
+                .map(topic -> new PeriodFilterOption(topic.getPeriodId(), topic.getPeriodName(), topic.getPeriodType()))
+                .distinct()
+                .sorted(Comparator.comparing(
+                        PeriodFilterOption::name, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
+                .toList();
+        List<TopicReviewSummary> filtered = scopedTopics.stream()
+                .filter(topic -> departmentId == null || departmentId.equals(topic.getDepartmentId()))
+                .filter(topic -> periodId == null || periodId.equals(topic.getPeriodId()))
                 .filter(topic -> matchesSearch(topic, normalizedSearch))
                 .sorted(topicComparator(normalizedSort, normalizedDirection))
                 .toList();
@@ -54,7 +80,8 @@ public class TopicReviewService {
         int to = Math.min(from + safeSize, totalItems);
         return new TopicReviewPage(
                 filtered.subList(from, to), safePage, safeSize, totalItems, totalPages,
-                normalizedSearch, normalizedSort, normalizedDirection);
+                normalizedSearch, normalizedSort, normalizedDirection,
+                departmentId, periodId, departmentOptions, periodOptions);
     }
 
     @Transactional
@@ -310,10 +337,22 @@ public class TopicReviewService {
         private final String search;
         private final String sort;
         private final String direction;
+        private final Long departmentId;
+        private final Long periodId;
+        private final List<DepartmentFilterOption> departmentOptions;
+        private final List<PeriodFilterOption> periodOptions;
 
         public TopicReviewPage(
                 List<TopicReviewSummary> topics, int page, int size, int totalItems, int totalPages,
                 String search, String sort, String direction) {
+            this(topics, page, size, totalItems, totalPages, search, sort, direction,
+                    null, null, List.of(), List.of());
+        }
+
+        public TopicReviewPage(
+                List<TopicReviewSummary> topics, int page, int size, int totalItems, int totalPages,
+                String search, String sort, String direction, Long departmentId, Long periodId,
+                List<DepartmentFilterOption> departmentOptions, List<PeriodFilterOption> periodOptions) {
             this.topics = List.copyOf(topics);
             this.page = page;
             this.size = size;
@@ -322,6 +361,10 @@ public class TopicReviewService {
             this.search = search;
             this.sort = sort;
             this.direction = direction;
+            this.departmentId = departmentId;
+            this.periodId = periodId;
+            this.departmentOptions = List.copyOf(departmentOptions);
+            this.periodOptions = List.copyOf(periodOptions);
         }
 
         public List<TopicReviewSummary> getTopics() { return topics; }
@@ -332,8 +375,21 @@ public class TopicReviewService {
         public String getSearch() { return search; }
         public String getSort() { return sort; }
         public String getDirection() { return direction; }
+        public Long getDepartmentId() { return departmentId; }
+        public Long getPeriodId() { return periodId; }
+        public List<DepartmentFilterOption> getDepartmentOptions() { return departmentOptions; }
+        public List<PeriodFilterOption> getPeriodOptions() { return periodOptions; }
+        public boolean isFiltered() {
+            return departmentId != null || periodId != null || (search != null && !search.isBlank());
+        }
         public boolean isHasPrevious() { return page > 0; }
         public boolean isHasNext() { return page + 1 < totalPages; }
+    }
+
+    public record DepartmentFilterOption(Long id, String code, String name) {
+    }
+
+    public record PeriodFilterOption(Long id, String name, String type) {
     }
 
     public static class TopicReviewNotFoundException extends RuntimeException {

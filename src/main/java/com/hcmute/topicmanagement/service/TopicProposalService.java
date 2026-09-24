@@ -1,6 +1,7 @@
 package com.hcmute.topicmanagement.service;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
@@ -58,13 +59,34 @@ public class TopicProposalService {
     @PreAuthorize("hasAuthority('TOPIC_PROPOSE')")
     public TopicProposalPage listOwnProposalsPage(
             String lecturerEmail, int page, int size, String search, String sort, String direction) {
-        List<TopicSummary> topics = listOwnProposals(lecturerEmail);
+        return listOwnProposalsPage(lecturerEmail, page, size, search, null, "", sort, direction);
+    }
+
+    /**
+     * Directory view of the lecturer's own proposals. Ownership is applied first; search, department and
+     * status then combine with AND semantics before sorting and page clamping.
+     */
+    @PreAuthorize("hasAuthority('TOPIC_PROPOSE')")
+    public TopicProposalPage listOwnProposalsPage(
+            String lecturerEmail, int page, int size, String search, Long departmentId, String status,
+            String sort, String direction) {
+        List<TopicSummary> ownTopics = listOwnProposals(lecturerEmail);
+        List<DepartmentOption> departmentOptions = departmentRepository.findByActiveTrueOrderByNameAsc().stream()
+                .map(department -> new DepartmentOption(
+                        department.getId(), department.getCode(), department.getName()))
+                .toList();
+        List<StatusOption> statusOptions = Arrays.stream(TopicStatus.values())
+                .map(value -> new StatusOption(value.name(), statusLabel(value)))
+                .toList();
+
+        TopicStatus selectedStatus = parseStatus(status);
+        String normalizedStatus = selectedStatus == null ? "" : selectedStatus.name();
         String normalizedSearch = normalizeSearch(search);
-        if (!normalizedSearch.isBlank()) {
-            topics = topics.stream()
-                    .filter(topic -> matchesSearch(topic, normalizedSearch))
-                    .toList();
-        }
+        List<TopicSummary> topics = ownTopics.stream()
+                .filter(topic -> departmentId == null || departmentId.equals(topic.getDepartmentId()))
+                .filter(topic -> selectedStatus == null || selectedStatus.name().equals(topic.getStatusCode()))
+                .filter(topic -> normalizedSearch.isBlank() || matchesSearch(topic, normalizedSearch))
+                .toList();
         String normalizedSort = normalizeSort(sort);
         String normalizedDirection = normalizeDirection(direction);
         Comparator<TopicSummary> comparator = comparatorFor(normalizedSort)
@@ -81,12 +103,23 @@ public class TopicProposalService {
         int to = Math.min(from + safeSize, totalItems);
         return new TopicProposalPage(
                 topics.subList(from, to), safePage, safeSize, totalItems, totalPages,
-                normalizedSearch, normalizedSort, normalizedDirection);
+                normalizedSearch, normalizedSort, normalizedDirection,
+                departmentId, normalizedStatus, departmentOptions, statusOptions);
+    }
+
+    private static TopicStatus parseStatus(String status) {
+        String normalized = status == null ? "" : status.trim().toUpperCase(Locale.ROOT);
+        try {
+            return normalized.isBlank() ? null : TopicStatus.valueOf(normalized);
+        } catch (IllegalArgumentException exception) {
+            return null;
+        }
     }
 
     private static String normalizeSort(String sort) {
         return switch (sort == null ? "" : sort.trim().toLowerCase(Locale.ROOT)) {
-            case "topic", "department", "period", "status", "updated" -> sort.trim().toLowerCase(Locale.ROOT);
+            case "topic", "title" -> "topic";
+            case "department", "period", "status", "updated" -> sort.trim().toLowerCase(Locale.ROOT);
             default -> "updated";
         };
     }
@@ -120,7 +153,8 @@ public class TopicProposalService {
                 || containsSearchValue(topic.getDepartmentCode(), search)
                 || containsSearchValue(topic.getDepartmentName(), search)
                 || containsSearchValue(topic.getPeriodName(), search)
-                || containsSearchValue(topic.getStatusLabel(), search);
+                || containsSearchValue(topic.getStatusLabel(), search)
+                || containsSearchValue(topic.getStatusCode(), search);
     }
 
     private static boolean containsSearchValue(String value, String search) {
@@ -352,6 +386,9 @@ public class TopicProposalService {
     public record PeriodOption(Long id, String name, String type) {
     }
 
+    public record StatusOption(String code, String label) {
+    }
+
     public static final class TopicProposalPage {
         private final List<TopicSummary> topics;
         private final int page;
@@ -361,10 +398,22 @@ public class TopicProposalService {
         private final String search;
         private final String sort;
         private final String direction;
+        private final Long departmentId;
+        private final String status;
+        private final List<DepartmentOption> departmentOptions;
+        private final List<StatusOption> statusOptions;
 
         public TopicProposalPage(
                 List<TopicSummary> topics, int page, int size, int totalItems, int totalPages,
                 String search, String sort, String direction) {
+            this(topics, page, size, totalItems, totalPages, search, sort, direction,
+                    null, "", List.of(), List.of());
+        }
+
+        public TopicProposalPage(
+                List<TopicSummary> topics, int page, int size, int totalItems, int totalPages,
+                String search, String sort, String direction, Long departmentId, String status,
+                List<DepartmentOption> departmentOptions, List<StatusOption> statusOptions) {
             this.topics = List.copyOf(topics);
             this.page = page;
             this.size = size;
@@ -373,6 +422,10 @@ public class TopicProposalService {
             this.search = search;
             this.sort = sort;
             this.direction = direction;
+            this.departmentId = departmentId;
+            this.status = status == null ? "" : status;
+            this.departmentOptions = List.copyOf(departmentOptions);
+            this.statusOptions = List.copyOf(statusOptions);
         }
 
         public List<TopicSummary> getTopics() { return topics; }
@@ -383,6 +436,13 @@ public class TopicProposalService {
         public String getSearch() { return search; }
         public String getSort() { return sort; }
         public String getDirection() { return direction; }
+        public Long getDepartmentId() { return departmentId; }
+        public String getStatus() { return status; }
+        public List<DepartmentOption> getDepartmentOptions() { return departmentOptions; }
+        public List<StatusOption> getStatusOptions() { return statusOptions; }
+        public boolean isFiltered() {
+            return departmentId != null || !status.isBlank() || (search != null && !search.isBlank());
+        }
         public boolean isHasPrevious() { return page > 0; }
         public boolean isHasNext() { return page + 1 < totalPages; }
     }

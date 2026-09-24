@@ -267,3 +267,76 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/26
   existing unpaged service method.
 - Verification: `EvaluationScoringControllerTest` passed 5/5, including the
   search/sort/pagination scenario, and `git diff --check` passed.
+- 008_003 (#29): `/lecturer/topics` follows the admin student directory
+  pattern: search (title, description, department, registration period,
+  status), a Department dropdown of active departments and a Status dropdown
+  with All combine with AND inside the lecturer's own-proposal scope. Sortable
+  Topic/Department/Registration period/Status/Last updated headers reset to
+  page 1 (`sort=title` is accepted as an alias of `topic`); pagination clamps
+  invalid pages and every link keeps `search`, `departmentId`, `status`,
+  `sort`, `direction` and `size`. The search input reuses the shared
+  `data-user-search` debounce; a no-match result shows the shared `No data`
+  state plus a clear link, with no row actions or edit modals. The default page
+  size stays 5 (Phase 7 seed decision) rather than the issue's example of 20.
+- Verification: changed Java sources and tests pass a JDK parse check and a
+  dependency-free javac pass shows no errors outside the missing Spring/JUnit
+  libraries; every new Tailwind utility exists in the built `tailwind.css`.
+  Maven Central was blocked in the authoring environment, so `mvn test` for
+  `TopicProposalControllerTest` still needs to be run locally.
+- 008_005 (#31): `/faculty/periods` adds a Status dropdown (All plus
+  DRAFT/OPEN/CLOSED/ARCHIVED) beside the search box. Status and search combine
+  with AND on the server before sorting and pagination; every sort/page link
+  keeps `search`, `status`, `sort`, `direction` and `size` (`sort=name` is
+  accepted for the Period column; the default size stays 10). Unknown status
+  values fall back to All like the Faculty student groups directory. Empty
+  results now use the shared `fragments/no-data` state plus a Clear search and
+  filters link, and no edit modals are rendered for hidden periods.
+- Verification: changed Java sources and tests pass a JDK parse check and a
+  dependency-free javac pass shows no errors outside the missing Spring/JUnit
+  libraries; every new Tailwind utility exists in the built `tailwind.css`.
+  Maven Central was blocked in the authoring environment, so `mvn test` for
+  `RegistrationPeriodControllerTest` still needs to be run locally.
+- 008_008 (#34): `/faculty/topics/review` adds Department and Registration
+  period filters to the existing search toolbar, right-aligned in a full-width
+  `justify-end` row like Manage students. Options and rows are derived after
+  the existing reviewer scope (Admin: all departments, Faculty Head: own
+  department), so a foreign `departmentId` returns no rows; links preserve
+  both filters and the empty state distinguishes no pending proposals from no
+  matches.
+- Verification: changed Java sources and tests pass a JDK parse check and a
+  dependency-free javac pass shows no errors outside the missing Spring/JUnit
+  libraries; every new Tailwind utility exists in the built `tailwind.css`.
+  Maven Central was blocked in the authoring environment, so `mvn test` for
+  `TopicReviewControllerTest` still needs to be run locally.
+- 008_011 (#37): `/faculty/registrations/evaluators` and its REST list add a
+  scoped Department filter; sorting covers the Group, Topic, Department,
+  Registration period and Evaluator columns in both directions. The toolbar
+  now uses the shared management-page control styling (full-width
+  right-aligned row, `p-2.5` fields, `sm:w-80` search) and resets to page 1 on
+  submit. The filter runs before evaluator-option lookups, the page response
+  exposes `departmentId` and `departmentOptions`, and links keep department,
+  search, sort and size.
+- Verification: changed Java sources and tests pass a JDK parse check and a
+  dependency-free javac pass shows no errors outside the missing Spring/JUnit
+  libraries; every new Tailwind utility exists in the built `tailwind.css`.
+  Maven Central was blocked in the authoring environment, so `mvn test` for
+  `EvaluatorAssignmentControllerTest` still needs to be run locally.
+- Seed data now adds 20 idempotent topic proposals owned by
+  `hoang.thai.xuan.khoa`,
+  cycling DRAFT, PENDING_APPROVAL, REJECTED and APPROVED statuses so
+  `/lecturer/topics` has enough rows to exercise pagination. Seed assertions
+  were updated for 110 topics and 115 supervisor assignments.
+- Verification: `mvn.cmd -B -Dtest=DatabaseSeedControllerTest test` passed
+  (3 tests, 0 failures).
+- Registration-period seed now keeps the existing open period and adds 20
+  idempotent sample periods across all lifecycle statuses and period types;
+  the full seed result reports 21 registration periods.
+- Topic-review seed now adds 20 idempotent `PENDING_APPROVAL` topic fixtures
+  in department `KT`, using lecturer proposers from that department so the
+  Faculty Head account `hoang.thai.xuan.khoa` can see and review all 20 rows;
+  the review queue has 35 rows for `/faculty/topics/review` pagination.
+- Evaluator-assignment seed now adds 20 published KT topics with 20 approved
+  registrations, so `hoang.thai.xuan.khoa` sees 20 manageable items at
+  `/faculty/registrations/evaluators`.
+- Latest verification: `mvn.cmd -B -Dtest=DatabaseSeedControllerTest test`
+  passed (3 tests, 0 failures).

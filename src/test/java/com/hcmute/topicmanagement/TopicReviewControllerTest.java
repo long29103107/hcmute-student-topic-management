@@ -276,6 +276,78 @@ class TopicReviewControllerTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void reviewerCanFilterPendingTopicsByDepartmentAndPeriodWithinScope() throws Exception {
+        String suffix = suffix();
+        DepartmentEntity departmentA = department("RVA-" + suffix);
+        DepartmentEntity departmentB = department("RVB-" + suffix);
+        UserEntity facultyHead = saveUser("filter-review-head-" + suffix,
+                "Filter Review Head " + suffix, "FACULTY_HEAD", departmentA);
+        UserEntity proposerA = saveUser("filter-review-proposer-a-" + suffix,
+                "Filter Proposer A " + suffix, "LECTURER", departmentA);
+        UserEntity proposerB = saveUser("filter-review-proposer-b-" + suffix,
+                "Filter Proposer B " + suffix, "LECTURER", departmentB);
+        UserEntity admin = saveUser("filter-review-admin-" + suffix, "Filter Review Admin " + suffix, "ADMIN", null);
+        RegistrationPeriodEntity periodOne = openPeriod("P1-" + suffix);
+        RegistrationPeriodEntity periodTwo = openPeriod("P2-" + suffix);
+
+        TopicEntity aOne = topic(periodOne, departmentA, proposerA, "a-one-" + suffix, TopicStatus.PENDING_APPROVAL);
+        TopicEntity aTwo = topic(periodTwo, departmentA, proposerA, "a-two-" + suffix, TopicStatus.PENDING_APPROVAL);
+        TopicEntity bOne = topic(periodOne, departmentB, proposerB, "b-one-" + suffix, TopicStatus.PENDING_APPROVAL);
+
+        // Admin: department filter across departments.
+        mockMvc.perform(get("/faculty/topics/review")
+                        .with(user(adminPrincipal(admin.getEmailOrCode())))
+                        .param("search", suffix)
+                        .param("departmentId", departmentA.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("All departments")))
+                .andExpect(content().string(containsString("All periods")))
+                // Filters live in the existing search toolbar, right-aligned like Manage students.
+                .andExpect(content().string(containsString("flex w-full flex-wrap justify-end gap-2")))
+                .andExpect(content().string(containsString(departmentB.getCode())))
+                .andExpect(content().string(containsString(aOne.getTitle())))
+                .andExpect(content().string(containsString(aTwo.getTitle())))
+                .andExpect(content().string(not(containsString(bOne.getTitle()))))
+                .andExpect(content().string(containsString("departmentId=" + departmentA.getId())));
+
+        // Admin: period filter, preserved in sort links.
+        mockMvc.perform(get("/faculty/topics/review")
+                        .with(user(adminPrincipal(admin.getEmailOrCode())))
+                        .param("search", suffix)
+                        .param("periodId", periodTwo.getId().toString())
+                        .param("sort", "department")
+                        .param("direction", "desc"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(aTwo.getTitle())))
+                .andExpect(content().string(not(containsString(aOne.getTitle()))))
+                .andExpect(content().string(not(containsString(bOne.getTitle()))))
+                .andExpect(content().string(containsString("periodId=" + periodTwo.getId())));
+
+        // Combined filters with no match show the empty state and a clear link.
+        mockMvc.perform(get("/faculty/topics/review")
+                        .with(user(adminPrincipal(admin.getEmailOrCode())))
+                        .param("departmentId", departmentB.getId().toString())
+                        .param("periodId", periodTwo.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("No matching proposals")))
+                .andExpect(content().string(containsString("Clear filters")));
+
+        // Faculty Head: options stay inside their department, and a foreign department id reveals nothing.
+        mockMvc.perform(get("/faculty/topics/review")
+                        .with(user(facultyHeadPrincipal(facultyHead.getEmailOrCode()))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(departmentA.getCode())))
+                .andExpect(content().string(not(containsString(departmentB.getCode()))));
+
+        mockMvc.perform(get("/faculty/topics/review")
+                        .with(user(facultyHeadPrincipal(facultyHead.getEmailOrCode())))
+                        .param("departmentId", departmentB.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString(bOne.getTitle()))))
+                .andExpect(content().string(containsString("No matching proposals")));
+    }
+
     private TopicEntity topic(
             RegistrationPeriodEntity period, DepartmentEntity department, UserEntity proposer, String name,
             TopicStatus status) {
