@@ -1,37 +1,23 @@
 services:
-
-  mysql:
-    image: mysql:8.4
-    environment:
-      MYSQL_DATABASE: hcmute_topic_management
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-      TZ: Asia/Ho_Chi_Minh
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./database/1.ddl.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot --silent"]
-      interval: 5s
-      timeout: 5s
-      retries: 30
-      start_period: 15s
-
   app:
     build:
       context: .
       dockerfile: Dockerfile
+
     image: hcmute-student-topic-management:local
-    depends_on:
-      mysql:
-        condition: service_healthy
+
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/hcmute_topic_management?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+
     ports:
       - "5000:5000"
+
     volumes:
       - report_storage:/app/storage/reports
+
     restart: unless-stopped
 
 volumes:
-  mysql_data:
   report_storage:
