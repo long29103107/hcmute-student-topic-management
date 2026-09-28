@@ -17,8 +17,9 @@ public class HcmuteStudentTopicManagementApplication {
         SpringApplication application = new SpringApplication(HcmuteStudentTopicManagementApplication.class);
         application.addListeners((ApplicationListener<ApplicationEnvironmentPreparedEvent>) event -> {
             ConfigurableEnvironment environment = event.getEnvironment();
-            LOGGER.info("DB_URL={}", environment.getProperty("DB_URL"));
             LOGGER.info("spring.datasource.url={}", environment.getProperty("spring.datasource.url"));
+            LOGGER.info("spring.datasource.username={}", environment.getProperty("spring.datasource.username"));
+            LOGGER.info("spring.datasource.password={}", environment.getProperty("spring.datasource.password"));
         });
         application.run(args);
     }
