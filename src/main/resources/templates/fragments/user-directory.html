@@ -130,7 +130,7 @@
 
               <!-- Dropdown lọc theo Vai trò (Role) - Bổ sung mới cho Issue #27 -->
               <label
-                class="user-directory-filter relative block min-w-0 sm:w-64 sm:shrink-0"
+                class="user-directory-filter user-directory-filter-compact relative block min-w-0 sm:shrink-0"
                 for="user-role-filter"
                 th:if="${userDirectoryTitle == 'Lecturer accounts'}"
               >
@@ -148,7 +148,8 @@
 
               <!-- Dropdown lọc theo Trạng thái (Status) -->
               <label
-                class="user-directory-filter relative block min-w-0 sm:w-64 sm:shrink-0"
+                class="user-directory-filter relative block min-w-0 sm:shrink-0"
+                th:classappend="${userDirectoryTitle == 'Lecturer accounts' ? 'user-directory-filter-compact' : 'sm:w-64'}"
                 for="user-status-filter"
               >
                 <span class="sr-only">Filter by status</span>

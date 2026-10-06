@@ -83,6 +83,19 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/3
 
 ## Verification
 
+### Lecturer filter sizing — 2026-10-06
+
+- Vision alignment: milestone 001 identity directories; compact role/status
+  filters on `/admin/lecturers`, with no filtering or authorization changes.
+- Lecturer role/status controls use a shared compact class at 10rem (160px)
+  from 640px viewport width; mobile controls remain full width. Other directory
+  status controls retain their existing width.
+- Verified: `mvnw.cmd -q -DskipTests package` and `git diff --check` pass.
+  The focused `UserManagementControllerTest` run did not complete because
+  Mockito's dynamic Java-agent attachment failed with a Windows pipe access
+  error. Browser verification reached the login page in the tool's session,
+  so the authenticated lecturer layout was not visually verified.
+
 - DepartmentControllerTest
 - RegistrationPeriodControllerTest
 - SecurityConfigTest

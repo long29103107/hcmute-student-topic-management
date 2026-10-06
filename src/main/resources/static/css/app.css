@@ -111,6 +111,12 @@
         flex-shrink: 0;
     }
 
+    @media (min-width: 640px) {
+        [data-user-directory] .user-directory-filter-compact {
+            width: 10rem;
+        }
+    }
+
     .ui-info-tooltip-content {
         position: absolute;
         z-index: 30;
