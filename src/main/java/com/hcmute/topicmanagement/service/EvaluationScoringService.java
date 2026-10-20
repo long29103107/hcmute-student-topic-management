@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.hcmute.topicmanagement.config.EvaluationScoringProperties;
 import com.hcmute.topicmanagement.model.EvaluationEntity;
+import com.hcmute.topicmanagement.model.ReportEntity;
 import com.hcmute.topicmanagement.model.TopicRegistrationEntity;
 import com.hcmute.topicmanagement.model.UserEntity;
 import com.hcmute.topicmanagement.model.UserRoleEntity;
@@ -20,6 +21,7 @@ import com.hcmute.topicmanagement.model.enums.EvaluationStatus;
 import com.hcmute.topicmanagement.model.enums.RegistrationResultStatus;
 import com.hcmute.topicmanagement.model.enums.TopicRegistrationStatus;
 import com.hcmute.topicmanagement.repository.EvaluationRepository;
+import com.hcmute.topicmanagement.repository.ReportRepository;
 import com.hcmute.topicmanagement.repository.RegistrationResultRepository;
 import com.hcmute.topicmanagement.repository.UserRepository;
 
@@ -30,6 +32,7 @@ public class EvaluationScoringService {
     private static final int COMMENT_MAX_LENGTH = 10_000;
 
     private final EvaluationRepository evaluationRepository;
+    private final ReportRepository reportRepository;
     private final RegistrationResultRepository registrationResultRepository;
     private final UserRepository userRepository;
     private final EvaluationScoringProperties scoringProperties;
@@ -37,11 +40,13 @@ public class EvaluationScoringService {
 
     public EvaluationScoringService(
             EvaluationRepository evaluationRepository,
+            ReportRepository reportRepository,
             RegistrationResultRepository registrationResultRepository,
             UserRepository userRepository,
             EvaluationScoringProperties scoringProperties,
             EvaluationScoreCalculator scoreCalculator) {
         this.evaluationRepository = evaluationRepository;
+        this.reportRepository = reportRepository;
         this.registrationResultRepository = registrationResultRepository;
         this.userRepository = userRepository;
         this.scoringProperties = scoringProperties;
@@ -232,7 +237,15 @@ public class EvaluationScoringService {
                 deadline,
                 boardEditable && !resultPublished && !deadlinePassed,
                 evaluation.getBoard() == null ? null : evaluation.getBoard().getStatus().name(),
-                evaluation.getBoardMember() == null ? null : evaluation.getBoardMember().getMemberRole().name());
+                evaluation.getBoardMember() == null ? null : evaluation.getBoardMember().getMemberRole().name(),
+                reportRepository.findByTopicRegistration_IdOrderBySubmittedAtDesc(registration.getId()).stream()
+                        .map(EvaluationScoringService::toReportFileSummary)
+                        .toList());
+    }
+
+    private static ReportFileSummary toReportFileSummary(ReportEntity report) {
+        return new ReportFileSummary(report.getId(), report.getOriginalName(), report.getFileSize(),
+                report.getSubmittedAt());
     }
 
     private boolean isVisibleAssignment(EvaluationEntity evaluation) {
@@ -315,7 +328,11 @@ public class EvaluationScoringService {
             LocalDateTime deadline,
             boolean editable,
             String boardStatus,
-            String boardMemberRole) {
+            String boardMemberRole,
+            List<ReportFileSummary> reports) {
+    }
+
+    public record ReportFileSummary(Long id, String originalName, Long fileSize, LocalDateTime submittedAt) {
     }
 
     public static class EvaluationScoringNotFoundException extends RuntimeException {

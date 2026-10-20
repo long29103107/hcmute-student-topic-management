@@ -137,6 +137,7 @@
                   <th scope="col" class="px-6 py-3">
                     <span class="sr-only">Actions</span>
                   </th>
+                  <th scope="col" class="px-6 py-3 text-center">Files</th>
                 </tr>
               </thead>
               <tbody>
@@ -230,6 +231,16 @@
                       th:if="${!evaluation.editable}"
                       >Locked</span
                     >
+                  </td>
+                  <td class="px-6 py-4 text-center">
+                    <button type="button"
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                            th:attr="data-modal-target=${'report-modal-' + evaluation.id},data-modal-toggle=${'report-modal-' + evaluation.id},aria-label=${'View uploaded files for ' + evaluation.groupName},title=${'View uploaded files (' + #lists.size(evaluation.reports) + ')'}">
+                      <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Zm0 0v6h6m-12 4h8m-8 4h8" />
+                      </svg>
+                      <span th:text="${#lists.size(evaluation.reports)}">0</span>
+                    </button>
                   </td>
                 </tr>
               </tbody>
@@ -458,6 +469,64 @@
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      </div>
+
+      <div
+        th:each="evaluation : ${evaluations}"
+        th:id="${'report-modal-' + evaluation.id}"
+        tabindex="-1"
+        aria-hidden="true"
+        role="dialog"
+        aria-modal="true"
+        th:attr="aria-labelledby=${'report-modal-title-' + evaluation.id}"
+        class="fixed inset-0 z-50 hidden h-full w-full overflow-y-auto overflow-x-hidden bg-gray-900/50 p-4 md:inset-0"
+      >
+        <div class="relative mx-auto my-8 w-full max-w-md">
+          <div class="relative rounded-lg border border-gray-200 bg-white shadow-xl">
+            <div class="flex items-start justify-between border-b border-gray-200 px-6 py-5">
+              <div>
+                <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-orange-500">Evaluation files</p>
+                <h2 class="text-xl font-semibold text-gray-900" th:id="${'report-modal-title-' + evaluation.id}">Submitted files</h2>
+                <p class="mt-2 text-sm text-gray-500" th:text="${evaluation.groupName + ' · ' + evaluation.topicTitle}">Group Phoenix · Smart campus platform</p>
+              </div>
+              <button type="button"
+                      class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-900"
+                      th:attr="data-modal-hide=${'report-modal-' + evaluation.id}"
+                      aria-label="Close files popup">
+                <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 12 12M13 1 1 13" />
+                </svg>
+              </button>
+            </div>
+            <div class="p-6">
+              <ul class="divide-y divide-gray-100" th:if="${!#lists.isEmpty(evaluation.reports)}">
+                <li class="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0" th:each="report : ${evaluation.reports}">
+                  <div class="flex min-w-0 items-start gap-3">
+                    <svg class="mt-0.5 h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Zm0 0v6h6m-12 4h8m-8 4h8" />
+                    </svg>
+                    <div class="min-w-0">
+                      <p class="break-all text-sm font-medium text-gray-900" th:text="${report.originalName}">proposal.pdf</p>
+                      <p class="mt-1 text-xs text-gray-500" th:text="${'Uploaded ' + #temporals.format(report.submittedAt, 'dd/MM/yyyy HH:mm')}">Uploaded 20/10/2026 10:30</p>
+                    </div>
+                  </div>
+                  <a class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                     th:href="@{/reports/view(id=${report.id})}">
+                    <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v12m0 0 4-4m-4 4-4-4m-3 7h14" />
+                    </svg>
+                    Download
+                  </a>
+                </li>
+              </ul>
+              <p class="text-sm text-gray-500" th:if="${#lists.isEmpty(evaluation.reports)}">This group has not uploaded any files yet.</p>
+            </div>
+            <div class="flex justify-end border-t border-gray-200 px-6 py-4">
+              <button type="button" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                      th:attr="data-modal-hide=${'report-modal-' + evaluation.id}">Close</button>
+            </div>
           </div>
         </div>
       </div>

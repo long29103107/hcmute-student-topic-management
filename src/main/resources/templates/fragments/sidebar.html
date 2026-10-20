@@ -34,12 +34,31 @@
         </a>
 
         <nav class="flex-1 space-y-5 font-medium">
-          <details data-sidebar-group th:open="${pageTitle == 'Dashboard' or pageTitle == 'Published topics'}">
-            <summary class="group flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:bg-gray-50 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                      th:classappend="${pageTitle == 'Dashboard' or pageTitle == 'Published topics' ? 'bg-blue-50 text-blue-700' : ''}">
+          <details
+            data-sidebar-group
+            th:open="${pageTitle == 'Dashboard' or pageTitle == 'Published topics'}"
+          >
+            <summary
+              class="group flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:bg-gray-50 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              th:classappend="${pageTitle == 'Dashboard' or pageTitle == 'Published topics' ? 'bg-blue-50 text-blue-700' : ''}"
+            >
               <span data-sidebar-label>Workspace</span>
-              <svg data-sidebar-label data-sidebar-chevron class="h-4 w-4 shrink-0 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m6 9 6 6 6-6"/>
+              <svg
+                data-sidebar-label
+                data-sidebar-chevron
+                class="h-4 w-4 shrink-0 transition-transform duration-200"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                  d="m6 9 6 6 6-6"
+                />
               </svg>
             </summary>
             <a
@@ -64,47 +83,94 @@
               <span class="ms-3" data-sidebar-label>Dashboard</span>
             </a>
 
-
-          <div sec:authorize="hasAuthority('TOPIC_VIEW')">
-            <ul class="space-y-1.5">
-              <li>
-                <a
-                  th:href="@{/topics}"
-                  th:aria-current="${pageTitle == 'Published topics' ? 'page' : null}"
-                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
-                  data-sidebar-link
-                  th:classappend="${pageTitle == 'Published topics' ? 'bg-blue-50 text-blue-700' : ''}"
+            <div sec:authorize="hasAuthority('TOPIC_VIEW')">
+              <ul class="space-y-1.5">
+                <li>
+                  <a
+                    th:href="@{/topics}"
+                    th:aria-current="${pageTitle == 'Published topics' ? 'page' : null}"
+                    class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                    data-sidebar-link
+                    th:classappend="${pageTitle == 'Published topics' ? 'bg-blue-50 text-blue-700' : ''}"
+                  >
+                    <svg
+                      class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                      th:classappend="${pageTitle == 'Published topics' ? 'text-blue-700' : ''}"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.8"
+                        d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5m0-15v15M8 7h8m-8 4h8m-8 4h5"
+                      />
+                    </svg>
+                    <span class="ms-3" data-sidebar-label
+                      >Published topics</span
+                    >
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <a
+                th:href="@{/announcements}"
+                th:aria-current="${pageTitle == 'Announcements' ? 'page' : null}"
+                class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                data-sidebar-link
+                th:classappend="${pageTitle == 'Announcements' ? 'bg-blue-50 text-blue-700' : ''}"
+              >
+                <svg
+                  class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                  th:classappend="${pageTitle == 'Announcements' ? 'text-blue-700' : ''}"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Published topics' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5m0-15v15M8 7h8m-8 4h8m-8 4h5"/>
-                  </svg>
-                  <span class="ms-3" data-sidebar-label>Published topics</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <a
-              th:href="@{/announcements}"
-              th:aria-current="${pageTitle == 'Announcements' ? 'page' : null}"
-              class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
-              data-sidebar-link
-              th:classappend="${pageTitle == 'Announcements' ? 'bg-blue-50 text-blue-700' : ''}"
-            >
-              <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Announcements' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Zm-8.5 13h5"/>
-              </svg>
-              <span class="ms-3" data-sidebar-label>Announcements</span>
-            </a>
-          </div>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Zm-8.5 13h5"
+                  />
+                </svg>
+                <span class="ms-3" data-sidebar-label>Announcements</span>
+              </a>
+            </div>
           </details>
 
-          <details sec:authorize="hasRole('STUDENT') and hasAuthority('GROUP_MANAGE')" data-sidebar-group th:open="${pageTitle == 'My groups' or pageTitle == 'My registrations' or pageTitle == 'Register topic' or pageTitle == 'My results'}">
-            <summary class="group flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:bg-gray-50 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                      th:classappend="${pageTitle == 'My groups' or pageTitle == 'My registrations' or pageTitle == 'Register topic' or pageTitle == 'My results' ? 'bg-blue-50 text-blue-700' : ''}">
+          <details
+            sec:authorize="hasRole('STUDENT') and hasAuthority('GROUP_MANAGE')"
+            data-sidebar-group
+            th:open="${pageTitle == 'My groups' or pageTitle == 'My registrations' or pageTitle == 'Register topic' or pageTitle == 'My results'}"
+          >
+            <summary
+              class="group flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:bg-gray-50 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              th:classappend="${pageTitle == 'My groups' or pageTitle == 'My registrations' or pageTitle == 'Register topic' or pageTitle == 'My results' ? 'bg-blue-50 text-blue-700' : ''}"
+            >
               <span data-sidebar-label>Student workspace</span>
-              <svg data-sidebar-label data-sidebar-chevron class="h-4 w-4 shrink-0 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m6 9 6 6 6-6"/>
+              <svg
+                data-sidebar-label
+                data-sidebar-chevron
+                class="h-4 w-4 shrink-0 transition-transform duration-200"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                  d="m6 9 6 6 6-6"
+                />
               </svg>
             </summary>
             <ul class="space-y-1.5">
@@ -116,8 +182,21 @@
                   data-sidebar-link
                   th:classappend="${pageTitle == 'My groups' ? 'bg-blue-50 text-blue-700' : ''}"
                 >
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'My groups' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m7-8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm5-3h4m-2-2v4"/>
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'My groups' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m7-8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm5-3h4m-2-2v4"
+                    />
                   </svg>
                   <span class="ms-3" data-sidebar-label>My groups</span>
                 </a>
@@ -130,7 +209,22 @@
                   data-sidebar-link
                   th:classappend="${pageTitle == 'My registrations' or pageTitle == 'Register topic' ? 'bg-blue-50 text-blue-700' : ''}"
                 >
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'My registrations' or pageTitle == 'Register topic' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/></svg>
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'My registrations' or pageTitle == 'Register topic' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"
+                    />
+                  </svg>
                   <span class="ms-3" data-sidebar-label>My registrations</span>
                 </a>
               </li>
@@ -142,19 +236,54 @@
                   data-sidebar-link
                   th:classappend="${pageTitle == 'My results' ? 'bg-blue-50 text-blue-700' : ''}"
                 >
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'My results' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 4h14v16H5zM8 8h8m-8 4h8m-8 4h5"/></svg>
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'My results' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M5 4h14v16H5zM8 8h8m-8 4h8m-8 4h5"
+                    />
+                  </svg>
                   <span class="ms-3" data-sidebar-label>My results</span>
                 </a>
               </li>
             </ul>
           </details>
 
-          <details sec:authorize="hasRole('ADMIN')" data-sidebar-group th:open="${pageTitle == 'Manage students' or pageTitle == 'Create user' or pageTitle == 'Edit user' or pageTitle == 'Manage lecturers' or pageTitle == 'Department management' or pageTitle == 'Roles &amp; access controls' or pageTitle == 'Role permissions' or pageTitle == 'Manage permissions'}">
-            <summary class="group flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:bg-gray-50 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                      th:classappend="${pageTitle == 'Manage students' or pageTitle == 'Create user' or pageTitle == 'Edit user' or pageTitle == 'Manage lecturers' or pageTitle == 'Department management' or pageTitle == 'Roles & access controls' or pageTitle == 'Role permissions' or pageTitle == 'Manage permissions' ? 'bg-blue-50 text-blue-700' : ''}">
+          <details
+            sec:authorize="hasRole('ADMIN')"
+            data-sidebar-group
+            th:open="${pageTitle == 'Manage students' or pageTitle == 'Create user' or pageTitle == 'Edit user' or pageTitle == 'Manage lecturers' or pageTitle == 'Department management' or pageTitle == 'Roles &amp; access controls' or pageTitle == 'Role permissions' or pageTitle == 'Manage permissions'}"
+          >
+            <summary
+              class="group flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:bg-gray-50 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              th:classappend="${pageTitle == 'Manage students' or pageTitle == 'Create user' or pageTitle == 'Edit user' or pageTitle == 'Manage lecturers' or pageTitle == 'Department management' or pageTitle == 'Roles & access controls' or pageTitle == 'Role permissions' or pageTitle == 'Manage permissions' ? 'bg-blue-50 text-blue-700' : ''}"
+            >
               <span data-sidebar-label>Administration</span>
-              <svg data-sidebar-label data-sidebar-chevron class="h-4 w-4 shrink-0 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m6 9 6 6 6-6"/>
+              <svg
+                data-sidebar-label
+                data-sidebar-chevron
+                class="h-4 w-4 shrink-0 transition-transform duration-200"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                  d="m6 9 6 6 6-6"
+                />
               </svg>
             </summary>
             <ul class="space-y-1.5">
@@ -216,8 +345,21 @@
                   data-sidebar-link
                   th:classappend="${pageTitle == 'Department management' ? 'bg-blue-50 text-blue-700' : ''}"
                 >
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Department management' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 21h18M5 21V5l7-3 7 3v16M9 9h1m4 0h1M9 13h1m4 0h1M9 17h1m4 0h1"/>
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'Department management' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M3 21h18M5 21V5l7-3 7 3v16M9 9h1m4 0h1M9 13h1m4 0h1M9 17h1m4 0h1"
+                    />
                   </svg>
                   <span class="ms-3" data-sidebar-label>Departments</span>
                 </a>
@@ -254,18 +396,38 @@
             </ul>
           </details>
 
-          <details sec:authorize="hasAnyRole('ADMIN', 'LECTURER', 'FACULTY_HEAD')" data-sidebar-group th:open="${pageTitle == 'My topic proposals' or pageTitle == 'My evaluations'}">
-            <summary class="group flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:bg-gray-50 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                      th:classappend="${pageTitle == 'My topic proposals' or pageTitle == 'My evaluations' ? 'bg-blue-50 text-blue-700' : ''}">
+          <details
+            sec:authorize="hasAnyRole('ADMIN', 'LECTURER', 'FACULTY_HEAD')"
+            data-sidebar-group
+            th:open="${pageTitle == 'My topic proposals' or pageTitle == 'My evaluations'}"
+          >
+            <summary
+              class="group flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:bg-gray-50 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              th:classappend="${pageTitle == 'My topic proposals' or pageTitle == 'My evaluations' ? 'bg-blue-50 text-blue-700' : ''}"
+            >
               <span data-sidebar-label>Lecturer workspace</span>
-              <svg data-sidebar-label data-sidebar-chevron class="h-4 w-4 shrink-0 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m6 9 6 6 6-6"/>
+              <svg
+                data-sidebar-label
+                data-sidebar-chevron
+                class="h-4 w-4 shrink-0 transition-transform duration-200"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                  d="m6 9 6 6 6-6"
+                />
               </svg>
             </summary>
             <ul class="space-y-1.5">
-                <li>
-                  <a
-                    th:href="@{/lecturer/topics}"
+              <li>
+                <a
+                  th:href="@{/lecturer/topics}"
                   th:aria-current="${pageTitle == 'My topic proposals' ? 'page' : null}"
                   class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
                   data-sidebar-link
@@ -287,7 +449,9 @@
                       d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5m0-15v15M8 7h8m-8 4h8m-8 4h5"
                     />
                   </svg>
-                  <span class="ms-3" data-sidebar-label>My topic proposals</span>
+                  <span class="ms-3" data-sidebar-label
+                    >My topic proposals</span
+                  >
                 </a>
               </li>
               <li sec:authorize="hasAuthority('EVALUATION_SUBMIT')">
@@ -307,7 +471,12 @@
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5m0-15v15M8 7h8m-8 4h8m-8 4h5"/>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5m0-15v15M8 7h8m-8 4h8m-8 4h5"
+                    />
                   </svg>
                   <span class="ms-3" data-sidebar-label>My evaluations</span>
                 </a>
@@ -315,42 +484,173 @@
             </ul>
           </details>
 
-          <details sec:authorize="hasAnyRole('ADMIN', 'FACULTY_HEAD')" data-sidebar-group th:open="${pageTitle == 'My department' or pageTitle == 'Registration period management' or pageTitle == 'Supervisor assignments' or pageTitle == 'Topic review' or pageTitle == 'Registration review' or pageTitle == 'Evaluator assignments' or pageTitle == 'Review boards' or pageTitle == 'Manage announcements' or pageTitle == 'Publish topics' or pageTitle == 'Result publication' or pageTitle == 'Student groups'}">
-            <summary class="group flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:bg-gray-50 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                      th:classappend="${pageTitle == 'My department' or pageTitle == 'Registration period management' or pageTitle == 'Supervisor assignments' or pageTitle == 'Topic review' or pageTitle == 'Registration review' or pageTitle == 'Evaluator assignments' or pageTitle == 'Review boards' or pageTitle == 'Manage announcements' or pageTitle == 'Publish topics' or pageTitle == 'Result publication' or pageTitle == 'Student groups' ? 'bg-blue-50 text-blue-700' : ''}">
+          <details
+            sec:authorize="hasAnyRole('ADMIN', 'FACULTY_HEAD')"
+            data-sidebar-group
+            th:open="${pageTitle == 'My department' or pageTitle == 'Registration period management' or pageTitle == 'Supervisor assignments' or pageTitle == 'Topic review' or pageTitle == 'Registration review' or pageTitle == 'Evaluator assignments' or pageTitle == 'Review boards' or pageTitle == 'Manage announcements' or pageTitle == 'Publish topics' or pageTitle == 'Result publication' or pageTitle == 'Student groups'}"
+          >
+            <summary
+              class="group flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:bg-gray-50 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              th:classappend="${pageTitle == 'My department' or pageTitle == 'Registration period management' or pageTitle == 'Supervisor assignments' or pageTitle == 'Topic review' or pageTitle == 'Registration review' or pageTitle == 'Evaluator assignments' or pageTitle == 'Review boards' or pageTitle == 'Manage announcements' or pageTitle == 'Publish topics' or pageTitle == 'Result publication' or pageTitle == 'Student groups' ? 'bg-blue-50 text-blue-700' : ''}"
+            >
               <span data-sidebar-label>Faculty workflow</span>
-              <svg data-sidebar-label data-sidebar-chevron class="h-4 w-4 shrink-0 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m6 9 6 6 6-6"/>
+              <svg
+                data-sidebar-label
+                data-sidebar-chevron
+                class="h-4 w-4 shrink-0 transition-transform duration-200"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                  d="m6 9 6 6 6-6"
+                />
               </svg>
             </summary>
             <ul class="space-y-1.5">
               <li sec:authorize="hasRole('FACULTY_HEAD')">
-                <a th:href="@{/faculty/departments}" th:aria-current="${pageTitle == 'My department' ? 'page' : null}" class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700" data-sidebar-link th:classappend="${pageTitle == 'My department' ? 'bg-blue-50 text-blue-700' : ''}">
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'My department' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 21h18M5 21V5l7-3 7 3v16M9 9h1m4 0h1M9 13h1m4 0h1M9 17h1m4 0h1"/></svg>
+                <a
+                  th:href="@{/faculty/departments}"
+                  th:aria-current="${pageTitle == 'My department' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'My department' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'My department' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M3 21h18M5 21V5l7-3 7 3v16M9 9h1m4 0h1M9 13h1m4 0h1M9 17h1m4 0h1"
+                    />
+                  </svg>
                   <span class="ms-3" data-sidebar-label>My department</span>
                 </a>
               </li>
-              <li sec:authorize="hasAuthority('PERIOD_MANAGE')">
-                <a th:href="@{/faculty/periods}" th:aria-current="${pageTitle == 'Registration period management' ? 'page' : null}" class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700" data-sidebar-link th:classappend="${pageTitle == 'Registration period management' ? 'bg-blue-50 text-blue-700' : ''}">
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Registration period management' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3v4m10-4v4M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm3 8h3m-3 4h6"/></svg>
-                  <span class="ms-3" data-sidebar-label>Registration periods</span>
+              <li sec:authorize="hasAuthority('ANNOUNCEMENT_MANAGE')">
+                <a
+                  th:href="@{/announcements/manage}"
+                  th:aria-current="${pageTitle == 'Manage announcements' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'Manage announcements' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'Manage announcements' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M4 5h16M4 9h16M4 13h10m-10 4h7"
+                    />
+                  </svg>
+                  <span class="ms-3" data-sidebar-label
+                    >Manage announcements</span
+                  >
                 </a>
               </li>
-              <li sec:authorize="hasAuthority('ANNOUNCEMENT_MANAGE')">
-                <a th:href="@{/announcements/manage}" th:aria-current="${pageTitle == 'Manage announcements' ? 'page' : null}" class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700" data-sidebar-link th:classappend="${pageTitle == 'Manage announcements' ? 'bg-blue-50 text-blue-700' : ''}">
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Manage announcements' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 5h16M4 9h16M4 13h10m-10 4h7"/></svg>
-                  <span class="ms-3" data-sidebar-label>Manage announcements</span>
+              <li sec:authorize="hasAuthority('PERIOD_MANAGE')">
+                <a
+                  th:href="@{/faculty/periods}"
+                  th:aria-current="${pageTitle == 'Registration period management' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'Registration period management' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'Registration period management' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M7 3v4m10-4v4M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm3 8h3m-3 4h6"
+                    />
+                  </svg>
+                  <span class="ms-3" data-sidebar-label
+                    >Registration periods</span
+                  >
                 </a>
               </li>
               <li sec:authorize="hasAuthority('TOPIC_REVIEW')">
-                <a th:href="@{/faculty/topics/review}" th:aria-current="${pageTitle == 'Topic review' ? 'page' : null}" class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700" data-sidebar-link th:classappend="${pageTitle == 'Topic review' ? 'bg-blue-50 text-blue-700' : ''}">
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Topic review' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m9 12 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                <a
+                  th:href="@{/faculty/topics/review}"
+                  th:aria-current="${pageTitle == 'Topic review' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'Topic review' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'Topic review' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="m9 12 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                    />
+                  </svg>
                   <span class="ms-3" data-sidebar-label>Topic review</span>
                 </a>
               </li>
-              <li sec:authorize="hasAnyRole('ADMIN', 'FACULTY_HEAD') and hasAuthority('TOPIC_REVIEW')">
-                <a th:href="@{/faculty/topics/publish}" th:aria-current="${pageTitle == 'Publish topics' ? 'page' : null}" class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700" data-sidebar-link th:classappend="${pageTitle == 'Publish topics' ? 'bg-blue-50 text-blue-700' : ''}">
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Publish topics' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>
+              <li
+                sec:authorize="hasAnyRole('ADMIN', 'FACULTY_HEAD') and hasAuthority('TOPIC_REVIEW')"
+              >
+                <a
+                  th:href="@{/faculty/topics/publish}"
+                  th:aria-current="${pageTitle == 'Publish topics' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'Publish topics' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'Publish topics' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"
+                    />
+                  </svg>
                   <span class="ms-3" data-sidebar-label>Publish topics</span>
                 </a>
               </li>
@@ -362,14 +662,52 @@
                   data-sidebar-link
                   th:classappend="${pageTitle == 'Student groups' ? 'bg-blue-50 text-blue-700' : ''}"
                 >
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Student groups' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m8-8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm5 3h4m-2-2v4"/></svg>
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'Student groups' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m8-8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm5 3h4m-2-2v4"
+                    />
+                  </svg>
                   <span class="ms-3" data-sidebar-label>Student groups</span>
                 </a>
               </li>
               <li sec:authorize="hasAuthority('REGISTRATION_REVIEW')">
-                <a th:href="@{/faculty/registrations/review}" th:aria-current="${pageTitle == 'Registration review' ? 'page' : null}" class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700" data-sidebar-link th:classappend="${pageTitle == 'Registration review' ? 'bg-blue-50 text-blue-700' : ''}">
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Registration review' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5h6m-9 4h12M6 13h8m-8 4h5m7.5-2.5 1.5 1.5 3-3"/></svg>
-                  <span class="ms-3" data-sidebar-label>Registration review</span>
+                <a
+                  th:href="@{/faculty/registrations/review}"
+                  th:aria-current="${pageTitle == 'Registration review' ? 'page' : null}"
+                  class="group flex items-center rounded-lg p-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  data-sidebar-link
+                  th:classappend="${pageTitle == 'Registration review' ? 'bg-blue-50 text-blue-700' : ''}"
+                >
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'Registration review' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M9 5h6m-9 4h12M6 13h8m-8 4h5m7.5-2.5 1.5 1.5 3-3"
+                    />
+                  </svg>
+                  <span class="ms-3" data-sidebar-label
+                    >Registration review</span
+                  >
                 </a>
               </li>
               <li sec:authorize="hasAuthority('SUPERVISOR_MANAGE')">
@@ -380,13 +718,31 @@
                   data-sidebar-link
                   th:classappend="${pageTitle == 'Supervisor assignments' ? 'bg-blue-50 text-blue-700' : ''}"
                 >
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Supervisor assignments' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m7-8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm9-3v6m3-3h-6"/>
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'Supervisor assignments' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m7-8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm9-3v6m3-3h-6"
+                    />
                   </svg>
-                  <span class="ms-3" data-sidebar-label>Supervisor assignments</span>
+                  <span class="ms-3" data-sidebar-label
+                    >Supervisor assignments</span
+                  >
                 </a>
               </li>
-              <li th:remove="all" sec:authorize="hasAuthority('REGISTRATION_REVIEW')">
+              <li
+                th:remove="all"
+                sec:authorize="hasAuthority('REGISTRATION_REVIEW')"
+              >
                 <a
                   th:href="@{/faculty/registrations/review}"
                   th:aria-current="${pageTitle == 'Registration review' ? 'page' : null}"
@@ -394,8 +750,25 @@
                   data-sidebar-link
                   th:classappend="${pageTitle == 'Registration review' ? 'bg-blue-50 text-blue-700' : ''}"
                 >
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Registration review' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5h6m-9 4h12M6 13h8m-8 4h5m7.5-2.5 1.5 1.5 3-3"/></svg>
-                  <span class="ms-3" data-sidebar-label>Registration review</span>
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'Registration review' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M9 5h6m-9 4h12M6 13h8m-8 4h5m7.5-2.5 1.5 1.5 3-3"
+                    />
+                  </svg>
+                  <span class="ms-3" data-sidebar-label
+                    >Registration review</span
+                  >
                 </a>
               </li>
               <li sec:authorize="hasAuthority('REVIEW_BOARD_VIEW')">
@@ -406,11 +779,29 @@
                   data-sidebar-link
                   th:classappend="${pageTitle == 'Review boards' ? 'bg-blue-50 text-blue-700' : ''}"
                 >
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Review boards' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 3h12v18H6zM9 7h6m-6 4h6m-6 4h4"/></svg>
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'Review boards' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M6 3h12v18H6zM9 7h6m-6 4h6m-6 4h4"
+                    />
+                  </svg>
                   <span class="ms-3" data-sidebar-label>Review boards</span>
                 </a>
               </li>
-              <li th:remove="all" sec:authorize="hasAuthority('ANNOUNCEMENT_MANAGE')">
+              <li
+                th:remove="all"
+                sec:authorize="hasAuthority('ANNOUNCEMENT_MANAGE')"
+              >
                 <a
                   th:href="@{/announcements/manage}"
                   th:aria-current="${pageTitle == 'Manage announcements' ? 'page' : null}"
@@ -418,8 +809,24 @@
                   data-sidebar-link
                   th:classappend="${pageTitle == 'Manage announcements' ? 'bg-blue-50 text-blue-700' : ''}"
                 >
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Manage announcements' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 5h16M4 9h16M4 13h10m-10 4h7"/></svg>
-                  <span class="ms-3" data-sidebar-label>Manage announcements</span>
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'Manage announcements' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M4 5h16M4 9h16M4 13h10m-10 4h7"
+                    />
+                  </svg>
+                  <span class="ms-3" data-sidebar-label
+                    >Manage announcements</span
+                  >
                 </a>
               </li>
               <li sec:authorize="hasAuthority('REGISTRATION_REVIEW')">
@@ -430,13 +837,31 @@
                   data-sidebar-link
                   th:classappend="${pageTitle == 'Evaluator assignments' ? 'bg-blue-50 text-blue-700' : ''}"
                 >
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Evaluator assignments' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m7-8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm5 4h4m-2-2v4"/>
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'Evaluator assignments' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m7-8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm5 4h4m-2-2v4"
+                    />
                   </svg>
-                  <span class="ms-3" data-sidebar-label>Evaluator assignments</span>
+                  <span class="ms-3" data-sidebar-label
+                    >Evaluator assignments</span
+                  >
                 </a>
               </li>
-              <li th:remove="all" sec:authorize="hasAnyRole('ADMIN', 'FACULTY_HEAD') and hasAuthority('TOPIC_REVIEW')">
+              <li
+                th:remove="all"
+                sec:authorize="hasAnyRole('ADMIN', 'FACULTY_HEAD') and hasAuthority('TOPIC_REVIEW')"
+              >
                 <a
                   th:href="@{/faculty/topics/publish}"
                   th:aria-current="${pageTitle == 'Publish topics' ? 'page' : null}"
@@ -444,8 +869,22 @@
                   data-sidebar-link
                   th:classappend="${pageTitle == 'Publish topics' ? 'bg-blue-50 text-blue-700' : ''}"
                 >
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Publish topics' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/>
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'Publish topics' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"
+                    />
                   </svg>
                   <span class="ms-3" data-sidebar-label>Publish topics</span>
                 </a>
@@ -458,8 +897,25 @@
                   data-sidebar-link
                   th:classappend="${pageTitle == 'Result publication' ? 'bg-blue-50 text-blue-700' : ''}"
                 >
-                  <svg class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700" th:classappend="${pageTitle == 'Result publication' ? 'text-blue-700' : ''}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 19h16M6 17V5h12v12M9 8h6m-6 4h6"/></svg>
-                  <span class="ms-3" data-sidebar-label>Result publication</span>
+                  <svg
+                    class="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-700"
+                    th:classappend="${pageTitle == 'Result publication' ? 'text-blue-700' : ''}"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M4 19h16M6 17V5h12v12M9 8h6m-6 4h6"
+                    />
+                  </svg>
+                  <span class="ms-3" data-sidebar-label
+                    >Result publication</span
+                  >
                 </a>
               </li>
             </ul>

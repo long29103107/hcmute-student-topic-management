@@ -445,3 +445,10 @@ Issue: https://github.com/long29103107/hcmute-student-topic-management/issues/26
   button while retaining right-edge alignment.
 - Latest verification: `mvn.cmd -B -Dtest=ReviewBoardControllerTest test`
   passed (11 tests, 0 failures), and `git diff --check` passed.
+- `/lecturer/scoring` has a dedicated Files column at the end of each assigned
+  registration row, with a file icon and report count. Opening it displays a
+  compact popup with uploaded report filenames, submission timestamps and a
+  download button for each file. Downloads use the existing `/reports/view`
+  route and its server-side evaluator/board-member access check.
+- Verification: `mvnw.cmd -q -DskipTests compile` and `git diff --check` passed;
+  tests were not run.
