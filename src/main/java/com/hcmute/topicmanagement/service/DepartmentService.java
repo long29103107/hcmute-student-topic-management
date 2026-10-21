@@ -49,7 +49,18 @@ public class DepartmentService {
 
     @PreAuthorize("hasAuthority('DEPARTMENT_MANAGE')")
     public List<DepartmentSummary> listDepartments(String search, String sort, String direction) {
+        return listDepartments(search, "", sort, direction);
+    }
+
+    /**
+     * Directory list with an optional status filter. {@code status} accepts ACTIVE or INACTIVE
+     * (case-insensitive); blank or unknown values mean "all statuses". The filter combines with
+     * the search text using AND semantics.
+     */
+    @PreAuthorize("hasAuthority('DEPARTMENT_MANAGE')")
+    public List<DepartmentSummary> listDepartments(String search, String status, String sort, String direction) {
         String normalizedSearch = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
+        String normalizedStatus = normalizeStatusFilter(status);
         Comparator<DepartmentSummary> comparator = switch (normalizeSort(sort)) {
             case "code" -> Comparator.comparing(
                     DepartmentSummary::getCode, String.CASE_INSENSITIVE_ORDER)
@@ -67,6 +78,8 @@ public class DepartmentService {
 
         return departmentRepository.findAllByOrderByNameAsc().stream()
                 .map(DepartmentService::toSummary)
+                .filter(department -> normalizedStatus.isEmpty()
+                        || ("ACTIVE".equals(normalizedStatus) == department.isActive()))
                 .filter(department -> normalizedSearch.isBlank()
                         || department.getCode().toLowerCase(Locale.ROOT).contains(normalizedSearch)
                         || department.getName().toLowerCase(Locale.ROOT).contains(normalizedSearch)
@@ -77,7 +90,13 @@ public class DepartmentService {
 
     @PreAuthorize("hasAuthority('DEPARTMENT_MANAGE')")
     public DepartmentPage listDepartmentsPage(String search, int page, int size, String sort, String direction) {
-        List<DepartmentSummary> filtered = listDepartments(search, sort, direction);
+        return listDepartmentsPage(search, "", page, size, sort, direction);
+    }
+
+    @PreAuthorize("hasAuthority('DEPARTMENT_MANAGE')")
+    public DepartmentPage listDepartmentsPage(
+            String search, String status, int page, int size, String sort, String direction) {
+        List<DepartmentSummary> filtered = listDepartments(search, status, sort, direction);
         int safeSize = Math.min(Math.max(size, 5), 100);
         int totalItems = filtered.size();
         int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / safeSize));
@@ -91,7 +110,14 @@ public class DepartmentService {
                 totalItems,
                 totalPages,
                 normalizeSort(sort),
-                normalizeDirection(direction));
+                normalizeDirection(direction),
+                normalizeStatusFilter(status));
+    }
+
+    /** Returns "ACTIVE", "INACTIVE", or "" (all) for any raw status request parameter. */
+    public static String normalizeStatusFilter(String status) {
+        String normalized = status == null ? "" : status.trim().toUpperCase(Locale.ROOT);
+        return "ACTIVE".equals(normalized) || "INACTIVE".equals(normalized) ? normalized : "";
     }
 
     private static DepartmentSummary toSummary(DepartmentEntity department) {
@@ -376,9 +402,16 @@ public class DepartmentService {
         private final int totalPages;
         private final String sort;
         private final String direction;
+        private final String status;
 
         public DepartmentPage(List<DepartmentSummary> content, int page, int size, int totalItems,
                 int totalPages, String sort, String direction) {
+            this(content, page, size, totalItems, totalPages, sort, direction, "");
+        }
+
+        public DepartmentPage(List<DepartmentSummary> content, int page, int size, int totalItems,
+                int totalPages, String sort, String direction, String status) {
+            this.status = status == null ? "" : status;
             this.content = List.copyOf(content);
             this.page = page;
             this.size = size;
@@ -414,6 +447,10 @@ public class DepartmentService {
 
         public String getDirection() {
             return direction;
+        }
+
+        public String getStatus() {
+            return status;
         }
 
         public boolean isHasPrevious() {
