@@ -33,10 +33,11 @@ public class DepartmentController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "") String status,
             @RequestParam(defaultValue = "name") String sort,
             @RequestParam(defaultValue = "asc") String direction,
             Model model) {
-        populatePage(model, search, page, size, sort, direction);
+        populatePage(model, search, status, page, size, sort, direction);
         return "faculty/departments";
     }
 
@@ -48,7 +49,7 @@ public class DepartmentController {
             Model model,
         RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            populatePage(model, "", 0, 10, "name", "asc");
+            populatePage(model, "", "", 0, 10, "name", "asc");
             model.addAttribute("createForm", form);
             return "faculty/departments";
         }
@@ -110,16 +111,18 @@ public class DepartmentController {
         return "redirect:/admin/departments";
     }
 
-    private void populatePage(Model model, String search, int page, int size, String sort, String direction) {
+    private void populatePage(
+            Model model, String search, String status, int page, int size, String sort, String direction) {
         model.addAttribute("pageTitle", "Department management");
         String normalizedSearch = search == null ? "" : search.trim();
         String normalizedSort = normalizeSort(sort);
         String normalizedDirection = normalizeDirection(direction);
         var departmentPage = departmentService.listDepartmentsPage(
-                normalizedSearch, page, size, normalizedSort, normalizedDirection);
+                normalizedSearch, status, page, size, normalizedSort, normalizedDirection);
         var departments = departmentPage.getContent();
         model.addAttribute("departmentPage", departmentPage);
         model.addAttribute("departmentSearch", normalizedSearch);
+        model.addAttribute("departmentStatus", departmentPage.getStatus());
         model.addAttribute("departmentSort", departmentPage.getSort());
         model.addAttribute("departmentDirection", departmentPage.getDirection());
         model.addAttribute("departments", departments);
